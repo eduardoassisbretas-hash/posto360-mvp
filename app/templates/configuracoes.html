@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações | Posto360</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap");
+
+        :root {
+            --bg: #06111f;
+            --bg-accent: radial-gradient(circle at top, rgba(37, 99, 235, 0.22), transparent 34%), radial-gradient(circle at 85% 10%, rgba(16, 185, 129, 0.16), transparent 22%), linear-gradient(180deg, #08111d 0%, #040914 100%);
+            --panel: rgba(10, 19, 35, 0.92);
+            --panel-soft: rgba(148, 163, 184, 0.08);
+            --border: rgba(148, 163, 184, 0.16);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --primary: #38bdf8;
+            --primary-strong: #2563eb;
+            --shadow: 0 12px 32px rgba(2, 6, 23, 0.24);
+            --radius-lg: 28px;
+            --radius-md: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Manrope", "Segoe UI", sans-serif;
+            background: var(--bg);
+            background-image: var(--bg-accent);
+            color: var(--text);
+            padding: 18px;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .shell {
+            width: min(980px, 100%);
+            margin: 0 auto;
+            display: grid;
+            gap: 18px;
+        }
+
+        .page-header,
+        .settings-card {
+            border: 1px solid var(--border);
+            background: var(--panel);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius-lg);
+        }
+
+        .page-header {
+            display: grid;
+            gap: 18px;
+            padding: 22px;
+        }
+
+        h1,
+        h2 {
+            font-family: "Space Grotesk", "Manrope", sans-serif;
+            letter-spacing: -0.03em;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 7vw, 3rem);
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 1.18rem;
+            margin-bottom: 14px;
+        }
+
+        p {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        form {
+            display: grid;
+            gap: 18px;
+        }
+
+        .settings-card {
+            padding: 20px;
+            background: linear-gradient(180deg, rgba(15, 27, 47, 0.94) 0%, rgba(8, 15, 27, 0.98) 100%);
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        label {
+            display: grid;
+            gap: 7px;
+            color: #dbeafe;
+            font-weight: 800;
+            font-size: 0.92rem;
+        }
+
+        input,
+        select {
+            width: 100%;
+            min-height: 48px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(15, 23, 42, 0.72);
+            color: var(--text);
+            padding: 0 14px;
+            outline: none;
+        }
+
+        .region-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 34px;
+            padding: 6px 11px;
+            border-radius: 999px;
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            background: rgba(56, 189, 248, 0.1);
+            color: #dbeafe;
+            font-weight: 800;
+            font-size: 0.84rem;
+        }
+
+        .toggle-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 12px 0;
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+            color: #dbeafe;
+            font-weight: 700;
+        }
+
+        .toggle-row input {
+            width: 20px;
+            min-height: 20px;
+            accent-color: var(--primary);
+        }
+
+        .plan-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .plan-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+            color: #dbeafe;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 0 18px;
+            border-radius: 14px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            border: none;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
+            color: #eff6ff;
+        }
+
+        .btn-secondary {
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.6);
+            color: #dbeafe;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        @media (min-width: 760px) {
+            body {
+                padding: 28px;
+            }
+
+            .page-header {
+                grid-template-columns: 1fr auto;
+                align-items: center;
+                padding: 30px;
+            }
+
+            .form-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    {% set perfil = dados.perfil if dados is defined and dados.perfil is defined else {} %}
+    {% set regioes = dados.regioes if dados is defined and dados.regioes is defined else [] %}
+    {% set parametros = dados.parametros if dados is defined and dados.parametros is defined else {} %}
+    {% set alertas_config = dados.alertas_config if dados is defined and dados.alertas_config is defined else {} %}
+    {% set plano = dados.plano if dados is defined and dados.plano is defined else {} %}
+
+    <main class="shell">
+        <section class="page-header">
+            <div>
+                <h1>Configurações</h1>
+                <p>Personalize sua operação e prepare o Posto360 para crescer com sua rede.</p>
+            </div>
+            <a class="btn-secondary" href="/dashboard">Voltar ao dashboard</a>
+        </section>
+
+        <form action="/configuracoes" method="post">
+            <section class="settings-card">
+                <h2>Perfil</h2>
+                <div class="form-grid">
+                    <label>
+                        Nome
+                        <input type="text" name="nome" value="{{ perfil.get('nome', '') }}" placeholder="Seu nome">
+                    </label>
+                    <label>
+                        Email
+                        <input type="email" name="email" value="{{ perfil.get('email', '') }}" placeholder="voce@empresa.com">
+                    </label>
+                    <label>
+                        Empresa (opcional)
+                        <input type="text" name="empresa" value="{{ perfil.get('empresa', '') }}" placeholder="Nome da empresa">
+                    </label>
+                </div>
+            </section>
+
+            <section class="settings-card">
+                <h2>Regiões de atuação</h2>
+                {% if regioes %}
+                <div class="region-list">
+                    {% for regiao in regioes %}
+                    <span class="pill">{{ regiao }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p>Nenhuma região cadastrada ainda.</p>
+                {% endif %}
+                <div class="form-grid">
+                    <label>
+                        + Adicionar região
+                        <input type="text" name="nova_regiao" placeholder="Ex: Savassi">
+                    </label>
+                </div>
+                <p>As regiões são usadas para comparação de preços.</p>
+            </section>
+
+            <section class="settings-card">
+                <h2>Parâmetros de decisão</h2>
+                <div class="form-grid">
+                    <label>
+                        Margem para “acima da média”
+                        <input type="text" name="margem_acima_media" value="{{ parametros.get('margem_acima_media', '0.05') }}">
+                    </label>
+                    <label>
+                        Margem para “alerta crítico”
+                        <input type="text" name="margem_alerta_critico" value="{{ parametros.get('margem_alerta_critico', '0.10') }}">
+                    </label>
+                    <label>
+                        Estratégia
+                        <select name="estrategia">
+                            {% for item in ["Conservador", "Equilibrado", "Agressivo"] %}
+                            <option value="{{ item }}" {% if parametros.get('estrategia', 'Equilibrado') == item %}selected{% endif %}>{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+            </section>
+
+            <section class="settings-card">
+                <h2>Alertas</h2>
+                <div class="toggle-list">
+                    <label class="toggle-row">
+                        Avisar quando preço estiver acima da média
+                        <input type="checkbox" name="preco_acima_media" {% if alertas_config.get('preco_acima_media', true) %}checked{% endif %}>
+                    </label>
+                    <label class="toggle-row">
+                        Avisar quando concorrentes reduzirem preço
+                        <input type="checkbox" name="concorrentes_reduziram" {% if alertas_config.get('concorrentes_reduziram', true) %}checked{% endif %}>
+                    </label>
+                    <label class="toggle-row">
+                        Avisar oportunidades de aumento de margem
+                        <input type="checkbox" name="oportunidade_margem" {% if alertas_config.get('oportunidade_margem', true) %}checked{% endif %}>
+                    </label>
+                </div>
+            </section>
+
+            <section class="settings-card">
+                <h2>Plano</h2>
+                <div class="plan-grid">
+                    <div class="plan-row">
+                        <span>Plano atual</span>
+                        <strong>{{ plano.get("nome", "Básico") }}</strong>
+                    </div>
+                    <div class="plan-row">
+                        <span>Postos cadastrados</span>
+                        <strong>{{ plano.get("postos_cadastrados", 0) }}</strong>
+                    </div>
+                </div>
+            </section>
+
+            <div class="actions">
+                <button class="btn-primary" type="submit">Salvar alterações</button>
+                <a class="btn-secondary" href="/dashboard">Cancelar</a>
+            </div>
+        </form>
+    </main>
+</body>
+</html>

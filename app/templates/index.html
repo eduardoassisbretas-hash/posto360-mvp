@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posto360 | Dashboard</title>
+    {% if dados.processamento_upload is defined and dados.processamento_upload.em_andamento %}
+    <meta http-equiv="refresh" content="2">
+    {% endif %}
+
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
+
+        :root {
+            --bg: #06111f;
+            --bg-accent: radial-gradient(circle at top, rgba(37, 99, 235, 0.22), transparent 34%), radial-gradient(circle at 85% 10%, rgba(16, 185, 129, 0.16), transparent 22%), linear-gradient(180deg, #08111d 0%, #040914 100%);
+            --panel: rgba(10, 19, 35, 0.92);
+            --panel-strong: rgba(15, 27, 47, 0.98);
+            --panel-soft: rgba(148, 163, 184, 0.08);
+            --border: rgba(148, 163, 184, 0.16);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --primary: #38bdf8;
+            --primary-strong: #2563eb;
+            --success: #34d399;
+            --danger: #f87171;
+            --warning-bg: rgba(127, 29, 29, 0.35);
+            --shadow: 0 12px 32px rgba(2, 6, 23, 0.24);
+            --radius-lg: 28px;
+            --radius-md: 22px;
+            --radius-sm: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Manrope", "Segoe UI", sans-serif;
+            background: var(--bg);
+            background-image: var(--bg-accent);
+            color: var(--text);
+            padding: 12px;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .app-menu {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            z-index: 20;
+        }
+
+        .app-menu summary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(10, 19, 35, 0.9);
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            list-style: none;
+            backdrop-filter: blur(14px);
+        }
+
+        .app-menu summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .menu-icon {
+            display: grid;
+            gap: 5px;
+            width: 20px;
+        }
+
+        .menu-icon span {
+            display: block;
+            height: 2px;
+            border-radius: 999px;
+            background: #e2e8f0;
+        }
+
+        .menu-panel {
+            position: absolute;
+            top: 56px;
+            right: 0;
+            width: min(280px, calc(100vw - 28px));
+            padding: 10px;
+            border-radius: 18px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(10, 19, 35, 0.96);
+            box-shadow: 0 20px 44px rgba(2, 6, 23, 0.38);
+            backdrop-filter: blur(18px);
+            display: grid;
+            gap: 4px;
+        }
+
+        .menu-panel a {
+            display: flex;
+            align-items: center;
+            min-height: 44px;
+            padding: 0 12px;
+            border-radius: 12px;
+            color: #dbeafe;
+            font-weight: 700;
+        }
+
+        .menu-panel a:hover {
+            background: rgba(148, 163, 184, 0.1);
+        }
+
+        .menu-panel .menu-placeholder {
+            color: var(--muted);
+        }
+
+        .shell {
+            width: min(1120px, 100%);
+            margin: 0 auto;
+            display: grid;
+            gap: 18px;
+        }
+
+        .hero,
+        .panel,
+        .analysis-card,
+        .alert-card {
+            border: 1px solid var(--border);
+            background: var(--panel);
+            box-shadow: var(--shadow);
+        }
+
+        .hero {
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: auto -60px -80px auto;
+            width: 180px;
+            height: 180px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.28), transparent 70%);
+            pointer-events: none;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #dbeafe;
+            background: rgba(37, 99, 235, 0.16);
+            border: 1px solid rgba(96, 165, 250, 0.22);
+            margin-bottom: 16px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: "Space Grotesk", "Manrope", sans-serif;
+            letter-spacing: -0.03em;
+        }
+
+        h1 {
+            font-size: clamp(1.7rem, 8vw, 3.2rem);
+            line-height: 1.02;
+            margin-bottom: 12px;
+        }
+
+        .hero-title {
+            font-size: 40px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+        }
+
+        .hero p {
+            color: var(--muted);
+            font-size: 0.92rem;
+            line-height: 1.6;
+            max-width: 56ch;
+        }
+
+        .config-alert {
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(248, 113, 113, 0.34);
+            background: var(--warning-bg);
+            color: #fecaca;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .filter-bar {
+            display: grid;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .filter-form {
+            display: grid;
+            gap: 12px;
+        }
+
+        .filter-form select,
+        .filter-form button {
+            min-height: 48px;
+            border-radius: 14px;
+        }
+
+        .filter-form select {
+            width: 100%;
+            padding: 0 14px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(15, 23, 42, 0.72);
+            color: var(--text);
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            min-height: 54px;
+            padding: 0 20px;
+            border-radius: 16px;
+            font-weight: 700;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
+            color: #eff6ff;
+            box-shadow: 0 16px 30px rgba(37, 99, 235, 0.28);
+        }
+
+        .btn-secondary {
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.6);
+            color: #dbeafe;
+        }
+
+        .btn-danger {
+            border-color: rgba(248, 113, 113, 0.28);
+            background: rgba(127, 29, 29, 0.28);
+            color: #fecaca;
+        }
+
+        .reset-form {
+            width: 100%;
+        }
+
+        .btn-primary:hover,
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+        }
+
+        .stats-grid,
+        .analysis-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .stat-card {
+            border-radius: var(--radius-md);
+            padding: 20px;
+            background: linear-gradient(180deg, rgba(15, 27, 47, 0.94) 0%, rgba(9, 17, 31, 0.92) 100%);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), transparent 55%);
+            pointer-events: none;
+        }
+
+        .stat-label {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            color: var(--muted);
+            font-size: 0.88rem;
+            margin-bottom: 14px;
+        }
+
+        .stat-value {
+            font-size: clamp(1.8rem, 8vw, 2.5rem);
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .stat-helper {
+            color: #cbd5e1;
+            font-size: 0.92rem;
+            line-height: 1.6;
+        }
+
+        .panel {
+            border-radius: var(--radius-lg);
+            padding: 18px;
+        }
+
+        .panel-header {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .panel-header p {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .analysis-card,
+        .alert-card,
+        .empty-state {
+            border-radius: var(--radius-md);
+            padding: 18px;
+        }
+
+        .analysis-card {
+            background: linear-gradient(180deg, rgba(13, 23, 39, 0.96) 0%, rgba(8, 15, 27, 0.98) 100%);
+        }
+
+        .analysis-card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .analysis-card h3 {
+            font-size: 1.08rem;
+            margin-bottom: 6px;
+        }
+
+.analysis-card p {
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.analysis-meta {
+    display: grid;
+    gap: 4px;
+    margin-top: 10px;
+}
+
+.badge {
+            flex-shrink: 0;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(52, 211, 153, 0.12);
+            color: #bbf7d0;
+            font-size: 0.78rem;
+            font-weight: 700;
+            border: 1px solid rgba(52, 211, 153, 0.2);
+        }
+
+        .analysis-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .analysis-metric span {
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .analysis-metric strong {
+            font-size: 1.4rem;
+            color: #e0f2fe;
+        }
+
+        .alert-card {
+            background: linear-gradient(180deg, rgba(69, 10, 10, 0.72) 0%, rgba(42, 12, 12, 0.84) 100%);
+            border: 1px solid rgba(248, 113, 113, 0.18);
+        }
+
+        .alert-card h3 {
+            margin-bottom: 8px;
+            color: #fecaca;
+        }
+
+        .alert-card p {
+            color: #fee2e2;
+            line-height: 1.6;
+        }
+
+        .empty-state {
+            background: var(--panel-soft);
+            border: 1px dashed rgba(148, 163, 184, 0.22);
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.7;
+        }
+
+.section-stack {
+    display: grid;
+    gap: 16px;
+}
+
+.fuel-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.fuel-card {
+    border-radius: var(--radius-md);
+    padding: 18px;
+    background: linear-gradient(180deg, rgba(13, 23, 39, 0.96) 0%, rgba(8, 15, 27, 0.98) 100%);
+    border: 1px solid var(--border);
+}
+
+.fuel-card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.fuel-card-header h3 {
+    font-size: 1.05rem;
+}
+
+.fuel-card-metric {
+    display: grid;
+    gap: 10px;
+}
+
+.fuel-card-metric div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: #cbd5e1;
+}
+
+.fuel-card-metric strong {
+    color: #f8fafc;
+}
+
+.compact-list {
+    display: grid;
+    gap: 12px;
+}
+
+.compact-item {
+    display: grid;
+    gap: 6px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    background: rgba(15, 23, 42, 0.48);
+}
+
+.compact-item strong {
+    color: #f8fafc;
+}
+
+.reading-card {
+    gap: 10px;
+    padding: 18px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(180deg, rgba(15, 27, 47, 0.9) 0%, rgba(8, 15, 27, 0.96) 100%);
+    border-color: rgba(148, 163, 184, 0.16);
+}
+
+.reading-title {
+    font-size: 1rem;
+    color: #f8fafc;
+}
+
+.reading-meta,
+.reading-location,
+.reading-result,
+.reading-message {
+    color: #cbd5e1;
+    line-height: 1.45;
+}
+
+.reading-location {
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.reading-location-block {
+    display: grid;
+    gap: 2px;
+}
+
+.reading-location-detail {
+    color: #94a3b8;
+    font-size: 0.84rem;
+    font-weight: 500;
+}
+
+.reading-result {
+    font-weight: 800;
+    color: #f8fafc;
+}
+
+.reading-badge {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 32px;
+    align-items: center;
+    padding: 6px 11px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.reading-badge-success {
+    color: #bbf7d0;
+    background: rgba(52, 211, 153, 0.13);
+    border-color: rgba(52, 211, 153, 0.26);
+}
+
+.reading-badge-review {
+    color: #fed7aa;
+    background: rgba(251, 146, 60, 0.13);
+    border-color: rgba(251, 146, 60, 0.28);
+}
+
+.inline-form {
+    display: grid;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.inline-form input {
+    width: 100%;
+    min-height: 44px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: rgba(15, 23, 42, 0.72);
+    color: var(--text);
+    padding: 0 12px;
+}
+
+.mini-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 10px;
+    background: rgba(56, 189, 248, 0.16);
+    color: #dbeafe;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0 12px;
+    font-size: 0.88rem;
+}
+
+.decision-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.decision-card {
+    display: grid;
+    gap: 9px;
+    padding: 18px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    background: linear-gradient(180deg, rgba(15, 27, 47, 0.98) 0%, rgba(8, 15, 27, 0.98) 100%);
+    box-shadow: 0 18px 34px rgba(2, 6, 23, 0.18);
+}
+
+.decision-card h3 {
+    font-size: 0.98rem;
+    color: #dbeafe;
+    font-weight: 800;
+}
+
+.decision-card p,
+.support-note {
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.decision-price {
+    font-size: clamp(2.05rem, 10vw, 2.8rem);
+    font-weight: 800;
+    line-height: 0.95;
+    color: #f8fafc;
+}
+
+.decision-badge {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    min-height: 34px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.decision-good {
+    background: rgba(52, 211, 153, 0.14);
+    color: #bbf7d0;
+    border-color: rgba(52, 211, 153, 0.28);
+}
+
+.decision-neutral {
+    background: rgba(250, 204, 21, 0.12);
+    color: #fef3c7;
+    border-color: rgba(250, 204, 21, 0.28);
+}
+
+.decision-opportunity {
+    background: rgba(20, 184, 166, 0.14);
+    color: #ccfbf1;
+    border-color: rgba(20, 184, 166, 0.3);
+}
+
+.decision-above-light {
+    background: rgba(251, 146, 60, 0.13);
+    color: #fed7aa;
+    border-color: rgba(251, 146, 60, 0.28);
+}
+
+.decision-above {
+    background: rgba(249, 115, 22, 0.16);
+    color: #ffedd5;
+    border-color: rgba(249, 115, 22, 0.34);
+}
+
+.decision-risk {
+    background: rgba(248, 113, 113, 0.15);
+    color: #fecaca;
+    border-color: rgba(248, 113, 113, 0.34);
+}
+
+.decision-delta {
+    color: #dbeafe;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.decision-reference {
+    color: var(--muted);
+    font-size: 0.86rem;
+}
+
+.details-panel {
+    margin-top: 18px;
+}
+
+.details-panel summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    padding: 0 18px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: rgba(15, 23, 42, 0.6);
+    color: #dbeafe;
+    font-weight: 800;
+    cursor: pointer;
+    list-style: none;
+}
+
+.details-panel summary::-webkit-details-marker {
+    display: none;
+}
+
+.details-content {
+    margin-top: 16px;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+.desktop-only {
+    display: none;
+}
+
+.mobile-only {
+    display: grid;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+}
+
+.data-table th,
+.data-table td {
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.data-table th {
+    color: #dbeafe;
+    font-size: 0.84rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.data-table td {
+    color: #cbd5e1;
+    font-size: 0.95rem;
+}
+
+        .content-primary,
+        .content-side {
+            display: grid;
+            gap: 16px;
+        }
+
+        .alert-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .alert-card {
+            background: linear-gradient(180deg, rgba(24, 30, 44, 0.95) 0%, rgba(10, 16, 28, 0.96) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            padding: 16px;
+        }
+
+        .alert-card h3 {
+            margin-bottom: 6px;
+        }
+
+        .alert-card-critical {
+            border-color: rgba(248, 113, 113, 0.28);
+            background: linear-gradient(180deg, rgba(76, 20, 20, 0.76) 0%, rgba(36, 12, 12, 0.92) 100%);
+        }
+
+        .alert-card-critical h3 {
+            color: #fecaca;
+        }
+
+        .alert-card-attention {
+            border-color: rgba(251, 191, 36, 0.24);
+            background: linear-gradient(180deg, rgba(67, 43, 10, 0.74) 0%, rgba(35, 24, 8, 0.9) 100%);
+        }
+
+        .alert-card-attention h3 {
+            color: #fde68a;
+        }
+
+        .alert-card-opportunity {
+            border-color: rgba(52, 211, 153, 0.24);
+            background: linear-gradient(180deg, rgba(11, 53, 42, 0.8) 0%, rgba(8, 29, 24, 0.92) 100%);
+        }
+
+        .alert-card-opportunity h3 {
+            color: #bbf7d0;
+        }
+
+        .alert-kind {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 10px;
+            background: rgba(148, 163, 184, 0.12);
+            color: #e2e8f0;
+        }
+
+        .alert-copy {
+            color: #e5edf8;
+            line-height: 1.5;
+        }
+
+        .alert-meta {
+            color: var(--muted);
+            font-size: 0.86rem;
+            line-height: 1.4;
+        }
+
+        .alert-delta {
+            color: #f8fafc;
+            font-weight: 800;
+            line-height: 1.4;
+        }
+
+        .decision-table-section,
+        .alerts-section,
+        .image-section,
+        .history-panel {
+            display: grid;
+            gap: 16px;
+        }
+
+        @media (max-width: 719px) {
+            .app-menu {
+                top: 12px;
+                right: 12px;
+            }
+
+            .hero::after,
+            .stat-card::before {
+                display: none;
+            }
+
+            .hero-title {
+                font-size: 28px;
+            }
+
+            .eyebrow {
+                margin-bottom: 12px;
+            }
+
+            .filter-form select,
+            .filter-form button {
+                width: 100%;
+            }
+
+            .stat-card,
+            .fuel-card,
+            .analysis-card,
+            .alert-card,
+            .compact-item,
+            .decision-card {
+                padding: 16px;
+            }
+
+            .panel-header {
+                margin-bottom: 14px;
+            }
+
+            .analysis-card-top,
+            .fuel-card-header,
+            .analysis-metric,
+            .stat-label {
+                display: grid;
+                gap: 8px;
+            }
+
+            .data-table,
+            .data-table thead,
+            .data-table tbody,
+            .data-table tr,
+            .data-table th,
+            .data-table td {
+                display: block;
+                width: 100%;
+            }
+
+            .data-table {
+                min-width: 0;
+            }
+
+            .data-table thead {
+                display: none;
+            }
+
+            .data-table tr {
+                padding: 14px 0;
+                border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+            }
+
+            .data-table td {
+                padding: 6px 0;
+                border-bottom: none;
+            }
+
+            .data-table td::before {
+                content: attr(data-label);
+                display: block;
+                color: #dbeafe;
+                font-size: 0.78rem;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                margin-bottom: 4px;
+            }
+
+            .desktop-only {
+                display: none !important;
+            }
+
+            .mobile-only {
+                display: grid !important;
+                gap: 12px;
+            }
+        }
+
+        @media (min-width: 720px) {
+            body {
+                padding: 28px;
+            }
+
+            .hero {
+                padding: 32px;
+            }
+
+            .hero-actions {
+                flex-direction: row;
+                align-items: center;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                width: auto;
+            }
+
+            .filter-form {
+                grid-template-columns: minmax(0, 1fr) auto;
+                align-items: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .analysis-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .fuel-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .decision-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .alert-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .panel-header {
+                flex-direction: row;
+                align-items: end;
+                justify-content: space-between;
+            }
+
+            .desktop-only {
+                display: block;
+            }
+
+            .mobile-only {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <details class="app-menu">
+        <summary aria-label="Abrir menu">
+            <span class="menu-icon" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+            </span>
+        </summary>
+        <nav class="menu-panel" aria-label="Navegação principal">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/upload-teste">Nova análise</a>
+            <a href="#leituras-imagem">Leituras por imagem</a>
+            <a href="#alertas">Alertas</a>
+            <a href="/postos">Meus Postos</a>
+            <a href="/configuracoes">Configurações</a>
+        </nav>
+    </details>
+
+    {% set analises = dados.analises if dados is defined and dados.analises is defined else [] %}
+    {% set alertas = dados.alertas if dados is defined and dados.alertas is defined else [] %}
+    {% set resumo = dados.resumo if dados is defined and dados.resumo is defined else {} %}
+    {% set resumo_por_tipo = dados.resumo_por_tipo if dados is defined and dados.resumo_por_tipo is defined else {} %}
+    {% set comparativos = dados.comparativos if dados is defined and dados.comparativos is defined else [] %}
+    {% set leituras_imagem = dados.leituras_imagem if dados is defined and dados.leituras_imagem is defined else [] %}
+    {% set combustiveis_visiveis = dados.combustiveis_visiveis if dados is defined and dados.combustiveis_visiveis is defined else [] %}
+    {% set regioes = dados.regioes if dados is defined and dados.regioes is defined else [] %}
+    {% set postos = dados.postos if dados is defined and dados.postos is defined else [] %}
+    {% set regiao_selecionada = dados.regiao_selecionada if dados is defined and dados.regiao_selecionada is defined else "" %}
+    {% set posto_selecionado = dados.posto_selecionado if dados is defined and dados.posto_selecionado is defined else "" %}
+    {% set processamento_upload = dados.processamento_upload if dados is defined and dados.processamento_upload is defined else {} %}
+    {% set mensagem_ia = dados.mensagem_ia if dados is defined and dados.mensagem_ia is defined else "" %}
+    {% set total_openai_vision = dados.total_openai_vision if dados is defined and dados.total_openai_vision is defined else 0 %}
+    {% set total_lidas_imagem = dados.total_lidas_imagem if dados is defined and dados.total_lidas_imagem is defined else 0 %}
+    {% set alertas_principais = dados.alertas_principais if dados is defined and dados.alertas_principais is defined else alertas[:3] %}
+    {% set total_alertas = dados.total_alertas if dados is defined and dados.total_alertas is defined else alertas|length %}
+    {% set configuracao_alerta = dados.configuracao_alerta if dados is defined and dados.configuracao_alerta is defined else "" %}
+    {% set ocultou_combustiveis_por_dados = dados.ocultou_combustiveis_por_dados if dados is defined and dados.ocultou_combustiveis_por_dados is defined else false %}
+    {% set gasolina = resumo_por_tipo.get("gasolina", {}) %}
+    {% set etanol = resumo_por_tipo.get("etanol", {}) %}
+    {% set diesel = resumo_por_tipo.get("diesel", {}) %}
+
+    <main class="shell">
+        <section class="hero">
+            <span class="eyebrow">Dashboard inteligente</span>
+            <h1 class="hero-title">Posto360</h1>
+            <p>
+                Central de decisão de preço para postos. Compare o preço atual com a média da região,
+                veja os alertas mais importantes e aja rápido com uma recomendação simples por combustível.
+            </p>
+
+            <div class="hero-actions">
+                <a href="/formulario" class="btn-primary">+ Nova análise</a>
+                <a href="/upload-teste" class="btn-secondary">Enviar imagens</a>
+                <form action="/reset" method="post" class="reset-form">
+                    <button type="submit" class="btn-secondary btn-danger">Limpar dados de teste</button>
+                </form>
+            </div>
+
+            {% if configuracao_alerta %}
+            <div class="config-alert">{{ configuracao_alerta }}</div>
+            {% endif %}
+
+            <div class="filter-bar">
+                <form action="/dashboard" method="get" class="filter-form">
+                    <select name="regiao">
+                        <option value="">Todas as regioes</option>
+                        {% for item in regioes %}
+                        <option value="{{ item }}" {% if item == regiao_selecionada %}selected{% endif %}>{{ item }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="posto">
+                        <option value="">Todos os postos</option>
+                        {% for item in postos %}
+                        <option value="{{ item }}" {% if item == posto_selecionado %}selected{% endif %}>{{ item }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn-secondary">Filtrar</button>
+                </form>
+                <p>
+                    {% if regiao_selecionada and posto_selecionado %}
+                    Exibindo dados da regiao {{ regiao_selecionada }} no posto {{ posto_selecionado }}.
+                    {% elif regiao_selecionada %}
+                    Exibindo dados da regiao {{ regiao_selecionada }}.
+                    {% elif posto_selecionado %}
+                    Exibindo dados do posto {{ posto_selecionado }}.
+                    {% else %}
+                    Exibindo dados consolidados de todos os postos.
+                    {% endif %}
+                </p>
+            </div>
+
+            {% if processamento_upload.get("em_andamento") %}
+            <p>Processando {{ processamento_upload.get("processadas", 0) }} de {{ processamento_upload.get("total", 0) }} imagens. O dashboard atualiza automaticamente.</p>
+            {% endif %}
+
+            {% if mensagem_ia %}
+            <p>{{ mensagem_ia }}</p>
+            {% if total_openai_vision %}
+            <p>Imagens analisadas: {{ total_openai_vision }}</p>
+            {% endif %}
+            {% endif %}
+        </section>
+
+        <section class="stats-grid">
+            <article class="stat-card">
+                <div class="stat-label">
+                    <span>Gasolina na regiao</span>
+                    <span>Referencia</span>
+                </div>
+                <div class="stat-value">{{ gasolina.get("media", "Sem dados ainda") }}</div>
+                <p class="stat-helper">
+                    {% if gasolina.get("media") and gasolina.get("media") != "R$ --" %}
+                    Base usada para comparar o preço atual da gasolina no posto.
+                    {% else %}
+                    Sem leitura confiavel ainda para compor a media.
+                    {% endif %}
+                </p>
+            </article>
+
+            <article class="stat-card">
+                <div class="stat-label">
+                    <span>Etanol na regiao</span>
+                    <span>Referencia</span>
+                </div>
+                <div class="stat-value">{{ etanol.get("media", "Sem dados ainda") }}</div>
+                <p class="stat-helper">
+                    {% if etanol.get("media") and etanol.get("media") != "R$ --" %}
+                    Média regional para apoiar competitividade e margem.
+                    {% else %}
+                    Sem leitura confiavel ainda para exibir comparacao.
+                    {% endif %}
+                </p>
+            </article>
+
+            <article class="stat-card">
+                <div class="stat-label">
+                    <span>Diesel na regiao</span>
+                    <span>Referencia</span>
+                </div>
+                <div class="stat-value">{{ diesel.get("media", "Sem dados ainda") }}</div>
+                <p class="stat-helper">
+                    {% if diesel.get("media") and diesel.get("media") != "R$ --" %}
+                    Considera leituras de diesel e S10 como base de decisão.
+                    {% else %}
+                    Sem leitura confiavel ainda para preencher este resumo.
+                    {% endif %}
+                </p>
+            </article>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Decisão de preço de hoje</h2>
+                    <p>Abra, leia os cards e decida o ajuste sem entrar em relatório técnico.</p>
+                </div>
+            </div>
+
+            {% if comparativos %}
+            <div class="decision-grid">
+                {% for item in comparativos %}
+                {% if item.combustivel in ["gasolina_comum", "gasolina_aditivada", "gasolina_premium", "etanol", "diesel", "diesel_s10"] %}
+                <article class="decision-card">
+                    <h3>{{ item.combustivel_label }}</h3>
+                    <div class="decision-price">{{ item.preco_sugerido }}</div>
+                    <span class="decision-badge {{ item.decisao_classe }}">{{ item.decisao_titulo }}</span>
+                    <p class="decision-delta">{{ item.diferenca_media }}</p>
+                    <p class="decision-reference">Media da regiao: {{ item.media_regiao }}</p>
+                </article>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <details class="details-panel">
+                <summary>Ver análise completa</summary>
+                <div class="details-content table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Combustivel</th>
+                                <th>Preco medio</th>
+                                <th>Media da regiao</th>
+                                <th>Faixa</th>
+                                <th>Leituras</th>
+                                <th>Diferenca</th>
+                                <th>Decisao</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in comparativos %}
+                            <tr>
+                                <td data-label="Combustivel">{{ item.combustivel_label }}</td>
+                                <td data-label="Preco medio">{{ item.preco_atual }}</td>
+                                <td data-label="Media da regiao">{{ item.media_regiao }}</td>
+                                <td data-label="Faixa">{{ item.menor_preco }} a {{ item.maior_preco }}</td>
+                                <td data-label="Leituras">{{ item.quantidade_leituras }}</td>
+                                <td data-label="Diferenca">{{ item.diferenca }} ({{ item.status }})</td>
+                                <td data-label="Decisao">
+                                    <strong>{{ item.recomendacao|capitalize }}</strong><br>
+                                    <span>{{ item.base }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+            {% if ocultou_combustiveis_por_dados %}
+            <p class="support-note">Alguns combustíveis não foram exibidos por falta de dados suficientes.</p>
+            {% endif %}
+            {% else %}
+            <div class="empty-state">
+                Sem leitura confiavel ainda para sugerir preços nesta visao.
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="alerts-section" id="alertas">
+            <article class="panel alerts-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Alertas e Oportunidades</h2>
+                        <p>Sinais principais para agir sem poluir a tela principal.</p>
+                    </div>
+                    {% if total_alertas > 3 %}
+                    <a class="btn-secondary" href="/alertas{% if regiao_selecionada or posto_selecionado %}?{% endif %}{% if regiao_selecionada %}regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if regiao_selecionada and posto_selecionado %}&{% endif %}{% if posto_selecionado %}posto={{ posto_selecionado|urlencode }}{% endif %}">Ver todos os alertas</a>
+                    {% endif %}
+                </div>
+
+                {% if alertas_principais %}
+                <div class="alert-grid">
+                    {% for alerta in alertas_principais %}
+                    {% set alerta_titulo = alerta.titulo if alerta.titulo is defined else 'Atenção' %}
+                    {% set alerta_classe = alerta.classe_dashboard if alerta.classe_dashboard is defined else 'alert-card-attention' %}
+                    <article class="alert-card {{ alerta_classe }}">
+                        <span class="alert-kind">{{ alerta_titulo }}</span>
+                        <h3>{{ alerta.posto if alerta.posto is defined else 'Posto não identificado' }}</h3>
+                        <p class="alert-meta">{{ alerta.regiao if alerta.regiao is defined else 'Região não informada' }} · {{ alerta.combustivel if alerta.combustivel is defined else 'Combustível' }}</p>
+                        {% if alerta.preco_meu_posto is defined %}
+                        <p class="alert-meta">Seu preço: {{ alerta.preco_meu_posto }}</p>
+                        {% endif %}
+                        {% if alerta.media_concorrentes is defined %}
+                        <p class="alert-meta">Média concorrentes: {{ alerta.media_concorrentes }}</p>
+                        {% endif %}
+                        <p class="alert-delta">Diferença: {{ alerta.diferenca if alerta.diferenca is defined else '' }}</p>
+                        <p class="alert-copy">{{ alerta.acao if alerta.acao is defined else alerta }}</p>
+                        {% if alerta.sugestao is defined %}
+                        <p class="alert-meta">{{ alerta.sugestao }}</p>
+                        {% endif %}
+                    </article>
+                    {% endfor %}
+                </div>
+                {% if total_alertas > 3 %}
+                <p class="support-note">Mostrando os 3 alertas principais de {{ total_alertas }} no total.</p>
+                {% endif %}
+                {% else %}
+                <div class="empty-state">
+                    Sem alertas no momento. Quando houver alguma ocorrência relevante, ela aparecerá aqui.
+                </div>
+                {% endif %}
+            </article>
+        </section>
+
+        <section class="image-section" id="leituras-imagem">
+            <article class="panel image-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Leituras por imagem</h2>
+                        <p>Resumo das imagens analisadas para identificar combustível, preço e posto.</p>
+                    </div>
+                    <a class="btn-secondary" href="/leituras{% if regiao_selecionada or posto_selecionado %}?{% endif %}{% if regiao_selecionada %}regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if regiao_selecionada and posto_selecionado %}&{% endif %}{% if posto_selecionado %}posto={{ posto_selecionado|urlencode }}{% endif %}">Ver todas as leituras</a>
+                </div>
+
+                {% if leituras_imagem %}
+                <p class="support-note">{{ total_lidas_imagem }} imagens processadas.</p>
+                <div class="compact-list">
+                    {% for item in leituras_imagem %}
+                    <article class="compact-item reading-card">
+                        <strong class="reading-title">Imagem analisada</strong>
+                        {% set rua_local = item.rua or item.endereco_provavel %}
+                        {% set bairro_local = item.bairro or item.bairro_provavel %}
+                        {% set cidade_local = item.cidade or item.cidade_provavel %}
+                        {% if rua_local %}
+                        <span class="reading-location-block">
+                            <span class="reading-location">{{ rua_local }}</span>
+                            {% if bairro_local or cidade_local %}
+                            <span class="reading-location-detail">{% if bairro_local %}{{ bairro_local }}{% endif %}{% if bairro_local and cidade_local %} - {% endif %}{% if cidade_local %}{{ cidade_local }}{% endif %}</span>
+                            {% endif %}
+                        </span>
+                        {% elif bairro_local or cidade_local %}
+                        <span class="reading-location">{% if bairro_local %}{{ bairro_local }}{% endif %}{% if bairro_local and cidade_local %} - {% endif %}{% if cidade_local %}{{ cidade_local }}{% endif %}</span>
+                        {% elif item.endereco_formatado %}
+                        <span class="reading-location">{{ item.endereco_formatado }}</span>
+                        {% elif item.localizacao_aproximada %}
+                        <span class="reading-location">{{ item.localizacao_aproximada }}</span>
+                        {% elif item.regiao and item.regiao != "Regiao nao informada" %}
+                        <span class="reading-location">{{ item.regiao }}</span>
+                        {% else %}
+                        <span class="reading-location">Localização não identificada</span>
+                        {% endif %}
+                        <span class="reading-meta">{{ item.posto if item.posto is defined and item.posto else "Posto nao informado" }}</span>
+                        {% if item.preco is not none %}
+                        <span class="reading-result">{{ item.tipo_label if item.tipo_label is defined else item.tipo }} · {{ "R$ %.2f"|format(item.preco) }}</span>
+                        <span class="reading-badge reading-badge-success">Leitura concluída</span>
+                        {% else %}
+                        <span class="reading-message">Não foi possível identificar preço com segurança.</span>
+                        <span class="reading-badge reading-badge-review">Revisar imagem</span>
+                        {% endif %}
+                        <form class="inline-form" action="/confirmar-posto" method="post">
+                            <input type="hidden" name="arquivo" value="{{ item.arquivo }}">
+                            <input type="hidden" name="redirect_to" value="/dashboard{% if regiao_selecionada or posto_selecionado %}?{% endif %}{% if regiao_selecionada %}regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if regiao_selecionada and posto_selecionado %}&{% endif %}{% if posto_selecionado %}posto={{ posto_selecionado|urlencode }}{% endif %}">
+                            <input type="text" name="posto_nome" value="{{ item.posto_sugerido if item.posto_sugerido is defined else '' }}" placeholder="Nome do posto">
+                            <button class="mini-button" type="submit">Salvar posto</button>
+                        </form>
+                    </article>
+                    {% endfor %}
+                </div>
+                <p class="support-note">Mostrando apenas as leituras mais recentes para manter o dashboard leve e focado em decisao.</p>
+                {% else %}
+                <div class="empty-state">
+                    Nenhuma leitura por imagem para mostrar nesta visao.
+                </div>
+                {% endif %}
+            </article>
+        </section>
+
+        <section class="history-panel">
+            <article class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Análises recentes</h2>
+                        <p>Histórico curto para contexto operacional sem roubar o foco da decisão de preço.</p>
+                    </div>
+                    <a href="/formulario" class="btn-secondary">Nova análise</a>
+                </div>
+
+                {% if analises %}
+                <div class="analysis-grid">
+                    {% for item in analises %}
+                    <div class="analysis-card">
+                        <div class="analysis-card-top">
+                            <div>
+                                <h3>{{ item.posto }}</h3>
+                                <p>{{ item.produto }}</p>
+                                <div class="analysis-meta">
+                                    <p>Posto: {{ item.posto if item.posto is defined else "Posto nao informado" }}</p>
+                                    <p>Regiao: {{ item.regiao if item.regiao is defined else "Regiao nao informada" }}</p>
+                                    <p>Tipo: {{ item.tipo_label if item.tipo_label is defined else item.tipo }}</p>
+                                    <p>Preco: R$ {{ "%.2f"|format(item.preco) if item.preco is defined else "--" }}</p>
+                                </div>
+                            </div>
+                            <span class="badge">Ativo</span>
+                        </div>
+
+                        <div class="analysis-metric">
+                            <div>
+                                <span>Autonomia estimada</span>
+                                <strong>{{ item.dias_restantes }} dias</strong>
+                            </div>
+                            <span>Última leitura</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    Nenhuma análise disponível ainda. Use o botão "Nova análise" para registrar a primeira entrada.
+                </div>
+                {% endif %}
+            </article>
+        </section>
+    </main>
+</body>
+</html>

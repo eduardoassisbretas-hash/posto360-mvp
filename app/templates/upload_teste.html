@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload de imagens | Posto360</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
+
+        :root {
+            --bg: #06111f;
+            --bg-accent: radial-gradient(circle at top, rgba(37, 99, 235, 0.22), transparent 34%), radial-gradient(circle at 85% 10%, rgba(16, 185, 129, 0.16), transparent 22%), linear-gradient(180deg, #08111d 0%, #040914 100%);
+            --panel: rgba(10, 19, 35, 0.92);
+            --border: rgba(148, 163, 184, 0.16);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --primary: #38bdf8;
+            --primary-strong: #2563eb;
+            --shadow: 0 24px 70px rgba(2, 6, 23, 0.42);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Manrope", "Segoe UI", sans-serif;
+            background: var(--bg);
+            background-image: var(--bg-accent);
+            color: var(--text);
+            padding: 20px;
+        }
+
+        .page {
+            width: min(720px, 100%);
+            margin: 0 auto;
+            display: grid;
+            gap: 18px;
+        }
+
+        .hero,
+        .panel {
+            border: 1px solid var(--border);
+            background: var(--panel);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(16px);
+            border-radius: 28px;
+        }
+
+        .hero {
+            padding: 24px;
+        }
+
+        .panel {
+            padding: 22px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #dbeafe;
+            background: rgba(37, 99, 235, 0.16);
+            border: 1px solid rgba(96, 165, 250, 0.22);
+            margin-bottom: 14px;
+        }
+
+        h1 {
+            font-family: "Space Grotesk", "Manrope", sans-serif;
+            font-size: clamp(1.9rem, 7vw, 3rem);
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            margin-bottom: 12px;
+        }
+
+        p {
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        form {
+            display: grid;
+            gap: 16px;
+        }
+
+        .field {
+            display: grid;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.94rem;
+            font-weight: 700;
+            color: #dbeafe;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            min-height: 52px;
+            padding: 0 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(15, 23, 42, 0.72);
+            color: var(--text);
+            outline: none;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px dashed rgba(148, 163, 184, 0.24);
+            background: rgba(15, 23, 42, 0.72);
+            color: var(--muted);
+        }
+
+        button,
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 52px;
+            padding: 0 18px;
+            border-radius: 16px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        button {
+            border: none;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
+            color: #eff6ff;
+            cursor: pointer;
+        }
+
+        .back-link {
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.6);
+            color: #dbeafe;
+        }
+
+        .actions {
+            display: grid;
+            gap: 12px;
+        }
+
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 42px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(15, 23, 42, 0.58);
+            color: #dbeafe;
+            font-size: 0.92rem;
+        }
+
+        .support-text {
+            font-size: 0.88rem;
+            color: var(--muted);
+        }
+
+        @media (min-width: 720px) {
+            body {
+                padding: 28px;
+            }
+
+            .hero,
+            .panel {
+                padding: 30px;
+            }
+
+            .actions {
+                grid-template-columns: 1fr auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% set postos = postos if postos is defined else [] %}
+    <main class="page">
+        <section class="hero">
+            <span class="eyebrow">Upload de imagens</span>
+            <h1>Enviar arquivos para análise</h1>
+            <p>Selecione ate 30 imagens por envio. Funciona com JPG, JPEG, PNG, WEBP e, quando possivel, HEIC/HEIF do iPhone.</p>
+        </section>
+
+        <section class="panel">
+            <form id="upload-form" action="/upload-imagens" method="post" enctype="multipart/form-data">
+                <div class="field">
+                    <label for="tipo_leitura">Tipo de leitura</label>
+                    <select id="tipo_leitura" name="tipo_leitura">
+                        <option value="concorrente">Concorrente</option>
+                        <option value="meu_posto">Meu posto</option>
+                    </select>
+                    <p class="support-text">Use concorrente para placas da região e meu posto para atualizar uma unidade cadastrada.</p>
+                </div>
+                <div class="field">
+                    <label for="posto_cliente">Posto cadastrado</label>
+                    <select id="posto_cliente" name="posto_cliente">
+                        <option value="">Selecione se for meu posto</option>
+                        {% for posto in postos %}
+                        <option value="{{ posto.id if posto.id is defined else posto.nome }}">{{ posto.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="regiao">Regiao manual (opcional)</label>
+                    <input id="regiao" type="text" name="regiao" placeholder="Ex: Centro, Savassi">
+                    <p class="support-text">Use apenas se quiser organizar por bairro ou se a localização não for capturada.</p>
+                </div>
+                <input id="latitude" type="hidden" name="latitude">
+                <input id="longitude" type="hidden" name="longitude">
+                <input type="file" name="imagens" accept=".jpg,.jpeg,.png,.webp,.heic,.heif,image/jpeg,image/png,image/webp,image/heic,image/heif" multiple required>
+                <div class="field">
+                    <span class="status-chip" id="geo-status">Localizacao ainda nao capturada</span>
+                    <p class="support-text">Ao enviar, o navegador tenta capturar sua localizacao atual. Se nao permitir, o upload continua normalmente.</p>
+                </div>
+                <div class="actions">
+                    <button type="submit">Enviar imagens</button>
+                    <a href="/dashboard" class="back-link">Voltar ao dashboard</a>
+                </div>
+            </form>
+        </section>
+    </main>
+    <script>
+        const form = document.getElementById("upload-form");
+        const latitudeInput = document.getElementById("latitude");
+        const longitudeInput = document.getElementById("longitude");
+        const geoStatus = document.getElementById("geo-status");
+
+        function setGeoStatus(message) {
+            geoStatus.textContent = message;
+        }
+
+        function concluirEnvio() {
+            form.dataset.geoReady = "true";
+            form.submit();
+        }
+
+        form.addEventListener("submit", function(event) {
+            if (form.dataset.geoReady === "true") {
+                form.dataset.geoReady = "false";
+                return;
+            }
+
+            event.preventDefault();
+
+            if (!navigator.geolocation) {
+                setGeoStatus("Localizacao indisponivel neste navegador");
+                concluirEnvio();
+                return;
+            }
+
+            setGeoStatus("Capturando localizacao...");
+
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    latitudeInput.value = position.coords.latitude.toFixed(6);
+                    longitudeInput.value = position.coords.longitude.toFixed(6);
+                    setGeoStatus("Localizacao detectada e enviada com o lote");
+                    concluirEnvio();
+                },
+                function() {
+                    latitudeInput.value = "";
+                    longitudeInput.value = "";
+                    setGeoStatus("Localizacao nao permitida. Envio sem coordenadas");
+                    concluirEnvio();
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 60000,
+                }
+            );
+        });
+    </script>
+</body>
+</html>

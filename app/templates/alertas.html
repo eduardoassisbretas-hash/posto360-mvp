@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alertas - Posto360</title>
+    <style>
+        :root {
+            --bg: #08111d;
+            --panel: rgba(10, 19, 35, 0.94);
+            --border: rgba(148, 163, 184, 0.16);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --danger: #fecaca;
+            --warning: #fde68a;
+            --success: #bbf7d0;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Manrope", "Segoe UI", sans-serif;
+            background: linear-gradient(180deg, #08111d 0%, #040914 100%);
+            color: var(--text);
+            padding: 14px;
+        }
+
+        .shell {
+            width: min(100%, 1100px);
+            margin: 0 auto;
+            display: grid;
+            gap: 16px;
+        }
+
+        .panel {
+            border-radius: 24px;
+            padding: 18px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+        }
+
+        .top, .filters {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        h1, h2 {
+            margin: 0;
+            font-family: "Space Grotesk", "Manrope", sans-serif;
+        }
+
+        p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .btn, .btn-secondary, select {
+            min-height: 46px;
+            border-radius: 14px;
+            padding: 12px 16px;
+            font: inherit;
+            text-decoration: none;
+        }
+
+        .btn {
+            border: none;
+            background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+            color: white;
+            font-weight: 700;
+        }
+
+        .btn-secondary, select {
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.6);
+            color: var(--text);
+        }
+
+        .filters-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .alert-card {
+            border-radius: 18px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.56);
+            display: grid;
+            gap: 8px;
+        }
+
+        .critical {
+            border-color: rgba(248, 113, 113, 0.28);
+            background: linear-gradient(180deg, rgba(76, 20, 20, 0.76) 0%, rgba(36, 12, 12, 0.92) 100%);
+        }
+
+        .attention {
+            border-color: rgba(251, 191, 36, 0.24);
+            background: linear-gradient(180deg, rgba(67, 43, 10, 0.74) 0%, rgba(35, 24, 8, 0.9) 100%);
+        }
+
+        .opportunity {
+            border-color: rgba(52, 211, 153, 0.24);
+            background: linear-gradient(180deg, rgba(11, 53, 42, 0.8) 0%, rgba(8, 29, 24, 0.92) 100%);
+        }
+
+        .alert-meta {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .alert-delta {
+            color: #f8fafc;
+            font-weight: 800;
+        }
+
+        .kind {
+            display: inline-flex;
+            width: fit-content;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .critical .kind { color: var(--danger); }
+        .attention .kind { color: var(--warning); }
+        .opportunity .kind { color: var(--success); }
+
+        .empty {
+            padding: 18px;
+            border-radius: 18px;
+            border: 1px dashed var(--border);
+            color: var(--muted);
+            text-align: center;
+        }
+
+        @media (max-width: 720px) {
+            body { padding: 12px; }
+            .btn, .btn-secondary, select { width: 100%; }
+            .filters-group { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    {% set alertas = dados.alertas if dados is defined and dados.alertas is defined else [] %}
+    {% set total_alertas = dados.total_alertas if dados is defined and dados.total_alertas is defined else alertas|length %}
+    {% set regioes = dados.regioes if dados is defined and dados.regioes is defined else [] %}
+    {% set postos = dados.postos if dados is defined and dados.postos is defined else [] %}
+    {% set regiao_selecionada = dados.regiao_selecionada if dados is defined and dados.regiao_selecionada is defined else "" %}
+    {% set posto_selecionado = dados.posto_selecionado if dados is defined and dados.posto_selecionado is defined else "" %}
+
+    <main class="shell">
+        <section class="panel">
+            <div class="top">
+                <div>
+                    <h1>Todos os alertas</h1>
+                    <p>{{ total_alertas }} alertas nesta visao.</p>
+                </div>
+                <a class="btn-secondary" href="/dashboard{% if regiao_selecionada or posto_selecionado %}?{% endif %}{% if regiao_selecionada %}regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if regiao_selecionada and posto_selecionado %}&{% endif %}{% if posto_selecionado %}posto={{ posto_selecionado|urlencode }}{% endif %}">Voltar ao dashboard</a>
+            </div>
+        </section>
+
+        <form class="panel filters" method="get" action="/alertas">
+            <div class="filters-group">
+                <select name="regiao">
+                    <option value="">Todas as regioes</option>
+                    {% for regiao in regioes %}
+                    <option value="{{ regiao }}" {% if regiao == regiao_selecionada %}selected{% endif %}>{{ regiao }}</option>
+                    {% endfor %}
+                </select>
+                <select name="posto">
+                    <option value="">Todos os postos</option>
+                    {% for posto in postos %}
+                    <option value="{{ posto }}" {% if posto == posto_selecionado %}selected{% endif %}>{{ posto }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button class="btn" type="submit">Aplicar filtros</button>
+        </form>
+
+        <section class="panel">
+            {% if alertas %}
+            <div class="grid">
+                {% for alerta in alertas %}
+                {% set alerta_titulo = alerta.titulo if alerta.titulo is defined else 'Atenção' %}
+                {% set alerta_classe = alerta.classe_lista if alerta.classe_lista is defined else 'attention' %}
+                <article class="alert-card {{ alerta_classe }}">
+                    <span class="kind">{{ alerta_titulo }}</span>
+                    <h2>{{ alerta.posto if alerta.posto is defined else 'Posto não identificado' }}</h2>
+                    <p class="alert-meta">{{ alerta.regiao if alerta.regiao is defined else 'Região não informada' }} · {{ alerta.combustivel if alerta.combustivel is defined else 'Combustível' }}</p>
+                    {% if alerta.preco_meu_posto is defined %}
+                    <p class="alert-meta">Seu preço: {{ alerta.preco_meu_posto }}</p>
+                    {% endif %}
+                    {% if alerta.media_concorrentes is defined %}
+                    <p class="alert-meta">Média concorrentes: {{ alerta.media_concorrentes }}</p>
+                    {% endif %}
+                    <p class="alert-delta">Diferença: {{ alerta.diferenca if alerta.diferenca is defined else '' }}</p>
+                    <p>{{ alerta.acao if alerta.acao is defined else alerta }}</p>
+                    {% if alerta.sugestao is defined %}
+                    <p class="alert-meta">{{ alerta.sugestao }}</p>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty">Nenhum alerta para este filtro.</div>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

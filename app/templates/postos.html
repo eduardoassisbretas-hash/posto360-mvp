@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Postos | Posto360</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap");
+
+        :root {
+            --bg: #06111f;
+            --bg-accent: radial-gradient(circle at top, rgba(37, 99, 235, 0.22), transparent 34%), radial-gradient(circle at 85% 10%, rgba(16, 185, 129, 0.16), transparent 22%), linear-gradient(180deg, #08111d 0%, #040914 100%);
+            --panel: rgba(10, 19, 35, 0.92);
+            --panel-soft: rgba(148, 163, 184, 0.08);
+            --border: rgba(148, 163, 184, 0.16);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --primary: #38bdf8;
+            --primary-strong: #2563eb;
+            --shadow: 0 12px 32px rgba(2, 6, 23, 0.24);
+            --radius-lg: 28px;
+            --radius-md: 22px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Manrope", "Segoe UI", sans-serif;
+            background: var(--bg);
+            background-image: var(--bg-accent);
+            color: var(--text);
+            padding: 18px;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .shell {
+            width: min(1120px, 100%);
+            margin: 0 auto;
+            display: grid;
+            gap: 18px;
+        }
+
+        .page-header,
+        .station-card,
+        .empty-state,
+        .add-panel {
+            border: 1px solid var(--border);
+            background: var(--panel);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius-lg);
+        }
+
+        .page-header {
+            display: grid;
+            gap: 18px;
+            padding: 22px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: "Space Grotesk", "Manrope", sans-serif;
+            letter-spacing: -0.03em;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 7vw, 3rem);
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .top-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 0 18px;
+            border-radius: 14px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            border: none;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
+            color: #eff6ff;
+        }
+
+        .btn-secondary {
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.6);
+            color: #dbeafe;
+        }
+
+        .stations-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .station-card {
+            display: grid;
+            gap: 16px;
+            padding: 18px;
+            background: linear-gradient(180deg, rgba(15, 27, 47, 0.94) 0%, rgba(8, 15, 27, 0.98) 100%);
+        }
+
+        .station-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .station-card h2 {
+            font-size: 1.16rem;
+            margin-bottom: 6px;
+        }
+
+        .address {
+            color: var(--muted);
+            font-size: 0.94rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            min-height: 32px;
+            padding: 6px 11px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .station-ok {
+            color: #bbf7d0;
+            background: rgba(52, 211, 153, 0.13);
+            border-color: rgba(52, 211, 153, 0.26);
+        }
+
+        .station-attention {
+            color: #fed7aa;
+            background: rgba(251, 146, 60, 0.14);
+            border-color: rgba(251, 146, 60, 0.28);
+        }
+
+        .station-critical {
+            color: #fecaca;
+            background: rgba(248, 113, 113, 0.14);
+            border-color: rgba(248, 113, 113, 0.3);
+        }
+
+        .updated {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .price-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .price-row {
+            display: grid;
+            gap: 6px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+            color: #dbeafe;
+        }
+
+        .price-main {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .price-row strong {
+            color: #f8fafc;
+        }
+
+        .comparison-line {
+            color: var(--muted);
+            font-size: 0.86rem;
+            line-height: 1.45;
+        }
+
+        .price-status {
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .station-alert {
+            color: #fed7aa;
+            font-weight: 800;
+        }
+
+        .card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .more-actions {
+            margin-left: auto;
+            position: relative;
+        }
+
+        .more-actions summary {
+            display: inline-flex;
+            width: 42px;
+            height: 42px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            color: #dbeafe;
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .more-actions summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .more-panel {
+            position: absolute;
+            right: 0;
+            bottom: 48px;
+            width: 150px;
+            padding: 8px;
+            display: grid;
+            gap: 4px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: rgba(10, 19, 35, 0.98);
+            box-shadow: var(--shadow);
+        }
+
+        .more-panel span {
+            padding: 9px 10px;
+            border-radius: 10px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .empty-state {
+            display: grid;
+            gap: 14px;
+            place-items: center;
+            text-align: center;
+            padding: 42px 22px;
+            background: var(--panel-soft);
+        }
+
+        .add-panel {
+            padding: 18px;
+        }
+
+        .add-panel summary {
+            list-style: none;
+        }
+
+        .add-panel summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .add-form {
+            display: grid;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        label {
+            display: grid;
+            gap: 7px;
+            color: #dbeafe;
+            font-weight: 800;
+            font-size: 0.92rem;
+        }
+
+        input {
+            min-height: 48px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(15, 23, 42, 0.72);
+            color: var(--text);
+            padding: 0 14px;
+            outline: none;
+        }
+
+        @media (min-width: 760px) {
+            body {
+                padding: 28px;
+            }
+
+            .page-header {
+                grid-template-columns: 1fr auto;
+                align-items: center;
+                padding: 30px;
+            }
+
+            .stations-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 1100px) {
+            .stations-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    {% set postos = dados.postos if dados is defined and dados.postos is defined else [] %}
+
+    <main class="shell">
+        <section class="page-header">
+            <div>
+                <h1>Meus Postos</h1>
+                <p>Gerencie sua rede e acompanhe o desempenho de cada posto</p>
+            </div>
+            <div class="top-actions">
+                <a class="btn-secondary" href="/dashboard">Voltar ao dashboard</a>
+                <a class="btn-primary" href="#adicionar-posto">+ Adicionar posto</a>
+            </div>
+        </section>
+
+        <details class="add-panel" id="adicionar-posto">
+            <summary class="btn-primary">+ Adicionar posto</summary>
+            <form class="add-form" action="/postos" method="post">
+                <label>
+                    Nome do posto
+                    <input type="text" name="nome" placeholder="Ex: Posto Savassi" required>
+                </label>
+                <label>
+                    Endereço
+                    <input type="text" name="endereco" placeholder="Ex: Av. Raja Gabaglia, 1234">
+                </label>
+                <label>
+                    Região (opcional)
+                    <input type="text" name="regiao" placeholder="Ex: Savassi">
+                </label>
+                <button class="btn-primary" type="submit">Salvar posto</button>
+            </form>
+        </details>
+
+        {% if postos %}
+        <section class="stations-grid">
+            {% for posto in postos %}
+            <article class="station-card">
+                <div class="station-top">
+                    <div>
+                        <h2>{{ posto.nome }}</h2>
+                        <p class="address">{{ posto.endereco }}</p>
+                        {% if posto.regiao %}
+                        <p class="address">Região: {{ posto.regiao }}</p>
+                        {% endif %}
+                    </div>
+                    <span class="badge {{ posto.status_classe }}">{{ posto.status_geral }}</span>
+                </div>
+
+                <p class="updated">{{ posto.atualizado }}</p>
+
+                <div class="price-list">
+                    {% for preco in posto.precos %}
+                    <div class="price-row">
+                        <div class="price-main">
+                            <span>{{ preco.label }}</span>
+                            <span><strong>{{ preco.preco }}</strong> <span class="price-status">({{ preco.status }})</span></span>
+                        </div>
+                        <p class="comparison-line">Média concorrentes: {{ preco.media_concorrentes }} · Menor: {{ preco.menor_concorrente }} · Maior: {{ preco.maior_concorrente }}</p>
+                        <p class="comparison-line">Diferença: {{ preco.diferenca }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if posto.sem_concorrentes %}
+                <p class="updated">Sem dados suficientes de concorrentes na região.</p>
+                {% endif %}
+
+                {% if posto.alerta %}
+                <p class="station-alert">⚠ {{ posto.alerta }}</p>
+                {% endif %}
+
+                <div class="card-actions">
+                    <a class="btn-primary" href="/dashboard?posto={{ posto.nome|urlencode }}">Ver detalhes</a>
+                    <a class="btn-secondary" href="/upload-teste">Atualizar leitura</a>
+                    <details class="more-actions">
+                        <summary aria-label="Mais ações">...</summary>
+                        <div class="more-panel">
+                            <span>Editar posto</span>
+                            <span>Remover posto</span>
+                        </div>
+                    </details>
+                </div>
+            </article>
+            {% endfor %}
+        </section>
+        {% else %}
+        <section class="empty-state">
+            <h2>Nenhum posto cadastrado</h2>
+            <p>Adicione seu primeiro posto para começar a acompanhar preços e desempenho.</p>
+            <a class="btn-primary" href="#adicionar-posto">+ Adicionar posto</a>
+        </section>
+        {% endif %}
+    </main>
+</body>
+</html>

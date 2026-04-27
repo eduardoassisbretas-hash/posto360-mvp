@@ -1,0 +1,39 @@
+from fastapi import FastAPI, UploadFile, File
+import csv
+import io
+
+app = FastAPI()
+
+@app.get("/")
+def home():
+    return {"message": "Posto360 online"}
+
+@app.post("/importar-tecnox")
+async def importar_tecnox(arquivo: UploadFile = File(...)):
+    conteudo = await arquivo.read()
+    texto = conteudo.decode("utf-8")
+    leitor = csv.DictReader(io.StringIO(texto))
+    linhas = list(leitor)
+
+    analises = []
+
+    for linha in linhas:
+        litros_vendidos = float(linha["litros_vendidos"])
+        estoque = float(linha["litros_estoque"])
+
+        if litros_vendidos > 0:
+            dias_restantes = estoque / litros_vendidos
+        else:
+            dias_restantes = 0
+
+        analises.append({
+            "posto": linha["posto"],
+            "produto": linha["produto"],
+            "dias_restantes": round(dias_restantes, 2)
+        })
+
+    return {
+        "linhas_lidas": len(linhas),
+        "analises": analises
+    }
+    
