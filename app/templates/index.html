@@ -119,6 +119,27 @@
             background: rgba(148, 163, 184, 0.1);
         }
 
+        .menu-ai-link {
+            justify-content: space-between;
+            border: 1px solid rgba(56, 189, 248, 0.16);
+            background: rgba(56, 189, 248, 0.08);
+        }
+
+        .menu-ai-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 34px;
+            height: 24px;
+            padding: 0 8px;
+            border-radius: 999px;
+            color: #06111f;
+            background: linear-gradient(135deg, #38bdf8, #34d399);
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+        }
+
         .menu-panel .menu-placeholder {
             color: var(--muted);
         }
@@ -405,16 +426,6 @@
             border: 1px solid var(--border);
             background: rgba(15, 23, 42, 0.6);
             color: #dbeafe;
-        }
-
-        .btn-danger {
-            border-color: rgba(248, 113, 113, 0.28);
-            background: rgba(127, 29, 29, 0.28);
-            color: #fecaca;
-        }
-
-        .reset-form {
-            width: 100%;
         }
 
         .btn-primary:hover,
@@ -1147,6 +1158,7 @@
             <a href="#leituras-imagem">Leituras por imagem</a>
             <a href="#alertas">Alertas</a>
             <a href="/postos">Meus Postos</a>
+            <a href="/posto360-ai" class="menu-ai-link">Posto360 AI <span class="menu-ai-badge">AI</span></a>
             <a href="/configuracoes">Configurações</a>
             <a href="/logout">Sair</a>
         </nav>
@@ -1187,9 +1199,6 @@
             <div class="hero-actions">
                 <a href="/formulario" class="btn-primary">+ Nova análise</a>
                 <a href="/upload-teste" class="btn-secondary" data-tour="upload">Enviar imagens</a>
-                <form action="/reset" method="post" class="reset-form">
-                    <button type="submit" class="btn-secondary btn-danger">Limpar dados de teste</button>
-                </form>
             </div>
 
             {% if configuracao_alerta %}

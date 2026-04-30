@@ -49,11 +49,13 @@ VISION_MAX_WORKERS = 4
 OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses"
 NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse"
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+OPENAI_AI_MODEL = os.getenv("OPENAI_AI_MODEL", "gpt-4.1-mini")
 OPENAI_VISION_MODEL = os.getenv("OPENAI_VISION_MODEL", "gpt-4.1-mini")
 OPENAI_VISION_MIN_CONFIDENCE = float(os.getenv("OPENAI_VISION_MIN_CONFIDENCE", "0.20"))
 OPENAI_VISION_LOW_CONFIDENCE = float(os.getenv("OPENAI_VISION_LOW_CONFIDENCE", "0.65"))
 DECISION_MIN_VALID_READINGS = int(os.getenv("DECISION_MIN_VALID_READINGS", "2"))
 ALERT_MIN_COMPETITOR_READINGS = int(os.getenv("ALERT_MIN_COMPETITOR_READINGS", "2"))
+ENABLE_TEST_RESET = os.getenv("ENABLE_TEST_RESET", "").strip().lower() in {"1", "true", "yes", "on"}
 DEBUG_VISION_FOLDER = os.path.join(UPLOAD_FOLDER, "debug_vision")
 OPENAI_CONFIG_ERROR_MESSAGE = (
     "OPENAI_API_KEY ausente. Configure a chave no arquivo .env na raiz do projeto."
@@ -614,6 +616,13 @@ def complete_onboarding_quiz(
         "Organizar operação da rede": "Gestão operacional",
         "Ter relatórios melhores": "Relatórios",
     }
+    station_count_map = {
+        "Até 3 postos": 3,
+        "4 a 10 postos": 10,
+        "11 a 25 postos": 25,
+        "26 a 50 postos": 50,
+        "50+ postos": 51,
+    }
     regions = []
     with db_connect() as conn:
         settings = conn.execute(
@@ -636,7 +645,7 @@ def complete_onboarding_quiz(
             WHERE company_id = ?
             """,
             (
-                1 if network_size == "1 posto" else None,
+                station_count_map.get(network_size),
                 "Rede de postos",
                 json.dumps([priority_map.get(first_priority, first_priority)] if first_priority else [], ensure_ascii=False),
                 json.dumps(regions, ensure_ascii=False),
@@ -2819,6 +2828,372 @@ def montar_dados_alertas(regiao: str | None, posto: str | None) -> dict:
     }
 
 
+POSTO360_AI_SUGESTOES = [
+    "Quais postos exigem atenção hoje?",
+    "Resumo operacional da minha rede",
+    "Onde há oportunidades?",
+    "Analisar concorrência",
+]
+
+
+def extrair_historico_ai(history_json: str | None) -> List[dict]:
+    if not history_json:
+        return []
+    try:
+        history = json.loads(history_json)
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(history, list):
+        return []
+    return [
+        {
+            "pergunta": str(item.get("pergunta", ""))[:400],
+            "resposta": str(item.get("resposta", ""))[:1600],
+        }
+        for item in history
+        if isinstance(item, dict) and item.get("pergunta") and item.get("resposta")
+    ][-6:]
+
+
+def montar_contexto_posto360_ai(user: dict) -> dict:
+    carregar_empresa_em_memoria(user["company_id"])
+    dados = montar_dados_dashboard_filtrados(None, None)
+    postos = montar_dados_postos().get("postos", [])
+    leituras = list_company_readings(user["company_id"])
+    leituras_recentes = sorted(
+        leituras,
+        key=lambda item: item.get("created_at") or "",
+        reverse=True,
+    )[:8]
+
+    return {
+        "empresa": user.get("company_name") or "sua rede",
+        "postos": postos,
+        "leituras": leituras,
+        "leituras_recentes": leituras_recentes,
+        "alertas": dados.get("alertas", []),
+        "comparativos": dados.get("comparativos", []),
+        "resumo_por_tipo": dados.get("resumo_por_tipo", {}),
+        "regioes": dados.get("regioes", []),
+    }
+
+
+def resumir_metricas_ai(contexto: dict) -> dict:
+    leituras = contexto.get("leituras", [])
+    return {
+        "postos": len(contexto.get("postos", [])),
+        "leituras": len(leituras),
+        "leituras_concorrentes": sum(1 for item in leituras if item.get("source_type") == "concorrente"),
+        "leituras_meu_posto": sum(1 for item in leituras if item.get("source_type") == "meu_posto"),
+        "alertas": len(contexto.get("alertas", [])),
+        "regioes": len(contexto.get("regioes", [])),
+    }
+
+
+def montar_linhas_alertas_ai(alertas: List[dict], limite: int = 4) -> List[str]:
+    linhas = []
+    for alerta in alertas[:limite]:
+        posto = alerta.get("posto") or "Posto"
+        combustivel = alerta.get("combustivel") or "combustível"
+        diferenca = alerta.get("diferenca") or ""
+        acao = alerta.get("acao") or alerta.get("mensagem") or "Revisar cenário"
+        linhas.append(f"{posto}: {combustivel} {diferenca}. {acao}.")
+    return linhas
+
+
+def montar_linhas_oportunidades_ai(alertas: List[dict], comparativos: List[dict]) -> List[str]:
+    oportunidades = [
+        alerta
+        for alerta in alertas
+        if normalizar_texto(alerta.get("titulo")) == "oportunidade"
+        or "subir" in normalizar_texto(alerta.get("sugestao"))
+    ]
+    linhas = montar_linhas_alertas_ai(oportunidades, 3)
+
+    if linhas:
+        return linhas
+
+    for item in comparativos[:3]:
+        status = item.get("decisao_titulo") or item.get("status") or ""
+        if status in {"Competitivo", "Oportunidade de subir"}:
+            linhas.append(
+                f"{item.get('combustivel_label')}: {item.get('preco_sugerido') or item.get('preco_atual')} com {item.get('diferenca_media') or item.get('diferenca')}."
+            )
+
+    return linhas
+
+
+def montar_resumo_leituras_ai(leituras_recentes: List[dict]) -> List[str]:
+    linhas = []
+    for leitura in leituras_recentes[:5]:
+        tipo = nome_amigavel_combustivel(leitura.get("fuel_type"))
+        preco = formatar_preco(leitura.get("price")) if leitura.get("price") is not None else "sem preço seguro"
+        origem = "meu posto" if leitura.get("source_type") == "meu_posto" else "concorrente"
+        regiao = leitura.get("region") or "região não informada"
+        linhas.append(f"{tipo}: {preco} em {regiao} ({origem}).")
+    return linhas
+
+
+def limitar_texto_ai(valor: str | None, limite: int = 160) -> str:
+    texto = str(valor or "").strip()
+    if len(texto) <= limite:
+        return texto
+    return texto[: limite - 3].rstrip() + "..."
+
+
+def montar_resumo_operacional_openai(contexto: dict) -> dict:
+    metricas = resumir_metricas_ai(contexto)
+    resumo_por_tipo = contexto.get("resumo_por_tipo", {})
+
+    return {
+        "empresa": limitar_texto_ai(contexto.get("empresa"), 90),
+        "metricas": metricas,
+        "regioes_monitoradas": [
+            limitar_texto_ai(regiao, 80)
+            for regiao in contexto.get("regioes", [])[:8]
+        ],
+        "postos": [
+            {
+                "nome": limitar_texto_ai(posto.get("nome"), 90),
+                "regiao": limitar_texto_ai(posto.get("regiao"), 80),
+                "status": posto.get("status_geral"),
+                "alerta": limitar_texto_ai(posto.get("alerta"), 180),
+                "precos": [
+                    {
+                        "combustivel": preco.get("label"),
+                        "preco": preco.get("preco"),
+                        "status": preco.get("status"),
+                        "media_concorrentes": preco.get("media_concorrentes"),
+                        "diferenca": preco.get("diferenca"),
+                    }
+                    for preco in posto.get("precos", [])[:3]
+                ],
+            }
+            for posto in contexto.get("postos", [])[:10]
+        ],
+        "alertas_prioritarios": [
+            {
+                "posto": limitar_texto_ai(alerta.get("posto"), 90),
+                "regiao": limitar_texto_ai(alerta.get("regiao"), 80),
+                "combustivel": alerta.get("combustivel"),
+                "status": alerta.get("titulo"),
+                "preco_meu_posto": alerta.get("preco_meu_posto"),
+                "media_concorrentes": alerta.get("media_concorrentes"),
+                "diferenca": alerta.get("diferenca"),
+                "acao": limitar_texto_ai(alerta.get("acao") or alerta.get("sugestao"), 180),
+            }
+            for alerta in contexto.get("alertas", [])[:8]
+        ],
+        "decisoes_preco": [
+            {
+                "combustivel": item.get("combustivel_label"),
+                "preco": item.get("preco_sugerido") or item.get("preco_atual"),
+                "media_regiao": item.get("media_regiao"),
+                "diferenca": item.get("diferenca_media") or item.get("diferenca"),
+                "status": item.get("decisao_titulo") or item.get("status"),
+            }
+            for item in contexto.get("comparativos", [])[:8]
+        ],
+        "resumo_combustiveis": {
+            chave: {
+                "label": item.get("label"),
+                "media": item.get("media"),
+                "menor": item.get("menor"),
+                "maior": item.get("maior"),
+            }
+            for chave, item in resumo_por_tipo.items()
+            if item.get("media") and item.get("media") != "R$ --"
+        },
+        "leituras_recentes": [
+            {
+                "tipo": nome_amigavel_combustivel(leitura.get("fuel_type")),
+                "preco": formatar_preco(leitura.get("price")) if leitura.get("price") is not None else "sem preço",
+                "origem": "meu_posto" if leitura.get("source_type") == "meu_posto" else "concorrente",
+                "regiao": limitar_texto_ai(leitura.get("region"), 80),
+                "posto": limitar_texto_ai(leitura.get("station_name") or leitura.get("competitor_name"), 90),
+            }
+            for leitura in contexto.get("leituras_recentes", [])[:8]
+        ],
+    }
+
+
+def chamar_openai_posto360_ai(pergunta: str, contexto: dict, historico: List[dict]) -> str:
+    if not OPENAI_API_KEY:
+        raise RuntimeError("openai_api_key_ausente")
+
+    resumo_operacional = montar_resumo_operacional_openai(contexto)
+    resumo_json = json.dumps(resumo_operacional, ensure_ascii=False)
+    resumo_json = resumo_json[:6000]
+    historico_curto = [
+        {
+            "pergunta": limitar_texto_ai(item.get("pergunta"), 180),
+            "resposta": limitar_texto_ai(item.get("resposta"), 360),
+        }
+        for item in historico[-3:]
+    ]
+
+    instrucoes = (
+        "Você é o Posto360 AI, um copiloto executivo para donos e gestores de redes de postos. "
+        "Responda em português do Brasil, com tom premium, direto e operacional. "
+        "Use exclusivamente o resumo operacional fornecido. Não invente dados, preços, postos ou regiões. "
+        "Se a base estiver insuficiente, diga o que falta coletar. "
+        "Priorize decisões acionáveis: onde focar hoje, risco, oportunidade, concorrência e próximos passos. "
+        "Seja objetivo: no máximo 6 bullets ou 3 parágrafos curtos. "
+        "Nunca mencione API, banco de dados, company_id, OCR, logs ou implementação."
+    )
+    pergunta_contextualizada = (
+        f"Pergunta do gestor: {pergunta.strip()[:500]}\n\n"
+        f"Histórico recente do chat: {json.dumps(historico_curto, ensure_ascii=False)}\n\n"
+        f"Resumo operacional autorizado da empresa logada: {resumo_json}"
+    )
+
+    body = {
+        "model": OPENAI_AI_MODEL,
+        "input": [
+            {"role": "system", "content": [{"type": "input_text", "text": instrucoes}]},
+            {"role": "user", "content": [{"type": "input_text", "text": pergunta_contextualizada}]},
+        ],
+        "max_output_tokens": 520,
+        "temperature": 0.35,
+    }
+
+    request = urllib.request.Request(
+        OPENAI_RESPONSES_URL,
+        data=json.dumps(body).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
+        },
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as erro:
+        detalhe = erro.read().decode("utf-8", errors="ignore")
+        print(f"[POSTO360_AI] erro_http={erro.code} detalhe={detalhe[:240]}")
+        raise RuntimeError(f"falha_openai_ai_http={erro.code}") from erro
+    except urllib.error.URLError as erro:
+        print(f"[POSTO360_AI] erro_rede={erro}")
+        raise RuntimeError("falha_openai_ai_rede") from erro
+
+    texto = extrair_texto_resposta_openai(payload).strip()
+    if not texto:
+        raise RuntimeError("resposta_openai_ai_vazia")
+
+    return texto[:2200]
+
+
+def gerar_resposta_posto360_ai_com_fallback(pergunta: str, contexto: dict, historico: List[dict]) -> tuple[str, str]:
+    try:
+        return chamar_openai_posto360_ai(pergunta, contexto, historico), "openai"
+    except Exception as erro:
+        print(f"[POSTO360_AI] usando_fallback_local motivo={erro}")
+        return gerar_resposta_posto360_ai(pergunta, contexto), "local"
+
+
+def gerar_resposta_posto360_ai(pergunta: str, contexto: dict) -> str:
+    pergunta_normalizada = normalizar_texto(pergunta)
+    metricas = resumir_metricas_ai(contexto)
+    alertas = contexto.get("alertas", [])
+    comparativos = contexto.get("comparativos", [])
+    postos = contexto.get("postos", [])
+    leituras_recentes = contexto.get("leituras_recentes", [])
+
+    if not pergunta.strip():
+        return "Faça uma pergunta operacional para eu analisar sua rede com os dados disponíveis."
+
+    if metricas["postos"] == 0:
+        return (
+            "Ainda não há postos cadastrados nesta empresa. O próximo passo é cadastrar o primeiro posto para que eu possa comparar leituras, regiões e oportunidades operacionais."
+        )
+
+    if any(termo in pergunta_normalizada for termo in ["atencao", "foco", "precisa", "critico"]):
+        linhas = montar_linhas_alertas_ai(alertas)
+        if linhas:
+            return "Prioridade de hoje:\n\n" + "\n".join(f"- {linha}" for linha in linhas)
+        return "Nenhum posto aparece em condição crítica agora. Mantenha o acompanhamento das leituras recentes e priorize regiões com menos dados."
+
+    if any(termo in pergunta_normalizada for termo in ["oportunidade", "margem", "subir"]):
+        linhas = montar_linhas_oportunidades_ai(alertas, comparativos)
+        if linhas:
+            return "Oportunidades identificadas:\n\n" + "\n".join(f"- {linha}" for linha in linhas)
+        return "Não encontrei oportunidade clara de aumento de margem com os dados atuais. Colete mais leituras de concorrentes para reforçar a decisão."
+
+    if any(termo in pergunta_normalizada for termo in ["concorrencia", "concorrente", "regiao", "movimentacao"]):
+        regioes = contexto.get("regioes", [])
+        resumo = contexto.get("resumo_por_tipo", {})
+        linhas = []
+        if regioes:
+            linhas.append(f"Regiões monitoradas: {', '.join(regioes[:5])}.")
+        for chave in ("gasolina", "etanol", "diesel"):
+            item = resumo.get(chave, {})
+            if item.get("media") and item.get("media") != "R$ --":
+                linhas.append(f"{item.get('label')}: média {item.get('media')}, menor {item.get('menor')}, maior {item.get('maior')}.")
+        if linhas:
+            return "Leitura concorrencial da rede:\n\n" + "\n".join(f"- {linha}" for linha in linhas)
+        return "Ainda não há base concorrencial suficiente. Envie fotos de placas por região para eu comparar médias, mínimos e máximos."
+
+    if any(termo in pergunta_normalizada for termo in ["leitura", "recent", "resuma", "resumo"]):
+        linhas = montar_resumo_leituras_ai(leituras_recentes)
+        if linhas:
+            return "Resumo das leituras recentes:\n\n" + "\n".join(f"- {linha}" for linha in linhas)
+        return "Ainda não há leituras recentes suficientes para resumir. Envie a primeira foto de placa para ativar a análise operacional."
+
+    if any(termo in pergunta_normalizada for termo in ["acima", "abaixo", "media", "competitiv"]):
+        linhas = []
+        for item in comparativos[:5]:
+            linhas.append(
+                f"{item.get('combustivel_label')}: {item.get('preco_sugerido') or item.get('preco_atual')} · {item.get('decisao_titulo') or item.get('status')} · {item.get('diferenca_media') or item.get('diferenca')}."
+            )
+        if linhas:
+            return "Posicionamento atual vs média:\n\n" + "\n".join(f"- {linha}" for linha in linhas)
+        return "Não há comparativos confiáveis suficientes para apontar acima ou abaixo da média."
+
+    destaques = montar_linhas_alertas_ai(alertas, 3)
+    if not destaques:
+        destaques = montar_resumo_leituras_ai(leituras_recentes[:3])
+
+    resposta = [
+        f"Resumo executivo da {contexto.get('empresa')}:",
+        "",
+        f"- {metricas['postos']} posto(s) monitorado(s), {metricas['leituras']} leitura(s) registradas e {metricas['alertas']} alerta(s) ativo(s).",
+        f"- Base concorrencial: {metricas['leituras_concorrentes']} leitura(s) de concorrentes.",
+        f"- Leituras do seu posto: {metricas['leituras_meu_posto']}.",
+    ]
+    if destaques:
+        resposta.append("")
+        resposta.append("Foco recomendado:")
+        resposta.extend(f"- {linha}" for linha in destaques)
+    else:
+        resposta.append("")
+        resposta.append("Foco recomendado: cadastre leituras recentes para ampliar a precisão das recomendações.")
+
+    return "\n".join(resposta)
+
+
+def montar_dados_posto360_ai(user: dict, pergunta: str = "", history_json: str | None = None) -> dict:
+    contexto = montar_contexto_posto360_ai(user)
+    historico = extrair_historico_ai(history_json)
+    origem_resposta = ""
+
+    if pergunta.strip():
+        resposta, origem_resposta = gerar_resposta_posto360_ai_com_fallback(pergunta, contexto, historico)
+        historico.append({"pergunta": pergunta.strip()[:400], "resposta": resposta, "origem": origem_resposta})
+        historico = historico[-6:]
+
+    return {
+        "sugestoes": POSTO360_AI_SUGESTOES,
+        "historico": historico,
+        "historico_json": json.dumps(historico, ensure_ascii=False),
+        "metricas": resumir_metricas_ai(contexto),
+        "modelo": OPENAI_AI_MODEL,
+        "openai_configurada": openai_api_key_configurada(),
+        "origem_resposta": origem_resposta,
+    }
+
+
 def precisa_reprocessar_uploads() -> bool:
     return bool(
         [
@@ -3415,6 +3790,8 @@ def reset_dados_teste(request: Request):
     onboarding_redirect = require_onboarding(user)
     if onboarding_redirect:
         return onboarding_redirect
+    if not ENABLE_TEST_RESET:
+        return RedirectResponse(url="/dashboard", status_code=303)
     delete_company_readings(user["company_id"])
     limpar_dados_teste()
     return RedirectResponse(url="/dashboard", status_code=303)
@@ -3462,6 +3839,40 @@ def alertas(request: Request):
         request=request,
         name="alertas.html",
         context={"dados": dados_alertas},
+    )
+
+
+@app.get("/posto360-ai", response_class=HTMLResponse)
+def posto360_ai(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    return templates.TemplateResponse(
+        request=request,
+        name="posto360_ai.html",
+        context={"dados": montar_dados_posto360_ai(user)},
+    )
+
+
+@app.post("/posto360-ai", response_class=HTMLResponse)
+def posto360_ai_perguntar(
+    request: Request,
+    pergunta: str = Form(""),
+    historico_json: str = Form(""),
+):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    return templates.TemplateResponse(
+        request=request,
+        name="posto360_ai.html",
+        context={"dados": montar_dados_posto360_ai(user, pergunta, historico_json)},
     )
 
 

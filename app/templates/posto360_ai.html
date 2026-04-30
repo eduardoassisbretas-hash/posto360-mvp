@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posto360 AI | Posto360</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap");
+
+        :root {
+            --bg: #06111f;
+            --bg-accent: radial-gradient(circle at top, rgba(37, 99, 235, 0.24), transparent 34%), radial-gradient(circle at 85% 10%, rgba(16, 185, 129, 0.16), transparent 22%), linear-gradient(180deg, #08111d 0%, #040914 100%);
+            --panel: rgba(10, 19, 35, 0.92);
+            --panel-strong: rgba(15, 27, 47, 0.98);
+            --panel-soft: rgba(148, 163, 184, 0.08);
+            --border: rgba(148, 163, 184, 0.16);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --primary: #38bdf8;
+            --success: #34d399;
+            --shadow: 0 16px 42px rgba(2, 6, 23, 0.34);
+            --radius-lg: 28px;
+            --radius-md: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Manrope", "Segoe UI", sans-serif;
+            background: var(--bg);
+            background-image: var(--bg-accent);
+            color: var(--text);
+            padding: 14px;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .shell {
+            width: min(1040px, 100%);
+            min-height: calc(100vh - 28px);
+            margin: 0 auto;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 16px;
+        }
+
+        .page-header,
+        .chat-panel,
+        .metric-card {
+            border: 1px solid var(--border);
+            background: var(--panel);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius-lg);
+        }
+
+        .page-header {
+            display: grid;
+            gap: 18px;
+            padding: 20px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            width: fit-content;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 11px;
+            border-radius: 999px;
+            color: #dbeafe;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            font-size: 0.75rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        h1,
+        h2 {
+            font-family: "Space Grotesk", "Manrope", sans-serif;
+            letter-spacing: -0.03em;
+        }
+
+        h1 {
+            font-size: clamp(2.15rem, 9vw, 4rem);
+            line-height: 0.95;
+            margin: 12px 0 10px;
+        }
+
+        p {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .top-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn-secondary,
+        .send-button,
+        .suggestion {
+            border: 1px solid var(--border);
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 0 16px;
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.62);
+            color: #dbeafe;
+            font-weight: 800;
+        }
+
+        .metrics-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .metric-card {
+            padding: 14px;
+            background: rgba(15, 27, 47, 0.72);
+        }
+
+        .metric-card span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .metric-card strong {
+            display: block;
+            margin-top: 4px;
+            font-family: "Space Grotesk", "Manrope", sans-serif;
+            font-size: 1.4rem;
+        }
+
+        .chat-panel {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            min-height: 620px;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(15, 27, 47, 0.94), rgba(8, 15, 27, 0.98));
+        }
+
+        .chat-top {
+            padding: 18px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .chat-top h2 {
+            font-size: 1.15rem;
+            margin-bottom: 6px;
+        }
+
+        .suggestions {
+            display: grid;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .suggestion {
+            min-height: 46px;
+            border-radius: 14px;
+            padding: 0 14px;
+            color: #dbeafe;
+            background: rgba(56, 189, 248, 0.08);
+            text-align: left;
+            font-weight: 800;
+            transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+        }
+
+        .suggestion:hover {
+            transform: translateY(-1px);
+            border-color: rgba(56, 189, 248, 0.38);
+            background: rgba(56, 189, 248, 0.13);
+        }
+
+        .messages {
+            display: grid;
+            align-content: start;
+            gap: 14px;
+            padding: 18px;
+            overflow: auto;
+        }
+
+        .empty-chat {
+            display: grid;
+            place-items: center;
+            min-height: 230px;
+            padding: 22px;
+            border-radius: var(--radius-md);
+            border: 1px dashed rgba(148, 163, 184, 0.2);
+            background: var(--panel-soft);
+            text-align: center;
+        }
+
+        .message {
+            display: grid;
+            gap: 8px;
+            max-width: 820px;
+            animation: rise 0.22s ease both;
+        }
+
+        .message-user {
+            justify-self: end;
+            width: min(92%, 720px);
+        }
+
+        .message-ai {
+            justify-self: start;
+            width: min(96%, 820px);
+        }
+
+        .bubble {
+            padding: 14px 15px;
+            border-radius: 18px;
+            line-height: 1.55;
+            white-space: pre-line;
+        }
+
+        .message-user .bubble {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.95), rgba(37, 99, 235, 0.9));
+            color: #eff6ff;
+            font-weight: 800;
+        }
+
+        .message-ai .bubble {
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            background: rgba(15, 23, 42, 0.72);
+            color: #e2e8f0;
+        }
+
+        .message-label {
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .composer {
+            display: grid;
+            gap: 10px;
+            padding: 14px;
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+            background: rgba(2, 6, 23, 0.22);
+        }
+
+        .input-wrap {
+            display: grid;
+            gap: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 58px;
+            max-height: 180px;
+            resize: vertical;
+            border-radius: 18px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text);
+            padding: 14px;
+            font: inherit;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: rgba(56, 189, 248, 0.52);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+        }
+
+        .send-button {
+            min-height: 50px;
+            border-radius: 16px;
+            border: 0;
+            color: #06111f;
+            background: linear-gradient(135deg, var(--primary), var(--success));
+            font-weight: 900;
+        }
+
+        .loading {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            font-weight: 800;
+            font-size: 0.86rem;
+        }
+
+        .loading-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: var(--primary);
+            animation: pulse 0.9s ease infinite;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.12s;
+        }
+
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.24s;
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.35;
+                transform: translateY(0);
+            }
+            50% {
+                opacity: 1;
+                transform: translateY(-2px);
+            }
+        }
+
+        @media (min-width: 760px) {
+            body {
+                padding: 28px;
+            }
+
+            .shell {
+                min-height: calc(100vh - 56px);
+            }
+
+            .page-header {
+                grid-template-columns: 1.25fr 0.75fr;
+                align-items: end;
+                padding: 28px;
+            }
+
+            .top-actions {
+                justify-content: flex-end;
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .suggestions {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+
+            .input-wrap {
+                grid-template-columns: 1fr 170px;
+                align-items: end;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% set historico = dados.historico if dados is defined and dados.historico is defined else [] %}
+    {% set sugestoes = dados.sugestoes if dados is defined and dados.sugestoes is defined else [] %}
+    {% set metricas = dados.metricas if dados is defined and dados.metricas is defined else {} %}
+
+    <main class="shell">
+        <section class="page-header">
+            <div>
+                <span class="eyebrow">Copiloto operacional</span>
+                <h1>Posto360 AI</h1>
+                <p>Um assistente executivo para transformar leituras, postos e alertas em prioridades claras para a sua rede.</p>
+            </div>
+            <div>
+                <div class="top-actions">
+                    <a class="btn-secondary" href="/dashboard">Voltar ao dashboard</a>
+                </div>
+                <div class="metrics-grid" aria-label="Resumo da base analisada">
+                    <article class="metric-card">
+                        <span>Postos</span>
+                        <strong>{{ metricas.get("postos", 0) }}</strong>
+                    </article>
+                    <article class="metric-card">
+                        <span>Leituras</span>
+                        <strong>{{ metricas.get("leituras", 0) }}</strong>
+                    </article>
+                    <article class="metric-card">
+                        <span>Alertas</span>
+                        <strong>{{ metricas.get("alertas", 0) }}</strong>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="chat-panel">
+            <div class="chat-top">
+                <h2>Inteligência da rede</h2>
+                <p>Faça perguntas sobre concorrência, oportunidades, postos que exigem atenção e leituras recentes.</p>
+                <div class="suggestions">
+                    {% for sugestao in sugestoes %}
+                    <button class="suggestion" type="button" data-question="{{ sugestao }}">{{ sugestao }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="messages" id="messages">
+                {% if historico %}
+                    {% for item in historico %}
+                    <div class="message message-user">
+                        <span class="message-label">Você</span>
+                        <div class="bubble">{{ item.pergunta }}</div>
+                    </div>
+                    <div class="message message-ai">
+                        <span class="message-label">Posto360 AI</span>
+                        <div class="bubble">{{ item.resposta }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="empty-chat">
+                    <div>
+                        <h2>Comece por uma pergunta estratégica</h2>
+                        <p>O Posto360 AI usa somente os dados da sua empresa para gerar uma resposta objetiva e acionável.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <form class="composer" id="ai-form" action="/posto360-ai" method="post">
+                <input type="hidden" name="historico_json" value="{{ dados.historico_json|e if dados is defined else '[]' }}">
+                <div class="loading" id="loading">
+                    <span class="loading-dot"></span>
+                    <span class="loading-dot"></span>
+                    <span class="loading-dot"></span>
+                    Analisando dados da sua rede
+                </div>
+                <div class="input-wrap">
+                    <textarea name="pergunta" id="question-input" placeholder="Ex: Onde devo focar hoje?" required></textarea>
+                    <button class="send-button" type="submit">Perguntar</button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        (function () {
+            const input = document.getElementById('question-input');
+            const form = document.getElementById('ai-form');
+            const loading = document.getElementById('loading');
+            const messages = document.getElementById('messages');
+
+            document.querySelectorAll('[data-question]').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    input.value = button.getAttribute('data-question') || '';
+                    input.focus();
+                });
+            });
+
+            form.addEventListener('submit', function () {
+                loading.style.display = 'flex';
+            });
+
+            if (messages) {
+                messages.scrollTop = messages.scrollHeight;
+            }
+        })();
+    </script>
+</body>
+</html>
