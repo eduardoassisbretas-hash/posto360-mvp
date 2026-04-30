@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico | Posto360</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap");
+        :root { --bg:#06111f; --bg-accent:radial-gradient(circle at top,rgba(37,99,235,.22),transparent 34%),radial-gradient(circle at 85% 10%,rgba(16,185,129,.16),transparent 22%),linear-gradient(180deg,#08111d 0%,#040914 100%); --panel:rgba(10,19,35,.92); --strong:rgba(15,27,47,.96); --soft:rgba(148,163,184,.08); --border:rgba(148,163,184,.16); --text:#f8fafc; --muted:#94a3b8; --primary:#38bdf8; --primary-strong:#2563eb; --shadow:0 16px 42px rgba(2,6,23,.34); }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { min-height:100vh; font-family:"Manrope","Segoe UI",sans-serif; background:var(--bg); background-image:var(--bg-accent); color:var(--text); padding:16px; }
+        a { color:inherit; text-decoration:none; }
+        .shell { width:min(1120px,100%); margin:0 auto; display:grid; gap:16px; }
+        .hero,.panel,.item { border:1px solid var(--border); background:var(--panel); box-shadow:var(--shadow); border-radius:26px; }
+        .hero { display:grid; gap:18px; padding:22px; }
+        h1,h2 { font-family:"Space Grotesk","Manrope",sans-serif; letter-spacing:-.03em; }
+        h1 { font-size:clamp(2rem,8vw,3.4rem); line-height:1; }
+        p,.muted { color:var(--muted); line-height:1.6; }
+        .badge { display:inline-flex; width:fit-content; padding:8px 12px; border-radius:999px; color:#dbeafe; background:rgba(37,99,235,.16); border:1px solid rgba(96,165,250,.22); font-weight:800; }
+        .actions,.filters,.pager { display:flex; flex-wrap:wrap; gap:10px; }
+        .btn,.btn-secondary,select,button { min-height:48px; border-radius:14px; padding:0 14px; font:inherit; font-weight:800; }
+        .btn,button { display:inline-flex; align-items:center; justify-content:center; border:0; color:#eff6ff; background:linear-gradient(135deg,var(--primary),var(--primary-strong)); }
+        .btn-secondary,select { display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--border); color:#dbeafe; background:rgba(15,23,42,.62); }
+        .panel { padding:18px; background:linear-gradient(180deg,var(--strong),rgba(8,15,27,.98)); }
+        .filters { align-items:end; }
+        label { display:grid; gap:8px; color:#dbeafe; font-weight:800; flex:1 1 180px; }
+        .list { display:grid; gap:10px; }
+        .item { padding:14px; background:var(--soft); display:grid; gap:6px; }
+        .item-top { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+        .status { color:#bae6fd; font-weight:800; }
+        .empty { padding:18px; border-radius:18px; border:1px dashed var(--border); color:var(--muted); background:var(--soft); }
+        @media (min-width:760px) { body{padding:28px;} .hero{grid-template-columns:1fr auto;align-items:end;padding:30px;} .list{grid-template-columns:repeat(2,minmax(0,1fr));} }
+    </style>
+</head>
+<body>
+    {% set itens = dados.leituras_imagem if dados is defined and dados.leituras_imagem is defined else [] %}
+    {% set regioes = dados.regioes if dados is defined and dados.regioes is defined else [] %}
+    {% set postos = dados.postos if dados is defined and dados.postos is defined else [] %}
+    {% set regiao_selecionada = dados.regiao_selecionada if dados is defined else "" %}
+    {% set posto_selecionado = dados.posto_selecionado if dados is defined else "" %}
+    <main class="shell">
+        <section class="hero">
+            <div>
+                <span class="badge">Histórico operacional</span>
+                <h1>Histórico</h1>
+                <p>Consulte leituras por imagem, origem, localização e resultado de análise sem poluir o dashboard executivo.</p>
+            </div>
+            <div class="actions">
+                <a class="btn-secondary" href="/dashboard">Dashboard</a>
+                <a class="btn-secondary" href="/concorrencia">Concorrência</a>
+            </div>
+        </section>
+        <form class="panel filters" method="get" action="/historico">
+            <label>Região
+                <select name="regiao">
+                    <option value="">Todas</option>
+                    {% for regiao in regioes %}<option value="{{ regiao }}" {% if regiao == regiao_selecionada %}selected{% endif %}>{{ regiao }}</option>{% endfor %}
+                </select>
+            </label>
+            <label>Posto
+                <select name="posto">
+                    <option value="">Todos</option>
+                    {% for posto in postos %}<option value="{{ posto }}" {% if posto == posto_selecionado %}selected{% endif %}>{{ posto }}</option>{% endfor %}
+                </select>
+            </label>
+            <button type="submit">Aplicar filtros</button>
+        </form>
+        <section class="panel">
+            <h2>Página {{ dados.page if dados is defined else 1 }}</h2>
+            {% if itens %}
+            <div class="list" style="margin-top:14px;">
+                {% for item in itens %}
+                <article class="item">
+                    <div class="item-top">
+                        <strong>{{ item.tipo_label if item.tipo_label is defined else item.tipo }}</strong>
+                        <span class="status">{{ "R$ %.2f"|format(item.preco) if item.preco is not none else "Revisar imagem" }}</span>
+                    </div>
+                    <p>{{ item.posto if item.posto is defined and item.posto else "Posto não informado" }} · {{ item.regiao if item.regiao is defined else "Região não informada" }}</p>
+                    {% if item.rua or item.endereco_formatado %}
+                    <p>{{ item.rua or item.endereco_formatado }}</p>
+                    {% endif %}
+                    <span class="muted">{{ "Leitura concluída" if item.preco is not none else "Não foi possível identificar preço com segurança" }}</span>
+                </article>
+                {% endfor %}
+            </div>
+            <div class="pager" style="margin-top:14px;">
+                {% if dados.pagina_anterior %}<a class="btn-secondary" href="/historico?page={{ dados.pagina_anterior }}">Página anterior</a>{% endif %}
+                {% if dados.tem_mais %}<a class="btn" href="/historico?page={{ dados.proxima_page }}">Carregar mais</a>{% endif %}
+            </div>
+            {% else %}
+            <div class="empty" style="margin-top:14px;">Nenhuma leitura encontrada.</div>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

@@ -1154,11 +1154,11 @@
         </summary>
         <nav class="menu-panel" aria-label="Navegação principal" data-tour="menu-panel">
             <a href="/dashboard">Dashboard</a>
-            <a href="/upload-teste">Nova análise</a>
-            <a href="#leituras-imagem">Leituras por imagem</a>
-            <a href="#alertas">Alertas</a>
-            <a href="/postos">Meus Postos</a>
+            <a href="/meu-posto">Meu Posto</a>
+            <a href="/concorrencia">Concorrência</a>
+            <a href="/historico">Histórico</a>
             <a href="/posto360-ai" class="menu-ai-link">Posto360 AI <span class="menu-ai-badge">AI</span></a>
+            <a href="/alertas">Alertas</a>
             <a href="/configuracoes">Configurações</a>
             <a href="/logout">Sair</a>
         </nav>
@@ -1197,8 +1197,8 @@
             </p>
 
             <div class="hero-actions">
-                <a href="/formulario" class="btn-primary">+ Nova análise</a>
-                <a href="/upload-teste" class="btn-secondary" data-tour="upload">Enviar imagens</a>
+                <a href="/meu-posto" class="btn-primary">Atualizar meu posto</a>
+                <a href="/concorrencia" class="btn-secondary" data-tour="upload">Monitorar concorrência</a>
             </div>
 
             {% if configuracao_alerta %}
@@ -1476,7 +1476,7 @@
                         <h2>Análises recentes</h2>
                         <p>Histórico curto para contexto operacional sem roubar o foco da decisão de preço.</p>
                     </div>
-                    <a href="/formulario" class="btn-secondary">Nova análise</a>
+                    <a href="/meu-posto" class="btn-secondary">Atualizar meu posto</a>
                 </div>
 
                 {% if analises %}
@@ -1509,7 +1509,7 @@
                 </div>
                 {% else %}
                 <div class="empty-state">
-                    Nenhuma análise disponível ainda. Use o botão "Nova análise" para registrar a primeira entrada.
+                    Nenhuma análise disponível ainda. Atualize os preços do seu posto para registrar a primeira entrada.
                 </div>
                 {% endif %}
             </article>
@@ -1526,7 +1526,7 @@
                 <span id="tour-progress">Passo 1 de 5</span>
                 <button class="tour-button tour-button-ghost" type="button" id="tour-skip">Pular</button>
             </div>
-            <h2 id="tour-title">Enviar imagens</h2>
+            <h2 id="tour-title">Monitorar concorrência</h2>
             <p id="tour-copy">Envie fotos de placas concorrentes aqui para ativar sua inteligência operacional.</p>
             <div class="tour-actions">
                 <div class="tour-actions-left">
@@ -1543,7 +1543,7 @@
             const steps = [
                 {
                     selector: '[data-tour="upload"]',
-                    title: 'Enviar imagens',
+                    title: 'Monitorar concorrência',
                     copy: 'Envie fotos de placas concorrentes aqui para ativar sua inteligência operacional.'
                 },
                 {

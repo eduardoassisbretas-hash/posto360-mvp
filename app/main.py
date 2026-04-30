@@ -76,6 +76,16 @@ COMBUSTIVEIS_CORE_DECISAO = {
     "diesel",
     "diesel_s10",
 }
+MEU_POSTO_COMBUSTIVEIS = [
+    ("gasolina_comum", "Gasolina comum", True),
+    ("gasolina_aditivada", "Gasolina aditivada", True),
+    ("etanol", "Etanol", True),
+    ("diesel_s10", "Diesel S10", True),
+    ("diesel", "Diesel comum", True),
+    ("gnv", "GNV", False),
+    ("gasolina_premium", "Gasolina Podium / Prime", False),
+    ("etanol_aditivado", "Etanol aditivado / premium", False),
+]
 PRICE_SANITY_RANGES = {
     "etanol": (2.0, 7.0),
     "gasolina": (3.5, 9.0),
@@ -660,7 +670,7 @@ def complete_onboarding_quiz(
 def onboarding_destination(start_choice: str) -> str:
     destinos = {
         "Cadastrar primeiro posto": "/postos",
-        "Enviar primeira foto de placa": "/upload-teste",
+        "Enviar primeira foto de placa": "/concorrencia",
         "Ver dashboard": "/dashboard",
         "Configurar alertas": "/configuracoes",
     }
@@ -954,10 +964,12 @@ def motivo_preco_descartado(tipo: str | None, preco: float | None) -> str | None
 
 
 def categoria_combustivel(tipo: str) -> str:
-    if tipo == "etanol":
+    if tipo in {"etanol", "etanol_aditivado"}:
         return "etanol"
     if tipo in {"diesel", "diesel_s10"}:
         return "diesel"
+    if tipo == "gnv":
+        return "gnv"
     if tipo == "nao_identificado":
         return "nao_identificado"
     return "gasolina"
@@ -970,8 +982,10 @@ def nome_amigavel_combustivel(tipo: str | None) -> str:
         "gasolina_aditivada": "Gasolina aditivada",
         "gasolina_premium": "Gasolina premium",
         "etanol": "Etanol",
+        "etanol_aditivado": "Etanol aditivado",
         "diesel": "Diesel",
         "diesel_s10": "Diesel S10",
+        "gnv": "GNV",
         "nao_identificado": "Nao identificado",
     }
     return mapa.get(tipo or "", "Nao identificado")
@@ -985,6 +999,8 @@ def ordem_combustivel(tipo: str | None) -> int:
         "etanol": 4,
         "diesel": 5,
         "diesel_s10": 6,
+        "gnv": 7,
+        "etanol_aditivado": 8,
         "nao_identificado": 99,
     }
     return ordem.get(tipo or "", 99)
@@ -2194,9 +2210,12 @@ def montar_dados_postos() -> dict:
 
         postos.append(
             {
+                "id": posto.get("id"),
                 "nome": nome,
                 "endereco": posto.get("endereco") or "Endereço não informado",
                 "regiao": regiao_posto,
+                "cidade": posto.get("cidade") or "",
+                "estado": posto.get("estado") or "",
                 "status_geral": status_geral,
                 "status_classe": status_classe,
                 "atualizado": horas_desde(ultima_leitura),
@@ -2826,6 +2845,104 @@ def montar_dados_alertas(regiao: str | None, posto: str | None) -> dict:
         "regiao_selecionada": regiao or "",
         "posto_selecionado": posto or "",
     }
+
+
+def montar_dados_meu_posto(user: dict, station_id: str | None = None) -> dict:
+    carregar_empresa_em_memoria(user["company_id"])
+    stations = list_company_stations(user["company_id"])
+    selected_station = get_company_station(user["company_id"], station_id) if station_id else None
+
+    if not selected_station and stations:
+        selected_station = stations[0]
+
+    readings = list_company_readings(user["company_id"])
+    own_readings = [
+        item
+        for item in readings
+        if item.get("source_type") == "meu_posto"
+        and (not selected_station or item.get("station_id") == selected_station.get("id"))
+    ]
+    latest_by_fuel = {}
+
+    for item in sorted(own_readings, key=lambda leitura: leitura.get("created_at") or "", reverse=True):
+        fuel = item.get("fuel_type")
+        if fuel and fuel not in latest_by_fuel:
+            latest_by_fuel[fuel] = item
+
+    fuel_cards = []
+    for slug, label, required in MEU_POSTO_COMBUSTIVEIS:
+        latest = latest_by_fuel.get(slug)
+        fuel_cards.append(
+            {
+                "slug": slug,
+                "label": label,
+                "required": required,
+                "price": f"{float(latest['price']):.2f}" if latest and latest.get("price") is not None else "",
+                "price_label": formatar_preco(float(latest["price"])) if latest and latest.get("price") is not None else "Sem preço",
+                "updated": horas_desde(latest.get("created_at")) if latest else "Sem atualização",
+            }
+        )
+
+    history = []
+    for item in sorted(own_readings, key=lambda leitura: leitura.get("created_at") or "", reverse=True)[:18]:
+        history.append(
+            {
+                "combustivel": nome_amigavel_combustivel(item.get("fuel_type")),
+                "preco": formatar_preco(float(item["price"])) if item.get("price") is not None else "Sem preço",
+                "posto": item.get("station_name") or item.get("competitor_name") or "Posto",
+                "regiao": item.get("region") or "",
+                "atualizado": horas_desde(item.get("created_at")),
+            }
+        )
+
+    return {
+        "stations": [station_to_dashboard(item) for item in stations],
+        "selected_station": station_to_dashboard(selected_station) if selected_station else None,
+        "fuel_cards": fuel_cards,
+        "history": history,
+        "has_stations": bool(stations),
+    }
+
+
+def montar_dados_concorrencia(user: dict) -> dict:
+    carregar_empresa_em_memoria(user["company_id"])
+    dados = montar_dados_dashboard_filtrados(None, None)
+    readings = list_company_readings(user["company_id"])
+    competitor_readings = [
+        item
+        for item in readings
+        if item.get("source_type") == "concorrente"
+    ]
+    recent = []
+    for item in sorted(competitor_readings, key=lambda leitura: leitura.get("created_at") or "", reverse=True)[:8]:
+        recent.append(
+            {
+                "combustivel": nome_amigavel_combustivel(item.get("fuel_type")),
+                "preco": formatar_preco(float(item["price"])) if item.get("price") is not None else "Sem preço",
+                "regiao": item.get("region") or "Região não informada",
+                "posto": item.get("competitor_name") or "Concorrente",
+                "atualizado": horas_desde(item.get("created_at")),
+            }
+        )
+
+    return {
+        "postos": [station_to_dashboard(item) for item in list_company_stations(user["company_id"])],
+        "regioes": dados.get("regioes", []),
+        "total_concorrentes": len(competitor_readings),
+        "resumo_por_tipo": dados.get("resumo_por_tipo", {}),
+        "recentes": recent,
+        "erro": "",
+    }
+
+
+def parse_preco_form(valor: str | None) -> float | None:
+    texto = str(valor or "").strip().replace(",", ".")
+    if not texto:
+        return None
+    try:
+        return round(float(texto), 3)
+    except ValueError:
+        return None
 
 
 POSTO360_AI_SUGESTOES = [
@@ -3822,6 +3939,28 @@ def leituras(request: Request):
     )
 
 
+@app.get("/historico", response_class=HTMLResponse)
+def historico(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    carregar_empresa_em_memoria(user["company_id"])
+    regiao = request.query_params.get("regiao") or None
+    posto = request.query_params.get("posto") or None
+    try:
+        page = int(request.query_params.get("page", "1"))
+    except ValueError:
+        page = 1
+    return templates.TemplateResponse(
+        request=request,
+        name="historico.html",
+        context={"dados": montar_dados_leituras(regiao, posto, page)},
+    )
+
+
 @app.get("/alertas", response_class=HTMLResponse)
 def alertas(request: Request):
     user = require_user(request)
@@ -3839,6 +3978,94 @@ def alertas(request: Request):
         request=request,
         name="alertas.html",
         context={"dados": dados_alertas},
+    )
+
+
+@app.get("/meu-posto", response_class=HTMLResponse)
+def meu_posto(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    station_id = request.query_params.get("station_id") or None
+    return templates.TemplateResponse(
+        request=request,
+        name="meu_posto.html",
+        context={"dados": montar_dados_meu_posto(user, station_id)},
+    )
+
+
+@app.post("/meu-posto")
+def salvar_precos_meu_posto(
+    request: Request,
+    station_id: str = Form(""),
+    gasolina_comum: str = Form(""),
+    gasolina_aditivada: str = Form(""),
+    etanol: str = Form(""),
+    diesel_s10: str = Form(""),
+    diesel: str = Form(""),
+    gnv: str = Form(""),
+    gasolina_premium: str = Form(""),
+    etanol_aditivado: str = Form(""),
+):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+
+    station = get_company_station(user["company_id"], station_id)
+    if not station:
+        return RedirectResponse(url="/postos?erro=crie-um-posto", status_code=303)
+
+    valores = {
+        "gasolina_comum": gasolina_comum,
+        "gasolina_aditivada": gasolina_aditivada,
+        "etanol": etanol,
+        "diesel_s10": diesel_s10,
+        "diesel": diesel,
+        "gnv": gnv,
+        "gasolina_premium": gasolina_premium,
+        "etanol_aditivado": etanol_aditivado,
+    }
+    for fuel_type, raw_price in valores.items():
+        price = parse_preco_form(raw_price)
+        if price is None:
+            continue
+        insert_reading(
+            company_id=user["company_id"],
+            station_id=station["id"],
+            fuel_type=fuel_type,
+            price=price,
+            competitor_name=station["name"],
+            address=station.get("address"),
+            region=station.get("region"),
+            latitude=None,
+            longitude=None,
+            image_path=None,
+            source_type="meu_posto",
+            status="manual",
+        )
+
+    carregar_empresa_em_memoria(user["company_id"])
+    return RedirectResponse(url=f"/meu-posto?station_id={station['id']}", status_code=303)
+
+
+@app.get("/concorrencia", response_class=HTMLResponse)
+def concorrencia(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    return templates.TemplateResponse(
+        request=request,
+        name="concorrencia.html",
+        context={"dados": montar_dados_concorrencia(user)},
     )
 
 
@@ -4161,14 +4388,14 @@ async def upload_imagens(
     caminhos = []
     tipo_leitura = "meu_posto" if tipo_leitura == "meu_posto" else "concorrente"
     stations = list_company_stations(user["company_id"])
-    if not stations:
+    if tipo_leitura == "meu_posto" and not stations:
         return RedirectResponse(url="/postos?erro=crie-um-posto", status_code=303)
-    if not station_id and len(stations) == 1:
+    if tipo_leitura == "meu_posto" and not station_id and len(stations) == 1:
         station_id = stations[0]["id"]
     station = get_company_station(user["company_id"], station_id)
-    if not station:
+    if tipo_leitura == "meu_posto" and not station:
         return RedirectResponse(url="/upload-teste?erro=posto", status_code=303)
-    posto_cadastrado = station_to_dashboard(station)
+    posto_cadastrado = station_to_dashboard(station) if station else None
     regiao_upload = regiao.strip()
 
     if posto_cadastrado:
@@ -4181,7 +4408,7 @@ async def upload_imagens(
         nome_salvo = nome_arquivo_processado(imagem.filename)
         caminho = f"{UPLOAD_FOLDER}/{nome_salvo}"
         dados_dashboard["upload_company_ids"][nome_salvo] = user["company_id"]
-        dados_dashboard["upload_station_ids"][nome_salvo] = station["id"]
+        dados_dashboard["upload_station_ids"][nome_salvo] = station["id"] if station else None
         dados_dashboard["upload_tipos"][nome_salvo] = tipo_leitura
         dados_dashboard["upload_regioes"][nome_salvo] = regiao_upload or "Regiao nao informada"
         if tipo_leitura == "meu_posto" and posto_cadastrado:
@@ -4225,5 +4452,6 @@ def upload_teste(request: Request):
         context={
             "postos": dados_dashboard["postos_cadastrados"],
             "erro": request.query_params.get("erro") or "",
+            "tipo_padrao": request.query_params.get("tipo") or "concorrente",
         },
     )

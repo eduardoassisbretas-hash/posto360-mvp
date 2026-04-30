@@ -3,24 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrar | Posto360</title>
+    <meta name="description" content="Posto360 é uma plataforma SaaS premium para gestão operacional, inteligência comercial e tomada de decisão em redes de postos.">
+    <meta name="theme-color" content="#06111f">
+    <title>Posto360 | Gestão inteligente para redes de postos</title>
     <style>
-        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap");
+        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700&display=swap");
 
         :root {
             --bg: #06111f;
-            --bg-accent: radial-gradient(circle at top, rgba(37, 99, 235, 0.22), transparent 34%), radial-gradient(circle at 85% 10%, rgba(16, 185, 129, 0.16), transparent 22%), linear-gradient(180deg, #08111d 0%, #040914 100%);
-            --panel: rgba(10, 19, 35, 0.92);
+            --bg-accent: radial-gradient(circle at 50% -10%, rgba(56, 189, 248, 0.28), transparent 30%), radial-gradient(circle at 88% 8%, rgba(16, 185, 129, 0.16), transparent 22%), linear-gradient(180deg, #08111d 0%, #040914 100%);
+            --panel: rgba(10, 19, 35, 0.9);
+            --panel-strong: rgba(15, 27, 47, 0.96);
             --border: rgba(148, 163, 184, 0.16);
             --text: #f8fafc;
             --muted: #94a3b8;
             --primary: #38bdf8;
             --primary-strong: #2563eb;
+            --success: #34d399;
             --danger: #fecaca;
-            --shadow: 0 24px 70px rgba(2, 6, 23, 0.42);
+            --shadow: 0 28px 80px rgba(2, 6, 23, 0.48);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             min-height: 100vh;
@@ -30,72 +38,171 @@
             background: var(--bg);
             background-image: var(--bg-accent);
             color: var(--text);
-            padding: 20px;
+            padding: 18px;
         }
 
-        .auth-card {
-            width: min(480px, 100%);
-            border: 1px solid var(--border);
-            background: var(--panel);
-            box-shadow: var(--shadow);
-            border-radius: 28px;
-            padding: 24px;
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .auth-shell {
+            width: min(1040px, 100%);
             display: grid;
             gap: 18px;
         }
 
-        .eyebrow {
+        .brand-panel,
+        .auth-card {
+            border: 1px solid var(--border);
+            background: var(--panel);
+            box-shadow: var(--shadow);
+            border-radius: 30px;
+        }
+
+        .brand-panel {
+            padding: 24px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .brand-panel::after {
+            content: "";
+            position: absolute;
+            inset: auto -70px -90px auto;
+            width: 190px;
+            height: 190px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.24), transparent 70%);
+            pointer-events: none;
+        }
+
+        .brand-badge {
             display: inline-flex;
             width: fit-content;
-            padding: 8px 12px;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 13px;
             border-radius: 999px;
-            font-size: 0.78rem;
-            letter-spacing: 0.08em;
+            font-size: 0.76rem;
+            letter-spacing: 0.11em;
             text-transform: uppercase;
-            color: #dbeafe;
-            background: rgba(37, 99, 235, 0.16);
-            border: 1px solid rgba(96, 165, 250, 0.22);
+            color: #e0f2fe;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.16), rgba(52, 211, 153, 0.1));
+            border: 1px solid rgba(125, 211, 252, 0.28);
+            box-shadow: 0 0 28px rgba(56, 189, 248, 0.12);
+            font-weight: 900;
+        }
+
+        .brand-mark {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--success);
+            box-shadow: 0 0 18px rgba(52, 211, 153, 0.72);
         }
 
         h1 {
+            max-width: 9ch;
+            margin-top: 18px;
             font-family: "Space Grotesk", "Manrope", sans-serif;
-            font-size: clamp(2rem, 8vw, 3rem);
-            letter-spacing: -0.03em;
-            line-height: 1;
+            font-size: clamp(2.25rem, 10vw, 4.65rem);
+            letter-spacing: -0.04em;
+            line-height: 0.96;
         }
 
-        p { color: var(--muted); line-height: 1.6; }
+        .lead {
+            max-width: 58ch;
+            margin-top: 14px;
+            color: #cbd5e1;
+            line-height: 1.65;
+            font-size: 1rem;
+        }
 
-        form { display: grid; gap: 14px; }
+        .trust-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 20px;
+        }
+
+        .trust-pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 34px;
+            padding: 7px 11px;
+            border-radius: 999px;
+            color: #dbeafe;
+            background: rgba(15, 23, 42, 0.62);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            font-size: 0.82rem;
+            font-weight: 800;
+        }
+
+        .auth-card {
+            padding: 22px;
+            background: linear-gradient(180deg, var(--panel-strong), rgba(8, 15, 27, 0.98));
+            display: grid;
+            gap: 18px;
+        }
+
+        .card-heading {
+            display: grid;
+            gap: 7px;
+        }
+
+        .card-heading h2 {
+            font-family: "Space Grotesk", "Manrope", sans-serif;
+            font-size: 1.45rem;
+            letter-spacing: -0.03em;
+        }
+
+        p {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        form {
+            display: grid;
+            gap: 14px;
+        }
 
         label {
             display: grid;
             gap: 8px;
             color: #dbeafe;
             font-weight: 800;
-            font-size: 0.94rem;
+            font-size: 0.92rem;
         }
 
         input {
             width: 100%;
-            min-height: 52px;
+            min-height: 54px;
             border-radius: 16px;
             border: 1px solid rgba(148, 163, 184, 0.18);
-            background: rgba(15, 23, 42, 0.72);
+            background: rgba(15, 23, 42, 0.74);
             color: var(--text);
-            padding: 0 14px;
+            padding: 0 15px;
             outline: none;
+            font: inherit;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        input:focus {
+            border-color: rgba(56, 189, 248, 0.55);
+            background: rgba(15, 23, 42, 0.9);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
         }
 
         button,
-        a {
+        .secondary-link {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 52px;
+            min-height: 54px;
             border-radius: 16px;
-            font-weight: 800;
-            text-decoration: none;
+            font-weight: 900;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
         }
 
         button {
@@ -103,9 +210,38 @@
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
             color: #eff6ff;
             cursor: pointer;
+            font: inherit;
+            box-shadow: 0 18px 32px rgba(37, 99, 235, 0.3);
         }
 
-        a { color: #dbeafe; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.6); }
+        button:hover,
+        .secondary-link:hover {
+            transform: translateY(-1px);
+        }
+
+        button:focus-visible,
+        .secondary-link:focus-visible {
+            outline: 3px solid rgba(56, 189, 248, 0.34);
+            outline-offset: 3px;
+        }
+
+        button.is-loading {
+            opacity: 0.82;
+            cursor: wait;
+        }
+
+        .secondary-link {
+            color: #dbeafe;
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.62);
+        }
+
+        .conversion-note {
+            color: #bae6fd;
+            font-size: 0.88rem;
+            font-weight: 800;
+            text-align: center;
+        }
 
         .error {
             padding: 12px 14px;
@@ -114,35 +250,79 @@
             background: rgba(127, 29, 29, 0.28);
             color: var(--danger);
             font-weight: 800;
+            line-height: 1.45;
         }
 
-        @media (min-width: 640px) {
-            .auth-card { padding: 30px; }
+        @media (min-width: 820px) {
+            body {
+                padding: 30px;
+            }
+
+            .auth-shell {
+                grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+                align-items: stretch;
+            }
+
+            .brand-panel,
+            .auth-card {
+                padding: 34px;
+            }
+
+            .brand-panel {
+                min-height: 610px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
-    <main class="auth-card">
-        <span class="eyebrow">Posto360</span>
-        <div>
-            <h1>Entrar</h1>
-            <p>Acesse sua rede para acompanhar preços, leituras e oportunidades.</p>
-        </div>
-        {% if erro %}
-        <div class="error">{{ erro }}</div>
-        {% endif %}
-        <form action="/login" method="post">
-            <label>
-                Email
-                <input type="email" name="email" autocomplete="email" required>
-            </label>
-            <label>
-                Senha
-                <input type="password" name="senha" autocomplete="current-password" required>
-            </label>
-            <button type="submit">Entrar</button>
-            <a href="/register">Criar conta</a>
-        </form>
+    <main class="auth-shell">
+        <section class="brand-panel" aria-labelledby="login-title">
+            <span class="brand-badge"><span class="brand-mark"></span>Posto360</span>
+            <h1 id="login-title">Gestão inteligente para redes de postos</h1>
+            <p class="lead">Acompanhe preços, leituras, operação e oportunidades em uma única central de decisão para sua rede.</p>
+            <div class="trust-row" aria-label="Benefícios do acesso">
+                <span class="trust-pill">Teste grátis por 7 dias</span>
+                <span class="trust-pill">Sem cartão de crédito</span>
+                <span class="trust-pill">Ativação imediata</span>
+            </div>
+        </section>
+
+        <section class="auth-card" aria-label="Acesso à plataforma">
+            <div class="card-heading">
+                <h2>Acesse sua central</h2>
+                <p>Entre para acompanhar decisões, alertas e inteligência operacional da sua rede.</p>
+            </div>
+            {% if erro %}
+            <div class="error">{{ erro }}</div>
+            {% endif %}
+            <form action="/login" method="post" data-auth-form>
+                <label>
+                    Email
+                    <input type="email" name="email" autocomplete="email" required>
+                </label>
+                <label>
+                    Senha
+                    <input type="password" name="senha" autocomplete="current-password" required>
+                </label>
+                <button type="submit" data-loading-text="Entrando...">Entrar</button>
+                <a class="secondary-link" href="/register">Começar teste grátis</a>
+                <p class="conversion-note">Sem cartão de crédito. Configure sua rede em poucos minutos.</p>
+            </form>
+        </section>
     </main>
+
+    <script>
+        document.querySelectorAll("[data-auth-form]").forEach(function (form) {
+            form.addEventListener("submit", function () {
+                var button = form.querySelector("button[type='submit']");
+                if (!button) return;
+                button.classList.add("is-loading");
+                button.textContent = button.getAttribute("data-loading-text") || "Carregando...";
+            });
+        });
+    </script>
 </body>
 </html>

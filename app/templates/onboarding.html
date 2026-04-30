@@ -293,9 +293,9 @@
                     <section class="slide" data-step="3">
                         <span class="eyebrow">Ativação</span>
                         <h1>Como deseja começar?</h1>
-                        <p>Escolha o primeiro caminho. Você pode acessar todas as áreas depois.</p>
+                        <p>Comece pela visão central da sua operação e configure detalhes conforme sua rede evolui.</p>
                         <div class="cards">
-                            {% for item in ["Cadastrar primeiro posto", "Enviar primeira foto de placa", "Ver dashboard", "Configurar alertas"] %}
+                            {% for item in ["Ver dashboard", "Cadastrar primeiro posto", "Configurar alertas", "Enviar primeira foto de placa"] %}
                             <label class="option-card">
                                 <input type="radio" name="start_choice" value="{{ item }}" {% if loop.first %}checked{% endif %}>
                                 <span class="option-title">{{ item }}</span>

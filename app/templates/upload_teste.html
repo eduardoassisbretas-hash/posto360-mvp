@@ -187,18 +187,19 @@
 </head>
 <body>
     {% set postos = postos if postos is defined else [] %}
+    {% set tipo_padrao = tipo_padrao if tipo_padrao is defined else "concorrente" %}
     <main class="page">
         <section class="hero">
-            <span class="eyebrow">Upload de imagens</span>
-            <h1>Enviar arquivos para análise</h1>
-            <p>Selecione ate 30 imagens por envio. Funciona com JPG, JPEG, PNG, WEBP e, quando possivel, HEIC/HEIF do iPhone.</p>
+            <span class="eyebrow">{% if tipo_padrao == "meu_posto" %}Operação interna{% else %}Concorrência regional{% endif %}</span>
+            <h1>{% if tipo_padrao == "meu_posto" %}Upload da minha placa{% else %}Enviar placas concorrentes{% endif %}</h1>
+            <p>{% if tipo_padrao == "meu_posto" %}Use OCR para atualizar preços do próprio posto a partir da placa da unidade.{% else %}Selecione ate 30 imagens de concorrentes por envio para alimentar a inteligência regional.{% endif %}</p>
         </section>
 
         <section class="panel">
             {% if erro %}
             <p class="support-text">Selecione um posto cadastrado antes de enviar a leitura.</p>
             {% endif %}
-            {% if not postos %}
+            {% if not postos and tipo_padrao == "meu_posto" %}
             <p class="support-text">Cadastre um posto primeiro para vincular as leituras à sua empresa.</p>
             <div class="actions">
                 <a href="/postos" class="back-link">Adicionar posto</a>
@@ -209,20 +210,22 @@
                 <div class="field">
                     <label for="tipo_leitura">Tipo de leitura</label>
                     <select id="tipo_leitura" name="tipo_leitura">
-                        <option value="concorrente">Concorrente</option>
-                        <option value="meu_posto">Meu posto</option>
+                        <option value="concorrente" {% if tipo_padrao != "meu_posto" %}selected{% endif %}>Concorrente</option>
+                        <option value="meu_posto" {% if tipo_padrao == "meu_posto" %}selected{% endif %}>Meu posto</option>
                     </select>
                     <p class="support-text">Use concorrente para placas da região e meu posto para atualizar uma unidade cadastrada.</p>
                 </div>
+                {% if postos %}
                 <div class="field">
                     <label for="posto_cliente">Posto cadastrado</label>
                     <select id="posto_cliente" name="station_id">
-                        <option value="">Selecione o posto</option>
+                        <option value="">{% if tipo_padrao == "meu_posto" %}Selecione o posto{% else %}Não vincular a um posto próprio{% endif %}</option>
                         {% for posto in postos %}
                         <option value="{{ posto.id if posto.id is defined else posto.nome }}">{{ posto.nome }}</option>
                         {% endfor %}
                     </select>
                 </div>
+                {% endif %}
                 <div class="field">
                     <label for="regiao">Regiao manual (opcional)</label>
                     <input id="regiao" type="text" name="regiao" placeholder="Ex: Centro, Savassi">
@@ -237,7 +240,7 @@
                 </div>
                 <div class="actions">
                     <button type="submit">Enviar imagens</button>
-                    <a href="/dashboard" class="back-link">Voltar ao dashboard</a>
+                    <a href="{% if tipo_padrao == 'meu_posto' %}/meu-posto{% else %}/concorrencia{% endif %}" class="back-link">Voltar</a>
                 </div>
             </form>
             {% endif %}
@@ -249,6 +252,7 @@
         const longitudeInput = document.getElementById("longitude");
         const geoStatus = document.getElementById("geo-status");
 
+        if (form) {
         function setGeoStatus(message) {
             geoStatus.textContent = message;
         }
@@ -294,6 +298,7 @@
                 }
             );
         });
+        }
     </script>
 </body>
 </html>

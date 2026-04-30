@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Posto | Posto360</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap");
+        :root {
+            --bg: #06111f;
+            --bg-accent: radial-gradient(circle at top, rgba(37,99,235,.22), transparent 34%), radial-gradient(circle at 85% 10%, rgba(16,185,129,.16), transparent 22%), linear-gradient(180deg,#08111d 0%,#040914 100%);
+            --panel: rgba(10,19,35,.92);
+            --panel-strong: rgba(15,27,47,.96);
+            --soft: rgba(148,163,184,.08);
+            --border: rgba(148,163,184,.16);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --primary: #38bdf8;
+            --primary-strong: #2563eb;
+            --success: #34d399;
+            --shadow: 0 16px 42px rgba(2,6,23,.34);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { min-height: 100vh; font-family: "Manrope","Segoe UI",sans-serif; background: var(--bg); background-image: var(--bg-accent); color: var(--text); padding: 16px; }
+        a { color: inherit; text-decoration: none; }
+        .shell { width: min(1120px, 100%); margin: 0 auto; display: grid; gap: 16px; }
+        .hero, .panel, .fuel-card, .history-card { border: 1px solid var(--border); background: var(--panel); box-shadow: var(--shadow); border-radius: 26px; }
+        .hero { display: grid; gap: 18px; padding: 22px; }
+        .eyebrow { display: inline-flex; width: fit-content; padding: 8px 12px; border-radius: 999px; color: #dbeafe; background: rgba(37,99,235,.16); border: 1px solid rgba(96,165,250,.22); font-size: .76rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+        h1, h2, h3 { font-family: "Space Grotesk","Manrope",sans-serif; letter-spacing: -.03em; }
+        h1 { font-size: clamp(2rem, 8vw, 3.4rem); line-height: 1; }
+        p { color: var(--muted); line-height: 1.6; }
+        .actions, .top-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+        .btn-primary, .btn-secondary, button { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 16px; border-radius: 14px; font-weight: 800; font: inherit; cursor: pointer; }
+        .btn-primary, button { border: 0; color: #eff6ff; background: linear-gradient(135deg, var(--primary), var(--primary-strong)); box-shadow: 0 14px 28px rgba(37,99,235,.26); }
+        .btn-secondary { border: 1px solid var(--border); color: #dbeafe; background: rgba(15,23,42,.62); }
+        .panel { padding: 18px; background: linear-gradient(180deg,var(--panel-strong),rgba(8,15,27,.98)); }
+        .station-select { display: grid; gap: 10px; margin-bottom: 16px; }
+        label { display: grid; gap: 8px; color: #dbeafe; font-weight: 800; font-size: .92rem; }
+        select, input { width: 100%; min-height: 48px; border-radius: 14px; border: 1px solid rgba(148,163,184,.18); background: rgba(15,23,42,.72); color: var(--text); padding: 0 13px; outline: none; }
+        input:focus, select:focus { border-color: rgba(56,189,248,.55); box-shadow: 0 0 0 4px rgba(56,189,248,.1); }
+        .fuel-grid { display: grid; gap: 12px; }
+        .fuel-card { padding: 14px; background: rgba(15,27,47,.72); display: grid; gap: 10px; }
+        .fuel-top { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+        .fuel-top span { color: var(--muted); font-size: .82rem; font-weight: 700; }
+        .optional { color: #bae6fd; font-size: .76rem; font-weight: 800; }
+        .history-grid { display: grid; gap: 10px; margin-top: 14px; }
+        .history-card { padding: 13px; background: var(--soft); display: grid; gap: 4px; }
+        .empty { padding: 22px; border-radius: 18px; border: 1px dashed var(--border); background: var(--soft); color: var(--muted); }
+        @media (min-width: 760px) {
+            body { padding: 28px; }
+            .hero { grid-template-columns: 1fr auto; align-items: end; padding: 30px; }
+            .fuel-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .station-select { grid-template-columns: 1fr auto; align-items: end; }
+            .history-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+    {% set stations = dados.stations if dados is defined and dados.stations is defined else [] %}
+    {% set selected = dados.selected_station if dados is defined else none %}
+    {% set fuels = dados.fuel_cards if dados is defined and dados.fuel_cards is defined else [] %}
+    {% set history = dados.history if dados is defined and dados.history is defined else [] %}
+    <main class="shell">
+        <section class="hero">
+            <div>
+                <span class="eyebrow">Operação interna</span>
+                <h1>Meu Posto</h1>
+                <p>Atualize preços próprios, acompanhe histórico e mantenha a base interna pronta para comparação com concorrentes.</p>
+            </div>
+            <div class="top-actions">
+                <a class="btn-secondary" href="/dashboard">Dashboard</a>
+                <a class="btn-secondary" href="/upload-teste?tipo=meu_posto">Upload da minha placa</a>
+            </div>
+        </section>
+
+        {% if not dados.has_stations %}
+        <section class="panel">
+            <div class="empty">
+                <strong>Nenhum posto cadastrado</strong>
+                <p>Cadastre seu primeiro posto para salvar preços próprios e ativar comparações regionais.</p>
+                <div class="actions" style="margin-top:12px;">
+                    <a class="btn-primary" href="/postos">Cadastrar posto</a>
+                </div>
+            </div>
+        </section>
+        {% else %}
+        <section class="panel">
+            <form method="get" action="/meu-posto" class="station-select">
+                <label>
+                    Unidade
+                    <select name="station_id">
+                        {% for posto in stations %}
+                        <option value="{{ posto.id }}" {% if selected and selected.id == posto.id %}selected{% endif %}>{{ posto.nome }}{% if posto.regiao %} · {{ posto.regiao }}{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <button type="submit">Trocar posto</button>
+            </form>
+
+            {% if selected %}
+            <p>{{ selected.endereco or "Endereço não informado" }}{% if selected.regiao %} · Região: {{ selected.regiao }}{% endif %}</p>
+            {% endif %}
+
+            <form method="post" action="/meu-posto" style="margin-top:18px;">
+                <input type="hidden" name="station_id" value="{{ selected.id if selected else '' }}">
+                <div class="fuel-grid">
+                    {% for fuel in fuels %}
+                    <article class="fuel-card">
+                        <div class="fuel-top">
+                            <div>
+                                <h3>{{ fuel.label }}</h3>
+                                <span>{{ fuel.updated }}</span>
+                            </div>
+                            {% if not fuel.required %}<span class="optional">Opcional</span>{% endif %}
+                        </div>
+                        <label>
+                            Preço atual
+                            <input type="number" step="0.001" name="{{ fuel.slug }}" value="{{ fuel.price }}" placeholder="{{ fuel.price_label }}">
+                        </label>
+                    </article>
+                    {% endfor %}
+                </div>
+                <div class="actions" style="margin-top:16px;">
+                    <button type="submit">Salvar preços</button>
+                    <a class="btn-secondary" href="/concorrencia">Monitorar concorrência</a>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Histórico recente</h2>
+            {% if history %}
+            <div class="history-grid">
+                {% for item in history %}
+                <article class="history-card">
+                    <strong>{{ item.combustivel }}</strong>
+                    <span>{{ item.preco }}</span>
+                    <p>{{ item.atualizado }}{% if item.regiao %} · {{ item.regiao }}{% endif %}</p>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty">Nenhum preço próprio salvo ainda.</div>
+            {% endif %}
+        </section>
+        {% endif %}
+    </main>
+</body>
+</html>
