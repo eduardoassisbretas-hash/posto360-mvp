@@ -123,6 +123,144 @@
             color: var(--muted);
         }
 
+        .tour-click-shield {
+            position: fixed;
+            inset: 0;
+            z-index: 78;
+            background: transparent;
+        }
+
+        .tour-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 80;
+            pointer-events: none;
+        }
+
+        .tour-spotlight {
+            position: fixed;
+            border-radius: 18px;
+            border: 1px solid rgba(56, 189, 248, 0.72);
+            box-shadow: 0 0 0 9999px rgba(2, 6, 23, 0.58), 0 18px 50px rgba(56, 189, 248, 0.2);
+            transition: top 0.22s ease, left 0.22s ease, width 0.22s ease, height 0.22s ease;
+        }
+
+        .tour-card {
+            position: fixed;
+            left: 16px;
+            right: 16px;
+            bottom: 18px;
+            padding: 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            background: rgba(10, 19, 35, 0.98);
+            box-shadow: 0 24px 60px rgba(2, 6, 23, 0.46);
+            pointer-events: auto;
+            transition: transform 0.18s ease, opacity 0.18s ease;
+        }
+
+        .tour-card.is-moving {
+            opacity: 0.72;
+            transform: translateY(4px);
+        }
+
+        .tour-kicker {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            color: #93c5fd;
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .tour-card h2 {
+            font-size: 1.08rem;
+            margin-bottom: 8px;
+        }
+
+        .tour-card p {
+            color: #cbd5e1;
+            line-height: 1.5;
+            font-size: 0.92rem;
+        }
+
+        .tour-arrow {
+            display: none;
+            position: fixed;
+            width: 18px;
+            height: 18px;
+            background: rgba(10, 19, 35, 0.98);
+            border-top: 1px solid rgba(148, 163, 184, 0.2);
+            border-left: 1px solid rgba(148, 163, 184, 0.2);
+            transform: rotate(45deg);
+            pointer-events: none;
+        }
+
+        .tour-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .tour-actions-left,
+        .tour-actions-right {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tour-button {
+            border: 0;
+            border-radius: 12px;
+            min-height: 40px;
+            padding: 0 13px;
+            color: #e2e8f0;
+            background: rgba(148, 163, 184, 0.1);
+            font-family: inherit;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .tour-button:hover {
+            background: rgba(148, 163, 184, 0.16);
+        }
+
+        .tour-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.48;
+        }
+
+        .tour-button-primary {
+            color: #06111f;
+            background: linear-gradient(135deg, #38bdf8, #34d399);
+        }
+
+        .tour-button-primary:hover {
+            background: linear-gradient(135deg, #7dd3fc, #6ee7b7);
+        }
+
+        .tour-button-ghost {
+            color: var(--muted);
+            background: transparent;
+        }
+
+        @media (min-width: 760px) {
+            .tour-card {
+                width: min(360px, calc(100vw - 32px));
+                right: auto;
+                bottom: auto;
+            }
+
+            .tour-arrow {
+                display: block;
+            }
+        }
+
         .shell {
             width: min(1120px, 100%);
             margin: 0 auto;
@@ -995,7 +1133,7 @@
     </style>
 </head>
 <body>
-    <details class="app-menu">
+    <details class="app-menu" data-tour="menu">
         <summary aria-label="Abrir menu">
             <span class="menu-icon" aria-hidden="true">
                 <span></span>
@@ -1003,13 +1141,14 @@
                 <span></span>
             </span>
         </summary>
-        <nav class="menu-panel" aria-label="Navegação principal">
+        <nav class="menu-panel" aria-label="Navegação principal" data-tour="menu-panel">
             <a href="/dashboard">Dashboard</a>
             <a href="/upload-teste">Nova análise</a>
             <a href="#leituras-imagem">Leituras por imagem</a>
             <a href="#alertas">Alertas</a>
             <a href="/postos">Meus Postos</a>
             <a href="/configuracoes">Configurações</a>
+            <a href="/logout">Sair</a>
         </nav>
     </details>
 
@@ -1047,7 +1186,7 @@
 
             <div class="hero-actions">
                 <a href="/formulario" class="btn-primary">+ Nova análise</a>
-                <a href="/upload-teste" class="btn-secondary">Enviar imagens</a>
+                <a href="/upload-teste" class="btn-secondary" data-tour="upload">Enviar imagens</a>
                 <form action="/reset" method="post" class="reset-form">
                     <button type="submit" class="btn-secondary btn-danger">Limpar dados de teste</button>
                 </form>
@@ -1057,7 +1196,7 @@
             <div class="config-alert">{{ configuracao_alerta }}</div>
             {% endif %}
 
-            <div class="filter-bar">
+            <div class="filter-bar" data-tour="filters">
                 <form action="/dashboard" method="get" class="filter-form">
                     <select name="regiao">
                         <option value="">Todas as regioes</option>
@@ -1145,7 +1284,7 @@
             </article>
         </section>
 
-        <section class="panel">
+        <section class="panel" data-tour="decisions">
             <div class="panel-header">
                 <div>
                     <h2>Decisão de preço de hoje</h2>
@@ -1258,7 +1397,7 @@
             </article>
         </section>
 
-        <section class="image-section" id="leituras-imagem">
+        <section class="image-section" id="leituras-imagem" data-tour="readings">
             <article class="panel image-panel">
                 <div class="panel-header">
                     <div>
@@ -1367,5 +1506,174 @@
             </article>
         </section>
     </main>
+
+    {% if tutorial_completed is defined and not tutorial_completed %}
+    <div class="tour-click-shield" data-tour-ui></div>
+    <div class="tour-layer" data-tour-ui aria-live="polite">
+        <div class="tour-spotlight" id="tour-spotlight"></div>
+        <div class="tour-arrow" id="tour-arrow"></div>
+        <article class="tour-card" id="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-title">
+            <div class="tour-kicker">
+                <span id="tour-progress">Passo 1 de 5</span>
+                <button class="tour-button tour-button-ghost" type="button" id="tour-skip">Pular</button>
+            </div>
+            <h2 id="tour-title">Enviar imagens</h2>
+            <p id="tour-copy">Envie fotos de placas concorrentes aqui para ativar sua inteligência operacional.</p>
+            <div class="tour-actions">
+                <div class="tour-actions-left">
+                    <button class="tour-button" type="button" id="tour-back">Voltar</button>
+                </div>
+                <div class="tour-actions-right">
+                    <button class="tour-button tour-button-primary" type="button" id="tour-next">Próximo</button>
+                </div>
+            </div>
+        </article>
+    </div>
+    <script>
+        (function () {
+            const steps = [
+                {
+                    selector: '[data-tour="upload"]',
+                    title: 'Enviar imagens',
+                    copy: 'Envie fotos de placas concorrentes aqui para ativar sua inteligência operacional.'
+                },
+                {
+                    selector: '[data-tour="readings"]',
+                    title: 'Leituras por imagem',
+                    copy: 'Cada leitura gera dados reais de concorrência, preço e localização.'
+                },
+                {
+                    selector: '[data-tour="filters"]',
+                    title: 'Filtros inteligentes',
+                    copy: 'Filtre por região ou posto para análises específicas.'
+                },
+                {
+                    selector: '[data-tour="decisions"]',
+                    title: 'Decisões e oportunidades',
+                    copy: 'Aqui o sistema sugere decisões e identifica oportunidades.'
+                },
+                {
+                    selector: '[data-tour="menu-panel"]',
+                    title: 'Menu da rede',
+                    copy: 'Gerencie postos, alertas e configurações da sua rede.'
+                }
+            ];
+
+            const spotlight = document.getElementById('tour-spotlight');
+            const arrow = document.getElementById('tour-arrow');
+            const card = document.getElementById('tour-card');
+            const progress = document.getElementById('tour-progress');
+            const title = document.getElementById('tour-title');
+            const copy = document.getElementById('tour-copy');
+            const backButton = document.getElementById('tour-back');
+            const nextButton = document.getElementById('tour-next');
+            const skipButton = document.getElementById('tour-skip');
+            const menu = document.querySelector('[data-tour="menu"]');
+            let current = 0;
+
+            function targetForStep() {
+                return document.querySelector(steps[current].selector);
+            }
+
+            function markCompleted() {
+                fetch('/tutorial-completed', { method: 'POST', credentials: 'same-origin' }).catch(function () {});
+            }
+
+            function closeTour() {
+                markCompleted();
+                document.querySelectorAll('[data-tour-ui]').forEach(function (element) {
+                    element.remove();
+                });
+                if (menu) {
+                    menu.open = false;
+                }
+            }
+
+            function placeCard(rect) {
+                const isMobile = window.matchMedia('(max-width: 759px)').matches;
+                if (isMobile) {
+                    card.style.width = 'auto';
+                    card.style.left = '16px';
+                    card.style.right = '16px';
+                    card.style.top = 'auto';
+                    card.style.bottom = '18px';
+                    arrow.style.display = 'none';
+                    return;
+                }
+
+                const cardWidth = Math.min(360, window.innerWidth - 32);
+                const gap = 18;
+                let left = rect.right + gap;
+                if (left + cardWidth > window.innerWidth - 16) {
+                    left = Math.max(16, rect.left - cardWidth - gap);
+                }
+                let top = Math.min(Math.max(16, rect.top), window.innerHeight - card.offsetHeight - 16);
+
+                card.style.width = cardWidth + 'px';
+                card.style.left = left + 'px';
+                card.style.right = 'auto';
+                card.style.top = top + 'px';
+                card.style.bottom = 'auto';
+
+                arrow.style.display = 'block';
+                arrow.style.left = (left - 9) + 'px';
+                arrow.style.top = (Math.min(Math.max(rect.top + rect.height / 2, top + 18), top + card.offsetHeight - 18)) + 'px';
+            }
+
+            function renderStep() {
+                const step = steps[current];
+                const target = targetForStep();
+                if (!target) {
+                    closeTour();
+                    return;
+                }
+
+                card.classList.add('is-moving');
+                if (menu) {
+                    menu.open = step.selector === '[data-tour="menu-panel"]';
+                }
+
+                target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+
+                window.setTimeout(function () {
+                    const rect = target.getBoundingClientRect();
+                    const padding = 8;
+                    spotlight.style.top = Math.max(8, rect.top - padding) + 'px';
+                    spotlight.style.left = Math.max(8, rect.left - padding) + 'px';
+                    spotlight.style.width = Math.min(window.innerWidth - 16, rect.width + padding * 2) + 'px';
+                    spotlight.style.height = Math.min(window.innerHeight - 16, rect.height + padding * 2) + 'px';
+
+                    progress.textContent = 'Passo ' + (current + 1) + ' de ' + steps.length;
+                    title.textContent = step.title;
+                    copy.textContent = step.copy;
+                    backButton.disabled = current === 0;
+                    nextButton.textContent = current === steps.length - 1 ? 'Finalizar' : 'Próximo';
+                    placeCard(rect);
+                    card.classList.remove('is-moving');
+                }, 260);
+            }
+
+            backButton.addEventListener('click', function () {
+                if (current > 0) {
+                    current -= 1;
+                    renderStep();
+                }
+            });
+
+            nextButton.addEventListener('click', function () {
+                if (current === steps.length - 1) {
+                    closeTour();
+                    return;
+                }
+                current += 1;
+                renderStep();
+            });
+
+            skipButton.addEventListener('click', closeTour);
+            window.addEventListener('resize', renderStep);
+            renderStep();
+        })();
+    </script>
+    {% endif %}
 </body>
 </html>

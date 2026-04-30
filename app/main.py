@@ -1,12 +1,17 @@
 import base64
+import hashlib
+import hmac
 import json
 import os
 import re
+import secrets
 import shutil
+import sqlite3
 import threading
 import unicodedata
 import urllib.error
 import urllib.request
+import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from typing import List
@@ -32,6 +37,7 @@ app = FastAPI()
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
+DATABASE_PATH = os.getenv("POSTO360_DATABASE_PATH", os.path.join(BASE_DIR, "posto360.db"))
 MAX_UPLOAD_IMAGES = 30
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 MAX_IMAGE_DIMENSION = 1200
@@ -52,6 +58,8 @@ DEBUG_VISION_FOLDER = os.path.join(UPLOAD_FOLDER, "debug_vision")
 OPENAI_CONFIG_ERROR_MESSAGE = (
     "OPENAI_API_KEY ausente. Configure a chave no arquivo .env na raiz do projeto."
 )
+SESSION_COOKIE_NAME = "posto360_session"
+SESSION_DAYS = 7
 COMBUSTIVEIS_DECISAO = {
     "gasolina_comum",
     "gasolina_aditivada",
@@ -79,6 +87,626 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 reverse_geocode_cache = {}
 
+
+def db_connect() -> sqlite3.Connection:
+    conn = sqlite3.connect(DATABASE_PATH, check_same_thread=False)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
+
+
+def init_db() -> None:
+    with db_connect() as conn:
+        conn.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS companies (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY,
+                company_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                email TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                role TEXT NOT NULL CHECK(role IN ('admin', 'manager', 'operator')),
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(company_id) REFERENCES companies(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS sessions (
+                token_hash TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS stations (
+                id TEXT PRIMARY KEY,
+                company_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                region TEXT,
+                address TEXT,
+                city TEXT,
+                state TEXT,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(company_id) REFERENCES companies(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS readings (
+                id TEXT PRIMARY KEY,
+                company_id TEXT NOT NULL,
+                station_id TEXT,
+                fuel_type TEXT NOT NULL,
+                price REAL,
+                competitor_name TEXT,
+                address TEXT,
+                region TEXT,
+                latitude REAL,
+                longitude REAL,
+                image_path TEXT,
+                source_type TEXT NOT NULL DEFAULT 'concorrente',
+                confidence REAL,
+                status TEXT,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(company_id) REFERENCES companies(id) ON DELETE CASCADE,
+                FOREIGN KEY(station_id) REFERENCES stations(id) ON DELETE SET NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS company_settings (
+                company_id TEXT PRIMARY KEY,
+                regions_json TEXT NOT NULL DEFAULT '[]',
+                decision_margin TEXT NOT NULL DEFAULT '0.05',
+                critical_margin TEXT NOT NULL DEFAULT '0.10',
+                strategy TEXT NOT NULL DEFAULT 'Equilibrado',
+                alert_price_above INTEGER NOT NULL DEFAULT 1,
+                alert_competitors_down INTEGER NOT NULL DEFAULT 1,
+                alert_margin_opportunity INTEGER NOT NULL DEFAULT 1,
+                FOREIGN KEY(company_id) REFERENCES companies(id) ON DELETE CASCADE
+            );
+            """
+        )
+        ensure_column(conn, "company_settings", "onboarding_completed", "INTEGER NOT NULL DEFAULT 0")
+        ensure_column(conn, "company_settings", "network_station_count", "INTEGER")
+        ensure_column(conn, "company_settings", "main_city", "TEXT")
+        ensure_column(conn, "company_settings", "state", "TEXT")
+        ensure_column(conn, "company_settings", "operation_type", "TEXT")
+        ensure_column(conn, "company_settings", "priorities_json", "TEXT NOT NULL DEFAULT '[]'")
+        ensure_column(conn, "company_settings", "monitored_regions_text", "TEXT")
+        ensure_column(conn, "company_settings", "alert_preferences_json", "TEXT NOT NULL DEFAULT '[]'")
+        ensure_column(conn, "company_settings", "analysis_frequency", "TEXT")
+        ensure_column(conn, "company_settings", "onboarding_answers_json", "TEXT NOT NULL DEFAULT '{}'")
+        ensure_column(conn, "company_settings", "tutorial_completed", "INTEGER NOT NULL DEFAULT 0")
+
+
+def ensure_column(conn: sqlite3.Connection, table_name: str, column_name: str, definition: str) -> None:
+    columns = {
+        row["name"]
+        for row in conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+    }
+    if column_name not in columns:
+        conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {definition}")
+
+
+def now_utc_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def row_to_dict(row: sqlite3.Row | None) -> dict | None:
+    return dict(row) if row else None
+
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 240000)
+    return f"pbkdf2_sha256$240000${salt}${digest.hex()}"
+
+
+def verify_password(password: str, password_hash: str) -> bool:
+    try:
+        algorithm, rounds_text, salt, expected = password_hash.split("$", 3)
+        if algorithm != "pbkdf2_sha256":
+            return False
+        digest = hashlib.pbkdf2_hmac(
+            "sha256",
+            password.encode("utf-8"),
+            salt.encode("utf-8"),
+            int(rounds_text),
+        ).hex()
+        return hmac.compare_digest(digest, expected)
+    except Exception:
+        return False
+
+
+def hash_session_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def create_session(user_id: str) -> str:
+    token = secrets.token_urlsafe(32)
+    expires_at = (datetime.now(timezone.utc) + timedelta(days=SESSION_DAYS)).isoformat()
+    with db_connect() as conn:
+        conn.execute(
+            "INSERT INTO sessions (token_hash, user_id, expires_at, created_at) VALUES (?, ?, ?, ?)",
+            (hash_session_token(token), user_id, expires_at, now_utc_iso()),
+        )
+    return token
+
+
+def delete_session(token: str | None) -> None:
+    if not token:
+        return
+    with db_connect() as conn:
+        conn.execute("DELETE FROM sessions WHERE token_hash = ?", (hash_session_token(token),))
+
+
+def get_user_by_email(email: str) -> dict | None:
+    with db_connect() as conn:
+        row = conn.execute(
+            """
+            SELECT users.*, companies.name AS company_name
+            FROM users
+            JOIN companies ON companies.id = users.company_id
+            WHERE lower(users.email) = lower(?)
+            """,
+            (email.strip(),),
+        ).fetchone()
+    return row_to_dict(row)
+
+
+def get_user_by_session(token: str | None) -> dict | None:
+    if not token:
+        return None
+    with db_connect() as conn:
+        row = conn.execute(
+            """
+            SELECT users.*, companies.name AS company_name, sessions.expires_at
+            FROM sessions
+            JOIN users ON users.id = sessions.user_id
+            JOIN companies ON companies.id = users.company_id
+            WHERE sessions.token_hash = ?
+            """,
+            (hash_session_token(token),),
+        ).fetchone()
+    user = row_to_dict(row)
+    if not user:
+        return None
+    if parse_data_registro(user.get("expires_at")) < datetime.now(timezone.utc):
+        delete_session(token)
+        return None
+    return user
+
+
+def current_user(request: Request) -> dict | None:
+    return get_user_by_session(request.cookies.get(SESSION_COOKIE_NAME))
+
+
+def require_user(request: Request) -> dict | RedirectResponse:
+    user = current_user(request)
+    if user:
+        return user
+    return RedirectResponse(url="/login", status_code=303)
+
+
+def redirect_if_authenticated(request: Request) -> RedirectResponse | None:
+    user = current_user(request)
+    if user:
+        return RedirectResponse(url=destination_for_user(user), status_code=303)
+    return None
+
+
+def require_onboarding(user: dict) -> RedirectResponse | None:
+    if not onboarding_completed(user):
+        return RedirectResponse(url="/onboarding", status_code=303)
+    return None
+
+
+def create_company_and_admin(name: str, email: str, password: str, company_name: str) -> tuple[dict | None, str | None]:
+    if get_user_by_email(email):
+        return None, "Este email já está cadastrado."
+
+    company_id = str(uuid.uuid4())
+    user_id = str(uuid.uuid4())
+    created_at = now_utc_iso()
+
+    with db_connect() as conn:
+        conn.execute(
+            "INSERT INTO companies (id, name, created_at) VALUES (?, ?, ?)",
+            (company_id, company_name.strip(), created_at),
+        )
+        conn.execute(
+            """
+            INSERT INTO users (id, company_id, name, email, password_hash, role, created_at)
+            VALUES (?, ?, ?, ?, ?, 'admin', ?)
+            """,
+            (user_id, company_id, name.strip(), email.strip().lower(), hash_password(password), created_at),
+        )
+        conn.execute(
+            "INSERT INTO company_settings (company_id) VALUES (?)",
+            (company_id,),
+        )
+
+    return get_user_by_email(email), None
+
+
+def list_company_stations(company_id: str) -> List[dict]:
+    with db_connect() as conn:
+        rows = conn.execute(
+            "SELECT * FROM stations WHERE company_id = ? ORDER BY created_at DESC",
+            (company_id,),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def get_company_station(company_id: str, station_id: str | None) -> dict | None:
+    if not station_id:
+        return None
+    with db_connect() as conn:
+        row = conn.execute(
+            "SELECT * FROM stations WHERE id = ? AND company_id = ?",
+            (station_id, company_id),
+        ).fetchone()
+    return row_to_dict(row)
+
+
+def create_station(company_id: str, name: str, address: str, region: str, city: str = "", state: str = "") -> None:
+    with db_connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO stations (id, company_id, name, region, address, city, state, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (str(uuid.uuid4()), company_id, name.strip(), region.strip(), address.strip(), city.strip(), state.strip(), now_utc_iso()),
+        )
+
+
+def update_station(company_id: str, station_id: str, name: str, address: str, region: str, city: str = "", state: str = "") -> None:
+    with db_connect() as conn:
+        conn.execute(
+            """
+            UPDATE stations
+            SET name = ?, address = ?, region = ?, city = ?, state = ?
+            WHERE id = ? AND company_id = ?
+            """,
+            (name.strip(), address.strip(), region.strip(), city.strip(), state.strip(), station_id, company_id),
+        )
+
+
+def delete_station(company_id: str, station_id: str) -> None:
+    with db_connect() as conn:
+        conn.execute("DELETE FROM stations WHERE id = ? AND company_id = ?", (station_id, company_id))
+
+
+def insert_reading(
+    company_id: str,
+    station_id: str | None,
+    fuel_type: str,
+    price: float | None,
+    competitor_name: str | None,
+    address: str | None,
+    region: str | None,
+    latitude,
+    longitude,
+    image_path: str | None,
+    source_type: str,
+    confidence=None,
+    status: str | None = None,
+    created_at: str | None = None,
+) -> None:
+    with db_connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO readings (
+                id, company_id, station_id, fuel_type, price, competitor_name, address,
+                region, latitude, longitude, image_path, source_type, confidence, status, created_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                str(uuid.uuid4()),
+                company_id,
+                station_id,
+                fuel_type,
+                price,
+                competitor_name,
+                address,
+                region,
+                latitude,
+                longitude,
+                image_path,
+                source_type,
+                confidence,
+                status,
+                created_at or now_utc_iso(),
+            ),
+        )
+
+
+def delete_image_readings(company_id: str, image_path: str) -> None:
+    with db_connect() as conn:
+        conn.execute(
+            "DELETE FROM readings WHERE company_id = ? AND image_path = ?",
+            (company_id, image_path),
+        )
+
+
+def delete_company_readings(company_id: str) -> None:
+    with db_connect() as conn:
+        conn.execute("DELETE FROM readings WHERE company_id = ?", (company_id,))
+
+
+def list_company_readings(company_id: str) -> List[dict]:
+    with db_connect() as conn:
+        rows = conn.execute(
+            """
+            SELECT readings.*, stations.name AS station_name, stations.region AS station_region
+            FROM readings
+            LEFT JOIN stations ON stations.id = readings.station_id AND stations.company_id = readings.company_id
+            WHERE readings.company_id = ?
+            ORDER BY readings.created_at DESC
+            """,
+            (company_id,),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def station_to_dashboard(station: dict) -> dict:
+    return {
+        "id": station.get("id"),
+        "nome": station.get("name") or station.get("nome") or "",
+        "endereco": station.get("address") or station.get("endereco") or "",
+        "regiao": station.get("region") or station.get("regiao") or "",
+        "cidade": station.get("city") or "",
+        "estado": station.get("state") or "",
+        "created_at": station.get("created_at") or now_utc_iso(),
+    }
+
+
+def reading_to_dashboard_item(reading: dict) -> dict:
+    station_name = reading.get("station_name") or reading.get("competitor_name") or "Posto nao informado"
+    region = reading.get("region") or reading.get("station_region") or "Regiao nao informada"
+    address = reading.get("address")
+    return {
+        "arquivo": reading.get("image_path") or reading.get("id"),
+        "tipo": reading.get("fuel_type"),
+        "preco": reading.get("price"),
+        "confianca": reading.get("confidence"),
+        "fonte": "openai_vision" if reading.get("image_path") else "manual",
+        "regiao": region,
+        "posto": station_name,
+        "posto_id": reading.get("station_id"),
+        "origem_preco": reading.get("source_type") or "concorrente",
+        "latitude": reading.get("latitude"),
+        "longitude": reading.get("longitude"),
+        "endereco_formatado": address,
+        "rua": address,
+        "bairro": None,
+        "cidade": None,
+        "estado": None,
+        "leituras_detectadas": [],
+        "leituras_descartadas": [],
+        "status": reading.get("status") or "lido_com_sucesso",
+        "created_at": reading.get("created_at") or now_utc_iso(),
+    }
+
+
+def carregar_empresa_em_memoria(company_id: str) -> None:
+    stations = [station_to_dashboard(item) for item in list_company_stations(company_id)]
+    readings = list_company_readings(company_id)
+    itens = [reading_to_dashboard_item(item) for item in readings if item.get("price") is not None]
+
+    dados_dashboard["postos_cadastrados"] = stations
+    dados_dashboard["leituras_imagem"] = itens
+    dados_dashboard["precos_imagem"] = itens
+    dados_dashboard["analises"] = []
+    atualizar_resumo_dashboard()
+
+
+def get_company_settings(company_id: str) -> dict:
+    with db_connect() as conn:
+        row = conn.execute("SELECT * FROM company_settings WHERE company_id = ?", (company_id,)).fetchone()
+        if not row:
+            conn.execute("INSERT INTO company_settings (company_id) VALUES (?)", (company_id,))
+            row = conn.execute("SELECT * FROM company_settings WHERE company_id = ?", (company_id,)).fetchone()
+    return dict(row)
+
+
+def onboarding_completed(user: dict) -> bool:
+    settings = get_company_settings(user["company_id"])
+    return bool(settings.get("onboarding_completed"))
+
+
+def tutorial_completed(user: dict) -> bool:
+    settings = get_company_settings(user["company_id"])
+    return bool(settings.get("tutorial_completed"))
+
+
+def destination_for_user(user: dict) -> str:
+    return "/dashboard" if onboarding_completed(user) else "/onboarding"
+
+
+def split_lines_csv(text: str) -> List[str]:
+    itens = re.split(r"[,;\n]+", text or "")
+    return [item.strip() for item in itens if item.strip()]
+
+
+def complete_onboarding(
+    user: dict,
+    station_count: int,
+    main_city: str,
+    state: str,
+    operation_type: str,
+    priorities: List[str],
+    station_name: str,
+    station_address: str,
+    station_region: str,
+    monitored_regions: str,
+    alert_preferences: List[str],
+    analysis_frequency: str,
+) -> None:
+    company_id = user["company_id"]
+    regions = split_lines_csv(monitored_regions)
+    if station_region.strip() and station_region.strip() not in regions:
+        regions.append(station_region.strip())
+
+    with db_connect() as conn:
+        conn.execute(
+            """
+            UPDATE company_settings
+            SET onboarding_completed = 1,
+                network_station_count = ?,
+                main_city = ?,
+                state = ?,
+                operation_type = ?,
+                priorities_json = ?,
+                monitored_regions_text = ?,
+                regions_json = ?,
+                alert_preferences_json = ?,
+                analysis_frequency = ?
+            WHERE company_id = ?
+            """,
+            (
+                max(1, int(station_count or 1)),
+                main_city.strip(),
+                state.strip(),
+                operation_type.strip(),
+                json.dumps(priorities, ensure_ascii=False),
+                monitored_regions.strip(),
+                json.dumps(regions, ensure_ascii=False),
+                json.dumps(alert_preferences, ensure_ascii=False),
+                analysis_frequency.strip(),
+                company_id,
+            ),
+        )
+
+    if station_name.strip():
+        create_station(
+            company_id,
+            station_name.strip(),
+            station_address.strip(),
+            station_region.strip(),
+            main_city.strip(),
+            state.strip(),
+        )
+
+
+def complete_onboarding_quiz(
+    user: dict,
+    network_size: str,
+    first_priority: str,
+    competitor_tracking: str,
+    start_choice: str,
+    skipped: bool = False,
+) -> None:
+    answers = {
+        "network_size": network_size,
+        "first_priority": first_priority,
+        "competitor_tracking": competitor_tracking,
+        "start_choice": start_choice,
+        "skipped": skipped,
+    }
+    priority_map = {
+        "Monitorar concorrência": "Monitoramento concorrencial",
+        "Ajustar preços com mais inteligência": "Inteligência comercial",
+        "Organizar operação da rede": "Gestão operacional",
+        "Ter relatórios melhores": "Relatórios",
+    }
+    regions = []
+    with db_connect() as conn:
+        settings = conn.execute(
+            "SELECT regions_json FROM company_settings WHERE company_id = ?",
+            (user["company_id"],),
+        ).fetchone()
+        if settings:
+            regions = json.loads(settings["regions_json"] or "[]")
+        conn.execute(
+            """
+            UPDATE company_settings
+            SET onboarding_completed = 1,
+                network_station_count = ?,
+                operation_type = ?,
+                priorities_json = ?,
+                regions_json = ?,
+                alert_preferences_json = ?,
+                analysis_frequency = ?,
+                onboarding_answers_json = ?
+            WHERE company_id = ?
+            """,
+            (
+                1 if network_size == "1 posto" else None,
+                "Rede de postos",
+                json.dumps([priority_map.get(first_priority, first_priority)] if first_priority else [], ensure_ascii=False),
+                json.dumps(regions, ensure_ascii=False),
+                json.dumps(["Preço acima da região", "Concorrentes reduzindo preço"], ensure_ascii=False),
+                "Diária",
+                json.dumps(answers, ensure_ascii=False),
+                user["company_id"],
+            ),
+        )
+
+
+def onboarding_destination(start_choice: str) -> str:
+    destinos = {
+        "Cadastrar primeiro posto": "/postos",
+        "Enviar primeira foto de placa": "/upload-teste",
+        "Ver dashboard": "/dashboard",
+        "Configurar alertas": "/configuracoes",
+    }
+    return destinos.get(start_choice, "/dashboard")
+
+
+def update_company_settings(
+    company_id: str,
+    regions: List[str],
+    decision_margin: str,
+    critical_margin: str,
+    strategy: str,
+    alert_price_above: bool,
+    alert_competitors_down: bool,
+    alert_margin_opportunity: bool,
+) -> None:
+    with db_connect() as conn:
+        conn.execute(
+            """
+            UPDATE company_settings
+            SET regions_json = ?, decision_margin = ?, critical_margin = ?, strategy = ?,
+                alert_price_above = ?, alert_competitors_down = ?, alert_margin_opportunity = ?
+            WHERE company_id = ?
+            """,
+            (
+                json.dumps(regions, ensure_ascii=False),
+                decision_margin,
+                critical_margin,
+                strategy,
+                int(alert_price_above),
+                int(alert_competitors_down),
+                int(alert_margin_opportunity),
+                company_id,
+            ),
+        )
+
+
+def update_user_and_company(user: dict, name: str, email: str, company_name: str) -> str | None:
+    existing = get_user_by_email(email)
+    if existing and existing["id"] != user["id"]:
+        return "Este email já está em uso."
+    with db_connect() as conn:
+        conn.execute(
+            "UPDATE users SET name = ?, email = ? WHERE id = ? AND company_id = ?",
+            (name.strip(), email.strip().lower(), user["id"], user["company_id"]),
+        )
+        conn.execute(
+            "UPDATE companies SET name = ? WHERE id = ?",
+            (company_name.strip(), user["company_id"]),
+        )
+    return None
+
+
+init_db()
+
 if not OPENAI_API_KEY:
     print(f"[CONFIG] ERRO: {OPENAI_CONFIG_ERROR_MESSAGE}")
 
@@ -93,6 +721,8 @@ dados_dashboard = {
     "upload_regioes": {},
     "upload_postos": {},
     "upload_posto_ids": {},
+    "upload_company_ids": {},
+    "upload_station_ids": {},
     "upload_localizacoes": {},
     "upload_tipos": {},
     "postos_cadastrados": [],
@@ -1032,6 +1662,9 @@ def podar_historico_antigo() -> None:
     ]
 
     arquivos_validos = {item["arquivo"] for item in dados_dashboard["leituras_imagem"]}
+    if dados_dashboard.get("processamento_upload", {}).get("em_andamento"):
+        return
+
     dados_dashboard["upload_regioes"] = {
         arquivo: regiao
         for arquivo, regiao in dados_dashboard["upload_regioes"].items()
@@ -1045,6 +1678,16 @@ def podar_historico_antigo() -> None:
     dados_dashboard["upload_posto_ids"] = {
         arquivo: posto_id
         for arquivo, posto_id in dados_dashboard["upload_posto_ids"].items()
+        if arquivo in arquivos_validos
+    }
+    dados_dashboard["upload_company_ids"] = {
+        arquivo: company_id
+        for arquivo, company_id in dados_dashboard["upload_company_ids"].items()
+        if arquivo in arquivos_validos
+    }
+    dados_dashboard["upload_station_ids"] = {
+        arquivo: station_id
+        for arquivo, station_id in dados_dashboard["upload_station_ids"].items()
         if arquivo in arquivos_validos
     }
     dados_dashboard["upload_localizacoes"] = {
@@ -1072,6 +1715,8 @@ def listar_registros_precos() -> List[dict]:
                 "regiao": item["regiao"],
                 "posto": item["posto"],
                 "posto_id": item.get("posto_id"),
+                "station_id": item.get("station_id"),
+                "company_id": item.get("company_id"),
                 "origem_preco": item.get("origem_preco", "meu_posto"),
                 "created_at": item.get("created_at"),
             }
@@ -1087,6 +1732,8 @@ def listar_registros_precos() -> List[dict]:
                 "regiao": item["regiao"],
                 "posto": item["posto"],
                 "posto_id": item.get("posto_id"),
+                "station_id": item.get("station_id"),
+                "company_id": item.get("company_id"),
                 "origem_preco": item.get("origem_preco", "concorrente"),
                 "created_at": item.get("created_at"),
             }
@@ -1553,19 +2200,32 @@ def montar_dados_postos() -> dict:
     return {"postos": postos}
 
 
-def montar_dados_configuracoes() -> dict:
+def montar_dados_configuracoes(user: dict | None = None) -> dict:
     configuracoes = dados_dashboard["configuracoes"]
-    regioes = set(configuracoes.get("regioes", []))
+    settings = get_company_settings(user["company_id"]) if user else None
+    regioes = set(json.loads(settings.get("regions_json") or "[]") if settings else configuracoes.get("regioes", []))
 
     for regiao in listar_regioes_disponiveis():
         if regiao and regiao != "Regiao nao informada":
             regioes.add(regiao)
 
     return {
-        "perfil": configuracoes["perfil"],
+        "perfil": {
+            "nome": user.get("name", "") if user else configuracoes["perfil"].get("nome", ""),
+            "email": user.get("email", "") if user else configuracoes["perfil"].get("email", ""),
+            "empresa": user.get("company_name", "") if user else configuracoes["perfil"].get("empresa", ""),
+        },
         "regioes": sorted(regioes),
-        "parametros": configuracoes["parametros"],
-        "alertas_config": configuracoes["alertas_config"],
+        "parametros": {
+            "margem_acima_media": settings.get("decision_margin", "0.05") if settings else configuracoes["parametros"].get("margem_acima_media", "0.05"),
+            "margem_alerta_critico": settings.get("critical_margin", "0.10") if settings else configuracoes["parametros"].get("margem_alerta_critico", "0.10"),
+            "estrategia": settings.get("strategy", "Equilibrado") if settings else configuracoes["parametros"].get("estrategia", "Equilibrado"),
+        },
+        "alertas_config": {
+            "preco_acima_media": bool(settings.get("alert_price_above", 1)) if settings else configuracoes["alertas_config"].get("preco_acima_media", True),
+            "concorrentes_reduziram": bool(settings.get("alert_competitors_down", 1)) if settings else configuracoes["alertas_config"].get("concorrentes_reduziram", True),
+            "oportunidade_margem": bool(settings.get("alert_margin_opportunity", 1)) if settings else configuracoes["alertas_config"].get("oportunidade_margem", True),
+        },
         "plano": {
             "nome": "Básico",
             "postos_cadastrados": len(dados_dashboard["postos_cadastrados"]),
@@ -1823,6 +2483,8 @@ def limpar_dados_teste() -> int:
         dados_dashboard["upload_regioes"] = {}
         dados_dashboard["upload_postos"] = {}
         dados_dashboard["upload_posto_ids"] = {}
+        dados_dashboard["upload_company_ids"] = {}
+        dados_dashboard["upload_station_ids"] = {}
         dados_dashboard["upload_localizacoes"] = {}
         dados_dashboard["upload_tipos"] = {}
         dados_dashboard["processamento_upload"] = {
@@ -1982,6 +2644,10 @@ def listar_regioes_disponiveis() -> List[str]:
 
 def listar_postos_disponiveis() -> List[str]:
     postos = set()
+
+    for item in dados_dashboard["postos_cadastrados"]:
+        if item.get("nome"):
+            postos.add(item["nome"])
 
     for item in dados_dashboard["analises"]:
         if item.get("posto"):
@@ -2154,13 +2820,21 @@ def montar_dados_alertas(regiao: str | None, posto: str | None) -> dict:
 
 
 def precisa_reprocessar_uploads() -> bool:
-    return not dados_dashboard["leituras_imagem"] and bool(listar_arquivos_uploads())
+    return bool(
+        [
+            caminho
+            for caminho in listar_arquivos_uploads()
+            if os.path.basename(caminho) in dados_dashboard.get("upload_company_ids", {})
+        ]
+    )
 
 
 def processar_arquivo_visao_ia(caminho_arquivo: str) -> dict:
     nome_arquivo = os.path.basename(caminho_arquivo)
     localizacao_leitura = montar_localizacao_leitura(nome_arquivo)
     origem_preco = dados_dashboard["upload_tipos"].get(nome_arquivo, "concorrente")
+    company_id = dados_dashboard["upload_company_ids"].get(nome_arquivo)
+    station_id = dados_dashboard["upload_station_ids"].get(nome_arquivo)
     print(f"[VISION] iniciando leitura arquivo={nome_arquivo}")
     try:
         leitura = analisar_imagem_com_openai(caminho_arquivo)
@@ -2323,6 +2997,8 @@ def processar_arquivo_visao_ia(caminho_arquivo: str) -> dict:
                 nome_arquivo, "Posto nao informado"
             ),
             "posto_id": dados_dashboard["upload_posto_ids"].get(nome_arquivo),
+            "company_id": company_id,
+            "station_id": station_id,
             "origem_preco": origem_preco,
             **localizacao_leitura,
             "status": status_final,
@@ -2356,6 +3032,8 @@ def processar_arquivo_visao_ia(caminho_arquivo: str) -> dict:
                 nome_arquivo, "Posto nao informado"
             ),
             "posto_id": dados_dashboard["upload_posto_ids"].get(nome_arquivo),
+            "company_id": company_id,
+            "station_id": station_id,
             "origem_preco": origem_preco,
             **localizacao_leitura,
             "status": "sem_leitura",
@@ -2389,6 +3067,8 @@ def atualizar_resultados_imagem(resultado: dict) -> None:
                         "regiao": item["regiao"],
                         "posto": item["posto"],
                         "posto_id": item.get("posto_id"),
+                        "station_id": item.get("station_id"),
+                        "company_id": item.get("company_id"),
                         "origem_preco": item.get("origem_preco", "concorrente"),
                         "latitude": item.get("latitude"),
                         "longitude": item.get("longitude"),
@@ -2415,6 +3095,8 @@ def atualizar_resultados_imagem(resultado: dict) -> None:
                     "regiao": item["regiao"],
                     "posto": item["posto"],
                     "posto_id": item.get("posto_id"),
+                    "station_id": item.get("station_id"),
+                    "company_id": item.get("company_id"),
                     "origem_preco": item.get("origem_preco", "concorrente"),
                     "latitude": item.get("latitude"),
                     "longitude": item.get("longitude"),
@@ -2432,6 +3114,30 @@ def atualizar_resultados_imagem(resultado: dict) -> None:
             )
 
     dados_dashboard["precos_imagem"] = precos_normalizados
+
+    company_id = resultado.get("company_id")
+    if company_id and resultado.get("arquivo"):
+        delete_image_readings(company_id, resultado["arquivo"])
+        station_id = resultado.get("station_id")
+        for item in precos_normalizados:
+            if item.get("arquivo") != resultado["arquivo"] or item.get("company_id") != company_id:
+                continue
+            insert_reading(
+                company_id=company_id,
+                station_id=station_id,
+                fuel_type=item.get("tipo") or "nao_identificado",
+                price=item.get("preco"),
+                competitor_name=item.get("posto"),
+                address=item.get("endereco_formatado") or item.get("rua"),
+                region=item.get("regiao"),
+                latitude=item.get("latitude"),
+                longitude=item.get("longitude"),
+                image_path=item.get("arquivo"),
+                source_type=item.get("origem_preco", "concorrente"),
+                confidence=item.get("confianca"),
+                status=item.get("status") or resultado.get("status"),
+                created_at=item.get("created_at"),
+            )
 
 
 def processar_uploads_com_ia(caminhos_arquivo: List[str] | None = None) -> None:
@@ -2509,17 +3215,171 @@ def iniciar_processamento_em_thread(caminhos: List[str]) -> None:
 
 @app.get("/")
 def home():
-    return {"mensagem": "Posto360 rodando 🚀"}
+    return RedirectResponse(url="/dashboard", status_code=303)
+
+
+@app.get("/login", response_class=HTMLResponse)
+def login_page(request: Request):
+    redirect = redirect_if_authenticated(request)
+    if redirect:
+        return redirect
+    return templates.TemplateResponse(request=request, name="login.html", context={"erro": ""})
+
+
+@app.post("/login", response_class=HTMLResponse)
+def login_submit(request: Request, email: str = Form(""), senha: str = Form("")):
+    redirect = redirect_if_authenticated(request)
+    if redirect:
+        return redirect
+
+    user = get_user_by_email(email)
+    if not user or not verify_password(senha, user["password_hash"]):
+        return templates.TemplateResponse(
+            request=request,
+            name="login.html",
+            context={"erro": "Email ou senha inválidos."},
+            status_code=400,
+        )
+
+    response = RedirectResponse(url=destination_for_user(user), status_code=303)
+    response.set_cookie(
+        SESSION_COOKIE_NAME,
+        create_session(user["id"]),
+        httponly=True,
+        samesite="lax",
+        secure=False,
+        max_age=SESSION_DAYS * 24 * 60 * 60,
+    )
+    return response
+
+
+@app.get("/register", response_class=HTMLResponse)
+def register_page(request: Request):
+    redirect = redirect_if_authenticated(request)
+    if redirect:
+        return redirect
+    return templates.TemplateResponse(request=request, name="register.html", context={"erro": ""})
+
+
+@app.post("/register", response_class=HTMLResponse)
+def register_submit(
+    request: Request,
+    nome: str = Form(""),
+    email: str = Form(""),
+    senha: str = Form(""),
+    empresa: str = Form(""),
+):
+    redirect = redirect_if_authenticated(request)
+    if redirect:
+        return redirect
+
+    if len(senha) < 8:
+        return templates.TemplateResponse(
+            request=request,
+            name="register.html",
+            context={"erro": "A senha precisa ter pelo menos 8 caracteres."},
+            status_code=400,
+        )
+
+    if not nome.strip() or not email.strip() or not empresa.strip():
+        return templates.TemplateResponse(
+            request=request,
+            name="register.html",
+            context={"erro": "Preencha nome, email, senha e empresa."},
+            status_code=400,
+        )
+
+    user, erro = create_company_and_admin(nome, email, senha, empresa)
+    if erro or not user:
+        return templates.TemplateResponse(
+            request=request,
+            name="register.html",
+            context={"erro": erro or "Não foi possível criar a conta."},
+            status_code=400,
+        )
+
+    response = RedirectResponse(url="/onboarding", status_code=303)
+    response.set_cookie(
+        SESSION_COOKIE_NAME,
+        create_session(user["id"]),
+        httponly=True,
+        samesite="lax",
+        secure=False,
+        max_age=SESSION_DAYS * 24 * 60 * 60,
+    )
+    return response
+
+
+@app.get("/logout")
+def logout(request: Request):
+    delete_session(request.cookies.get(SESSION_COOKIE_NAME))
+    response = RedirectResponse(url="/login", status_code=303)
+    response.delete_cookie(SESSION_COOKIE_NAME)
+    return response
+
+
+@app.get("/onboarding", response_class=HTMLResponse)
+def onboarding_page(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    if onboarding_completed(user):
+        return RedirectResponse(url="/dashboard", status_code=303)
+    return templates.TemplateResponse(
+        request=request,
+        name="onboarding.html",
+        context={"user": user},
+    )
+
+
+@app.post("/onboarding")
+def onboarding_submit(
+    request: Request,
+    network_size: str = Form(""),
+    first_priority: str = Form(""),
+    competitor_tracking: str = Form(""),
+    start_choice: str = Form("Ver dashboard"),
+    skipped: str | None = Form(None),
+):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+
+    complete_onboarding_quiz(
+        user=user,
+        network_size=network_size,
+        first_priority=first_priority,
+        competitor_tracking=competitor_tracking,
+        start_choice=start_choice,
+        skipped=skipped == "1",
+    )
+    carregar_empresa_em_memoria(user["company_id"])
+    return RedirectResponse(url=onboarding_destination(start_choice), status_code=303)
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    if not onboarding_completed(user):
+        return RedirectResponse(url="/onboarding", status_code=303)
+    carregar_empresa_em_memoria(user["company_id"])
     if (
         openai_api_key_configurada()
         and precisa_reprocessar_uploads()
         and not dados_dashboard["processamento_upload"]["em_andamento"]
     ):
-        iniciar_processamento_em_thread(listar_arquivos_uploads())
+        iniciar_processamento_em_thread(
+            [
+                caminho
+                for caminho in listar_arquivos_uploads()
+                if os.path.basename(caminho) in dados_dashboard.get("upload_company_ids", {})
+            ]
+        )
     elif not openai_api_key_configurada():
         print(f"[CONFIG] ERRO: {OPENAI_CONFIG_ERROR_MESSAGE}")
 
@@ -2530,18 +3390,45 @@ def dashboard(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"dados": dados_filtrados},
+        context={"dados": dados_filtrados, "tutorial_completed": tutorial_completed(user)},
     )
 
 
+@app.post("/tutorial-completed")
+def concluir_tutorial(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    with db_connect() as conn:
+        conn.execute(
+            "UPDATE company_settings SET tutorial_completed = 1 WHERE company_id = ?",
+            (user["company_id"],),
+        )
+    return {"ok": True}
+
+
 @app.post("/reset")
-def reset_dados_teste():
+def reset_dados_teste(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    delete_company_readings(user["company_id"])
     limpar_dados_teste()
     return RedirectResponse(url="/dashboard", status_code=303)
 
 
 @app.get("/leituras", response_class=HTMLResponse)
 def leituras(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    carregar_empresa_em_memoria(user["company_id"])
     regiao = request.query_params.get("regiao") or None
     posto = request.query_params.get("posto") or None
     try:
@@ -2560,6 +3447,13 @@ def leituras(request: Request):
 
 @app.get("/alertas", response_class=HTMLResponse)
 def alertas(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    carregar_empresa_em_memoria(user["company_id"])
     regiao = request.query_params.get("regiao") or None
     posto = request.query_params.get("posto") or None
     dados_alertas = montar_dados_alertas(regiao, posto)
@@ -2573,46 +3467,95 @@ def alertas(request: Request):
 
 @app.get("/postos", response_class=HTMLResponse)
 def postos(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    carregar_empresa_em_memoria(user["company_id"])
     return templates.TemplateResponse(
         request=request,
         name="postos.html",
-        context={"dados": montar_dados_postos()},
+        context={"dados": {**montar_dados_postos(), "erro": request.query_params.get("erro") or ""}},
     )
 
 
 @app.post("/postos")
 def salvar_posto(
+    request: Request,
     nome: str = Form(""),
     endereco: str = Form(""),
     regiao: str = Form(""),
+    cidade: str = Form(""),
+    estado: str = Form(""),
 ):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
     nome_limpo = nome.strip()
 
     if nome_limpo:
-        dados_dashboard["postos_cadastrados"].append(
-            {
-                "id": gerar_posto_id(nome_limpo, len(dados_dashboard["postos_cadastrados"])),
-                "nome": nome_limpo,
-                "endereco": endereco.strip(),
-                "regiao": regiao.strip(),
-                "created_at": agora_iso(),
-            }
-        )
+        create_station(user["company_id"], nome_limpo, endereco, regiao, cidade, estado)
 
+    return RedirectResponse(url="/postos", status_code=303)
+
+
+@app.post("/postos/{station_id}/editar")
+def editar_posto(
+    request: Request,
+    station_id: str,
+    nome: str = Form(""),
+    endereco: str = Form(""),
+    regiao: str = Form(""),
+    cidade: str = Form(""),
+    estado: str = Form(""),
+):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    if nome.strip():
+        update_station(user["company_id"], station_id, nome, endereco, regiao, cidade, estado)
+    return RedirectResponse(url="/postos", status_code=303)
+
+
+@app.post("/postos/{station_id}/excluir")
+def excluir_posto(request: Request, station_id: str):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    delete_station(user["company_id"], station_id)
     return RedirectResponse(url="/postos", status_code=303)
 
 
 @app.get("/configuracoes", response_class=HTMLResponse)
 def configuracoes(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    carregar_empresa_em_memoria(user["company_id"])
     return templates.TemplateResponse(
         request=request,
         name="configuracoes.html",
-        context={"dados": montar_dados_configuracoes()},
+        context={"dados": montar_dados_configuracoes(user)},
     )
 
 
 @app.post("/configuracoes")
 def salvar_configuracoes(
+    request: Request,
     nome: str = Form(""),
     email: str = Form(""),
     empresa: str = Form(""),
@@ -2624,33 +3567,46 @@ def salvar_configuracoes(
     concorrentes_reduziram: str | None = Form(None),
     oportunidade_margem: str | None = Form(None),
 ):
-    configuracoes = dados_dashboard["configuracoes"]
-    configuracoes["perfil"] = {
-        "nome": nome.strip(),
-        "email": email.strip(),
-        "empresa": empresa.strip(),
-    }
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+
+    erro = update_user_and_company(user, nome, email, empresa)
+    if erro:
+        return RedirectResponse(url="/configuracoes", status_code=303)
+
+    settings = get_company_settings(user["company_id"])
+    regioes = json.loads(settings.get("regions_json") or "[]")
 
     regiao_limpa = nova_regiao.strip()
-    if regiao_limpa and regiao_limpa not in configuracoes["regioes"]:
-        configuracoes["regioes"].append(regiao_limpa)
+    if regiao_limpa and regiao_limpa not in regioes:
+        regioes.append(regiao_limpa)
 
-    configuracoes["parametros"] = {
-        "margem_acima_media": margem_acima_media.strip() or "0.05",
-        "margem_alerta_critico": margem_alerta_critico.strip() or "0.10",
-        "estrategia": estrategia if estrategia in {"Conservador", "Equilibrado", "Agressivo"} else "Equilibrado",
-    }
-    configuracoes["alertas_config"] = {
-        "preco_acima_media": preco_acima_media == "on",
-        "concorrentes_reduziram": concorrentes_reduziram == "on",
-        "oportunidade_margem": oportunidade_margem == "on",
-    }
+    update_company_settings(
+        user["company_id"],
+        regioes,
+        margem_acima_media.strip() or "0.05",
+        margem_alerta_critico.strip() or "0.10",
+        estrategia if estrategia in {"Conservador", "Equilibrado", "Agressivo"} else "Equilibrado",
+        preco_acima_media == "on",
+        concorrentes_reduziram == "on",
+        oportunidade_margem == "on",
+    )
 
     return RedirectResponse(url="/configuracoes", status_code=303)
 
 
 @app.get("/upload-processando", response_class=HTMLResponse)
 def upload_processando(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
     return templates.TemplateResponse(
         request=request,
         name="upload_processando.html",
@@ -2660,10 +3616,18 @@ def upload_processando(request: Request):
 
 @app.post("/confirmar-posto")
 def confirmar_posto(
+    request: Request,
     arquivo: str = Form(""),
     posto_nome: str = Form(""),
     redirect_to: str = Form("/dashboard"),
 ):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    carregar_empresa_em_memoria(user["company_id"])
     posto_limpo = posto_nome.strip()
 
     if arquivo and posto_limpo:
@@ -2687,42 +3651,77 @@ def confirmar_posto(
 
 @app.get("/formulario", response_class=HTMLResponse)
 def formulario(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    carregar_empresa_em_memoria(user["company_id"])
     return templates.TemplateResponse(
         request=request,
         name="formulario.html",
-        context={},
+        context={"postos": dados_dashboard["postos_cadastrados"]},
     )
 
 
 @app.post("/formulario")
 def enviar_formulario(
+    request: Request,
     posto: str = Form(""),
+    station_id: str = Form(""),
     regiao: str = Form(""),
     produto: str = Form(""),
     preco: float = Form(0),
     litros_vendidos: float = Form(0),
     litros_estoque: float = Form(0),
 ):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    carregar_empresa_em_memoria(user["company_id"])
     dias_restantes = 0
 
     if litros_vendidos > 0:
         dias_restantes = litros_estoque / litros_vendidos
 
     tipo_combustivel = identificar_tipo_combustivel(produto)
-    posto_cadastrado = buscar_posto_cadastrado(posto)
+    station = get_company_station(user["company_id"], station_id)
+    posto_cadastrado = station_to_dashboard(station) if station else buscar_posto_cadastrado(posto)
+    posto_nome = station.get("name") if station else posto
+    regiao_nome = station.get("region") if station and station.get("region") else regiao
 
     dados_dashboard["analises"].append(
         {
-            "posto": posto,
-            "regiao": regiao,
+            "posto": posto_nome,
+            "regiao": regiao_nome,
             "produto": produto,
             "tipo": tipo_combustivel,
             "preco": round(preco, 2),
-            "posto_id": posto_cadastrado.get("id") if posto_cadastrado else None,
+            "posto_id": station_id or (posto_cadastrado.get("id") if posto_cadastrado else None),
+            "station_id": station_id or None,
+            "company_id": user["company_id"],
             "origem_preco": "meu_posto",
             "dias_restantes": round(dias_restantes, 2),
             "created_at": agora_iso(),
         }
+    )
+    insert_reading(
+        company_id=user["company_id"],
+        station_id=station_id or None,
+        fuel_type=tipo_combustivel,
+        price=round(preco, 2),
+        competitor_name=posto_nome,
+        address=station.get("address") if station else None,
+        region=regiao_nome,
+        latitude=None,
+        longitude=None,
+        image_path=None,
+        source_type="meu_posto",
+        status="manual",
     )
 
     atualizar_resumo_dashboard()
@@ -2732,19 +3731,36 @@ def enviar_formulario(
 
 @app.post("/upload-imagens")
 async def upload_imagens(
+    request: Request,
     regiao: str = Form(""),
     tipo_leitura: str = Form("concorrente"),
     posto_cliente: str = Form(""),
+    station_id: str = Form(""),
     latitude: float | None = Form(None),
     longitude: float | None = Form(None),
     imagens: List[UploadFile] = File(...),
 ):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    carregar_empresa_em_memoria(user["company_id"])
     caminhos = []
     tipo_leitura = "meu_posto" if tipo_leitura == "meu_posto" else "concorrente"
-    posto_cadastrado = buscar_posto_cadastrado(posto_cliente)
+    stations = list_company_stations(user["company_id"])
+    if not stations:
+        return RedirectResponse(url="/postos?erro=crie-um-posto", status_code=303)
+    if not station_id and len(stations) == 1:
+        station_id = stations[0]["id"]
+    station = get_company_station(user["company_id"], station_id)
+    if not station:
+        return RedirectResponse(url="/upload-teste?erro=posto", status_code=303)
+    posto_cadastrado = station_to_dashboard(station)
     regiao_upload = regiao.strip()
 
-    if tipo_leitura == "meu_posto" and posto_cadastrado:
+    if posto_cadastrado:
         regiao_upload = regiao_upload or posto_cadastrado.get("regiao", "")
 
     for imagem in imagens[:MAX_UPLOAD_IMAGES]:
@@ -2753,11 +3769,15 @@ async def upload_imagens(
 
         nome_salvo = nome_arquivo_processado(imagem.filename)
         caminho = f"{UPLOAD_FOLDER}/{nome_salvo}"
+        dados_dashboard["upload_company_ids"][nome_salvo] = user["company_id"]
+        dados_dashboard["upload_station_ids"][nome_salvo] = station["id"]
         dados_dashboard["upload_tipos"][nome_salvo] = tipo_leitura
         dados_dashboard["upload_regioes"][nome_salvo] = regiao_upload or "Regiao nao informada"
         if tipo_leitura == "meu_posto" and posto_cadastrado:
             dados_dashboard["upload_postos"][nome_salvo] = posto_cadastrado.get("nome", "Posto nao informado")
             dados_dashboard["upload_posto_ids"][nome_salvo] = posto_cadastrado.get("id")
+        elif tipo_leitura == "concorrente":
+            dados_dashboard["upload_postos"][nome_salvo] = "Concorrente"
         dados_dashboard["upload_localizacoes"][nome_salvo] = {
             "latitude": latitude,
             "longitude": longitude,
@@ -2781,8 +3801,18 @@ async def upload_imagens(
 
 @app.get("/upload-teste", response_class=HTMLResponse)
 def upload_teste(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    carregar_empresa_em_memoria(user["company_id"])
     return templates.TemplateResponse(
         request=request,
         name="upload_teste.html",
-        context={"postos": dados_dashboard["postos_cadastrados"]},
+        context={
+            "postos": dados_dashboard["postos_cadastrados"],
+            "erro": request.query_params.get("erro") or "",
+        },
     )

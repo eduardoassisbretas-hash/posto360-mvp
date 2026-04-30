@@ -251,7 +251,7 @@
             position: absolute;
             right: 0;
             bottom: 48px;
-            width: 150px;
+            width: min(320px, calc(100vw - 42px));
             padding: 8px;
             display: grid;
             gap: 4px;
@@ -266,6 +266,29 @@
             border-radius: 10px;
             color: var(--muted);
             font-weight: 700;
+        }
+
+        .more-panel button {
+            width: 100%;
+            padding: 9px 10px;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--muted);
+            font: inherit;
+            font-weight: 700;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .edit-form {
+            display: grid;
+            gap: 8px;
+        }
+
+        .edit-form input {
+            min-height: 40px;
+            border-radius: 10px;
         }
 
         .empty-state {
@@ -351,6 +374,12 @@
             </div>
         </section>
 
+        {% if dados.erro %}
+        <section class="empty-state">
+            <p>Cadastre um posto antes de enviar imagens ou leituras.</p>
+        </section>
+        {% endif %}
+
         <details class="add-panel" id="adicionar-posto">
             <summary class="btn-primary">+ Adicionar posto</summary>
             <form class="add-form" action="/postos" method="post">
@@ -365,6 +394,14 @@
                 <label>
                     Região (opcional)
                     <input type="text" name="regiao" placeholder="Ex: Savassi">
+                </label>
+                <label>
+                    Cidade
+                    <input type="text" name="cidade" placeholder="Ex: Belo Horizonte">
+                </label>
+                <label>
+                    Estado
+                    <input type="text" name="estado" placeholder="Ex: MG">
                 </label>
                 <button class="btn-primary" type="submit">Salvar posto</button>
             </form>
@@ -414,8 +451,17 @@
                     <details class="more-actions">
                         <summary aria-label="Mais ações">...</summary>
                         <div class="more-panel">
-                            <span>Editar posto</span>
-                            <span>Remover posto</span>
+                            <form class="edit-form" action="/postos/{{ posto.id }}/editar" method="post">
+                                <input type="text" name="nome" value="{{ posto.nome }}" required>
+                                <input type="text" name="endereco" value="{{ posto.endereco }}">
+                                <input type="text" name="regiao" value="{{ posto.regiao }}">
+                                <input type="text" name="cidade" value="{{ posto.cidade if posto.cidade is defined else '' }}" placeholder="Cidade">
+                                <input type="text" name="estado" value="{{ posto.estado if posto.estado is defined else '' }}" placeholder="Estado">
+                                <button type="submit">Salvar edição</button>
+                            </form>
+                            <form action="/postos/{{ posto.id }}/excluir" method="post">
+                                <button type="submit">Remover posto</button>
+                            </form>
                         </div>
                     </details>
                 </div>

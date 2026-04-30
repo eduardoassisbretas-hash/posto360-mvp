@@ -195,6 +195,16 @@
         </section>
 
         <section class="panel">
+            {% if erro %}
+            <p class="support-text">Selecione um posto cadastrado antes de enviar a leitura.</p>
+            {% endif %}
+            {% if not postos %}
+            <p class="support-text">Cadastre um posto primeiro para vincular as leituras à sua empresa.</p>
+            <div class="actions">
+                <a href="/postos" class="back-link">Adicionar posto</a>
+                <a href="/dashboard" class="back-link">Voltar ao dashboard</a>
+            </div>
+            {% else %}
             <form id="upload-form" action="/upload-imagens" method="post" enctype="multipart/form-data">
                 <div class="field">
                     <label for="tipo_leitura">Tipo de leitura</label>
@@ -206,8 +216,8 @@
                 </div>
                 <div class="field">
                     <label for="posto_cliente">Posto cadastrado</label>
-                    <select id="posto_cliente" name="posto_cliente">
-                        <option value="">Selecione se for meu posto</option>
+                    <select id="posto_cliente" name="station_id">
+                        <option value="">Selecione o posto</option>
                         {% for posto in postos %}
                         <option value="{{ posto.id if posto.id is defined else posto.nome }}">{{ posto.nome }}</option>
                         {% endfor %}
@@ -230,6 +240,7 @@
                     <a href="/dashboard" class="back-link">Voltar ao dashboard</a>
                 </div>
             </form>
+            {% endif %}
         </section>
     </main>
     <script>

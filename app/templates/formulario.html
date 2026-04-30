@@ -104,7 +104,8 @@
             color: #dbeafe;
         }
 
-        input {
+        input,
+        select {
             width: 100%;
             min-height: 52px;
             padding: 0 14px;
@@ -172,6 +173,7 @@
     </style>
 </head>
 <body>
+    {% set postos = postos if postos is defined else [] %}
     <main class="page">
         <section class="hero">
             <span class="eyebrow">Entrada manual</span>
@@ -181,6 +183,17 @@
 
         <section class="panel">
             <form action="/formulario" method="post">
+                {% if postos %}
+                <div class="field">
+                    <label for="station_id">Posto cadastrado</label>
+                    <select id="station_id" name="station_id">
+                        <option value="">Selecionar manualmente abaixo</option>
+                        {% for posto in postos %}
+                        <option value="{{ posto.id }}">{{ posto.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
                 <div class="field">
                     <label for="posto">Posto</label>
                     <input id="posto" type="text" name="posto" placeholder="Ex: Posto Centro" required>

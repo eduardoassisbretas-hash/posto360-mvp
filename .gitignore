@@ -2,3 +2,4 @@
 __pycache__/
 *.py[cod]
 app/uploads/
+app/posto360.db
