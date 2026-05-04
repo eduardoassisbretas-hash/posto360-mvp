@@ -723,9 +723,9 @@ def monetization_context(user: dict | None) -> dict:
     days_remaining = max(0, TRIAL_DAYS - elapsed_days)
     trial_progress = min(100, max(0, round((elapsed_days / max(TRIAL_DAYS, 1)) * 100)))
     is_trial = plan in {"trial", "beta", "free"}
-    label = f"Beta Gratuito • {days_remaining} dias restantes" if is_trial and days_remaining > 0 else "Upgrade para Pro"
+    label = f"Trial atual • {days_remaining} dias restantes" if is_trial and days_remaining > 0 else "Upgrade para Pro"
     if is_trial and days_remaining == 1:
-        label = "Beta Gratuito • 1 dia restante"
+        label = "Trial atual • 1 dia restante"
     return {
         "plan": plan,
         "is_trial": is_trial,

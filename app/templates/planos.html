@@ -300,6 +300,58 @@
             margin-top: 18px;
         }
 
+        .comparison {
+            display: grid;
+            gap: 14px;
+            margin: 8px 0 28px;
+            padding: 22px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: rgba(10, 19, 35, 0.74);
+            box-shadow: 0 18px 54px rgba(0, 0, 0, 0.22);
+            backdrop-filter: blur(18px);
+        }
+
+        .comparison h2 {
+            margin: 0;
+            font-size: 1.28rem;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1.2fr repeat(3, minmax(0, 1fr));
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+        }
+
+        .comparison-cell {
+            min-height: 48px;
+            padding: 13px;
+            border-right: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 0.88rem;
+            font-weight: 800;
+        }
+
+        .comparison-cell:nth-child(4n) {
+            border-right: 0;
+        }
+
+        .comparison-cell:nth-last-child(-n + 4) {
+            border-bottom: 0;
+        }
+
+        .comparison-head {
+            color: #eff6ff;
+            background: rgba(56, 189, 248, 0.08);
+        }
+
+        .comparison-yes {
+            color: #bbf7d0;
+        }
+
         .roi,
         .faq {
             padding: 22px;
@@ -361,6 +413,21 @@
                 grid-template-columns: 1fr;
             }
 
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-cell,
+            .comparison-cell:nth-child(4n),
+            .comparison-cell:nth-last-child(-n + 4) {
+                border-right: 0;
+                border-bottom: 1px solid var(--line);
+            }
+
+            .comparison-cell:last-child {
+                border-bottom: 0;
+            }
+
             .plan-card.featured {
                 order: -1;
             }
@@ -412,9 +479,9 @@
                 <span class="status-dot" aria-hidden="true"></span>
                 <span>{{ premium.get('label', 'Upgrade para Pro') }}</span>
             </div>
-            <h1 id="plans-title">Monetizacao simples para uma operacao mais lucrativa.</h1>
+            <h1 id="plans-title">Planos para redes que querem operar com mais margem.</h1>
             <p class="hero-copy">
-                Planos pensados para redes que querem padronizar campo, auditar leituras e tomar decisoes de preco com mais velocidade.
+                Escolha uma camada de inteligencia para padronizar campo, auditar leituras e tomar decisoes de preco com mais velocidade.
             </p>
             <div class="trial-panel" aria-label="Progresso do beta">
                 <div class="trial-row">
@@ -430,23 +497,23 @@
         <section class="plans" aria-label="Planos Posto360">
             <article class="plan-card">
                 <div class="plan-head">
-                    <h2 class="plan-name">Beta Gratuito</h2>
-                    <div class="price"><strong>R$0</strong><span>/ beta</span></div>
-                    <p class="plan-copy">Ideal para validar a rotina de campo e provar valor antes da expansao.</p>
+                    <h2 class="plan-name">Starter</h2>
+                    <div class="price"><strong>R$0</strong><span>/ trial</span></div>
+                    <p class="plan-copy">Para validar a rotina de campo e provar valor antes da expansao da rede.</p>
                 </div>
                 <ul class="feature-list">
                     <li>OCR de placas de preco</li>
-                    <li>Dashboard basico</li>
+                    <li>Dashboard executivo inicial</li>
                     <li>Modo Campo</li>
-                    <li>Ate 50 leituras no beta</li>
+                    <li>Ate 50 leituras no trial</li>
                 </ul>
-                <a class="cta" href="/dashboard">Continuar no beta</a>
+                <a class="cta" href="/dashboard">Continuar no Starter</a>
             </article>
 
             <article class="plan-card featured">
                 <span class="recommended">Recomendado</span>
                 <div class="plan-head">
-                    <h2 class="plan-name">Pro</h2>
+                    <h2 class="plan-name">Growth</h2>
                     <div class="price"><strong>R$299</strong><span>/ mes</span></div>
                     <p class="plan-copy">Para redes que querem controle operacional, historico confiavel e alertas de margem.</p>
                 </div>
@@ -462,9 +529,9 @@
 
             <article class="plan-card">
                 <div class="plan-head">
-                    <h2 class="plan-name">Pro AI</h2>
+                    <h2 class="plan-name">Enterprise</h2>
                     <div class="price"><strong>R$999</strong><span>/ mes</span></div>
-                    <p class="plan-copy">Camada estrategica para diretores que querem previsao, recomendacao e analise regional premium.</p>
+                    <p class="plan-copy">Camada estrategica para diretores que querem IA, previsao e analise regional premium.</p>
                 </div>
                 <ul class="feature-list">
                     <li>IA estrategica</li>
@@ -475,6 +542,36 @@
                 </ul>
                 <a class="cta" href="/posto360-ai">Ver IA estrategica</a>
             </article>
+        </section>
+
+        <section class="comparison" aria-label="Comparativo de planos">
+            <h2>Comparativo</h2>
+            <div class="comparison-grid">
+                <div class="comparison-cell comparison-head">Recurso</div>
+                <div class="comparison-cell comparison-head">Starter</div>
+                <div class="comparison-cell comparison-head">Growth</div>
+                <div class="comparison-cell comparison-head">Enterprise</div>
+
+                <div class="comparison-cell">Modo Campo e OCR</div>
+                <div class="comparison-cell comparison-yes">Incluido</div>
+                <div class="comparison-cell comparison-yes">Incluido</div>
+                <div class="comparison-cell comparison-yes">Incluido</div>
+
+                <div class="comparison-cell">Historico e auditoria</div>
+                <div class="comparison-cell">Limitado</div>
+                <div class="comparison-cell comparison-yes">Completo</div>
+                <div class="comparison-cell comparison-yes">Completo</div>
+
+                <div class="comparison-cell">Alertas inteligentes</div>
+                <div class="comparison-cell">Basico</div>
+                <div class="comparison-cell comparison-yes">Avancado</div>
+                <div class="comparison-cell comparison-yes">Avancado</div>
+
+                <div class="comparison-cell">IA estrategica</div>
+                <div class="comparison-cell">-</div>
+                <div class="comparison-cell">Insights</div>
+                <div class="comparison-cell comparison-yes">Recomendacoes premium</div>
+            </div>
         </section>
 
         <section class="value-grid" aria-label="Valor comercial">
