@@ -18,10 +18,17 @@ from typing import List
 
 import requests
 from fastapi import FastAPI, File, Form, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from dotenv import load_dotenv
+
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+except ImportError:  # pragma: no cover - local SQLite dev does not require psycopg2.
+    psycopg2 = None
+    RealDictCursor = None
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -37,7 +44,9 @@ app = FastAPI()
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 DATABASE_PATH = os.getenv("POSTO360_DATABASE_PATH", os.path.join(BASE_DIR, "posto360.db"))
+USING_POSTGRES = bool(DATABASE_URL)
 MAX_UPLOAD_IMAGES = 30
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 MAX_IMAGE_DIMENSION = 1200
@@ -100,11 +109,62 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 reverse_geocode_cache = {}
 
 
-def db_connect() -> sqlite3.Connection:
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse(os.path.join(STATIC_DIR, "favicon.png"), media_type="image/png")
+
+
+def translate_sql_placeholders(sql: str) -> str:
+    return sql.replace("?", "%s")
+
+
+def split_sql_script(script: str) -> List[str]:
+    return [statement.strip() for statement in script.split(";") if statement.strip()]
+
+
+class DatabaseConnection:
+    def __init__(self, conn, backend: str):
+        self.conn = conn
+        self.backend = backend
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        try:
+            if exc_type:
+                self.conn.rollback()
+            else:
+                self.conn.commit()
+        finally:
+            self.conn.close()
+
+    def execute(self, sql: str, params: tuple | list | None = None):
+        params = params or ()
+        if self.backend == "postgres":
+            cursor = self.conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(translate_sql_placeholders(sql), params)
+            return cursor
+        return self.conn.execute(sql, params)
+
+    def executescript(self, script: str) -> None:
+        if self.backend == "postgres":
+            for statement in split_sql_script(script):
+                self.execute(statement)
+            return
+        self.conn.executescript(script)
+
+
+def db_connect() -> DatabaseConnection:
+    if USING_POSTGRES:
+        if psycopg2 is None:
+            raise RuntimeError("DATABASE_URL foi configurada, mas psycopg2-binary nao esta instalado.")
+        return DatabaseConnection(psycopg2.connect(DATABASE_URL), "postgres")
+
     conn = sqlite3.connect(DATABASE_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+    return DatabaseConnection(conn, "sqlite")
 
 
 def init_db() -> None:
@@ -194,11 +254,19 @@ def init_db() -> None:
         ensure_column(conn, "company_settings", "tutorial_completed", "INTEGER NOT NULL DEFAULT 0")
 
 
-def ensure_column(conn: sqlite3.Connection, table_name: str, column_name: str, definition: str) -> None:
-    columns = {
-        row["name"]
-        for row in conn.execute(f"PRAGMA table_info({table_name})").fetchall()
-    }
+def ensure_column(conn: DatabaseConnection, table_name: str, column_name: str, definition: str) -> None:
+    if conn.backend == "postgres":
+        rows = conn.execute(
+            """
+            SELECT column_name AS name
+            FROM information_schema.columns
+            WHERE table_schema = 'public' AND table_name = ? AND column_name = ?
+            """,
+            (table_name, column_name),
+        ).fetchall()
+    else:
+        rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+    columns = {row["name"] for row in rows}
     if column_name not in columns:
         conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {definition}")
 
@@ -207,7 +275,7 @@ def now_utc_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def row_to_dict(row: sqlite3.Row | None) -> dict | None:
+def row_to_dict(row: sqlite3.Row | dict | None) -> dict | None:
     return dict(row) if row else None
 
 
@@ -337,7 +405,7 @@ def create_company_and_admin(name: str, email: str, password: str, company_name:
             (user_id, company_id, name.strip(), email.strip().lower(), hash_password(password), created_at),
         )
         conn.execute(
-            "INSERT INTO company_settings (company_id) VALUES (?)",
+            "INSERT INTO company_settings (company_id, onboarding_completed) VALUES (?, 1)",
             (company_id,),
         )
 
@@ -531,6 +599,12 @@ def onboarding_completed(user: dict) -> bool:
     return bool(settings.get("onboarding_completed"))
 
 
+def get_display_company_name(user: dict | None) -> str:
+    if not user:
+        return "Sua rede"
+    return (user.get("company_name") or "").strip() or "Sua rede"
+
+
 def tutorial_completed(user: dict) -> bool:
     settings = get_company_settings(user["company_id"])
     return bool(settings.get("tutorial_completed"))
@@ -670,7 +744,7 @@ def complete_onboarding_quiz(
 def onboarding_destination(start_choice: str) -> str:
     destinos = {
         "Cadastrar primeiro posto": "/postos",
-        "Enviar primeira foto de placa": "/concorrencia",
+        "Enviar primeira foto de placa": "/upload-teste",
         "Ver dashboard": "/dashboard",
         "Configurar alertas": "/configuracoes",
     }
@@ -3790,7 +3864,7 @@ def register_submit(
             status_code=400,
         )
 
-    response = RedirectResponse(url="/onboarding", status_code=303)
+    response = RedirectResponse(url="/dashboard", status_code=303)
     response.set_cookie(
         SESSION_COOKIE_NAME,
         create_session(user["id"]),
@@ -3846,6 +3920,8 @@ def onboarding_submit(
         skipped=skipped == "1",
     )
     carregar_empresa_em_memoria(user["company_id"])
+    if skipped == "1":
+        return RedirectResponse(url="/dashboard", status_code=303)
     return RedirectResponse(url=onboarding_destination(start_choice), status_code=303)
 
 
@@ -3882,7 +3958,12 @@ def dashboard(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"dados": dados_filtrados, "tutorial_completed": tutorial_completed(user)},
+        context={
+            "dados": dados_filtrados,
+            "company_name": get_display_company_name(user),
+            "current_company": {"name": get_display_company_name(user)},
+            "tutorial_completed": tutorial_completed(user),
+        },
     )
 
 

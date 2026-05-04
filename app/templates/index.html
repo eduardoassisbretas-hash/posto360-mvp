@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <link rel="icon" type="image/png" href="/static/favicon.png?v=1">
+    <link rel="apple-touch-icon" href="/static/favicon.png?v=1">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Posto360 | Dashboard</title>
@@ -103,6 +105,31 @@
             backdrop-filter: blur(18px);
             display: grid;
             gap: 4px;
+        }
+
+        .menu-company {
+            display: grid;
+            gap: 3px;
+            padding: 10px 12px 12px;
+            margin-bottom: 4px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .menu-brand {
+            color: #f8fafc;
+            font-family: "Space Grotesk", "Manrope", sans-serif;
+            font-size: 0.96rem;
+            font-weight: 700;
+        }
+
+        .menu-company-name {
+            max-width: 100%;
+            overflow: hidden;
+            color: #93c5fd;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .menu-panel a {
@@ -349,7 +376,33 @@
             font-weight: 700;
             color: #ffffff;
             letter-spacing: -0.5px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
+        }
+
+        .company-badge {
+            display: inline-flex;
+            align-items: center;
+            max-width: min(100%, 460px);
+            min-height: 34px;
+            padding: 0 12px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.54);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            color: #bfdbfe;
+            font-size: 0.86rem;
+            font-weight: 800;
+            backdrop-filter: blur(14px);
+        }
+
+        .company-badge-name {
+            display: inline-block;
+            min-width: 0;
+            overflow: hidden;
+            color: #f8fafc;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .hero p {
@@ -1005,6 +1058,11 @@
                 font-size: 28px;
             }
 
+            .company-badge {
+                max-width: calc(100vw - 64px);
+                width: fit-content;
+            }
+
             .eyebrow {
                 margin-bottom: 12px;
             }
@@ -1144,6 +1202,7 @@
     </style>
 </head>
 <body>
+    {% set display_company_name = company_name if company_name is defined and company_name else "Sua rede" %}
     <details class="app-menu" data-tour="menu">
         <summary aria-label="Abrir menu">
             <span class="menu-icon" aria-hidden="true">
@@ -1153,6 +1212,10 @@
             </span>
         </summary>
         <nav class="menu-panel" aria-label="Navegação principal" data-tour="menu-panel">
+            <div class="menu-company">
+                <span class="menu-brand">Posto360</span>
+                <span class="menu-company-name">{{ display_company_name }}</span>
+            </div>
             <a href="/dashboard">Dashboard</a>
             <a href="/meu-posto">Meu Posto</a>
             <a href="/concorrencia">Concorrência</a>
@@ -1191,6 +1254,9 @@
         <section class="hero">
             <span class="eyebrow">Dashboard inteligente</span>
             <h1 class="hero-title">Posto360</h1>
+            <div class="company-badge" title="Operando para {{ display_company_name }}">
+                Operando para&nbsp;<span class="company-badge-name">{{ display_company_name }}</span>
+            </div>
             <p>
                 Central de decisão de preço para postos. Compare o preço atual com a média da região,
                 veja os alertas mais importantes e aja rápido com uma recomendação simples por combustível.
