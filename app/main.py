@@ -41,17 +41,21 @@ load_dotenv(APP_ENV_PATH)
 
 app = FastAPI()
 
-UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
+UPLOAD_FOLDER = os.getenv("POSTO360_UPLOAD_DIR", os.path.join(BASE_DIR, "uploads"))
+ORIGINAL_UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, "originais")
+THUMBNAIL_UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, "thumbs")
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 DATABASE_PATH = os.getenv("POSTO360_DATABASE_PATH", os.path.join(BASE_DIR, "posto360.db"))
 USING_POSTGRES = bool(DATABASE_URL)
+RUNNING_ON_RENDER = bool(os.getenv("RENDER") or os.getenv("RENDER_SERVICE_ID"))
 MAX_UPLOAD_IMAGES = 30
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 MAX_IMAGE_DIMENSION = 1200
 PROCESSING_LOCK = threading.Lock()
-RETENTION_DAYS = 15
+MIN_PHOTO_RETENTION_DAYS = 5
+PHOTO_RETENTION_DAYS = max(MIN_PHOTO_RETENTION_DAYS, int(os.getenv("POSTO360_RETENTION_DAYS", "15")))
 RECENT_ITEMS_LIMIT = 5
 READINGS_PAGE_SIZE = 10
 VISION_MAX_WORKERS = 4
@@ -70,7 +74,7 @@ OPENAI_CONFIG_ERROR_MESSAGE = (
     "OPENAI_API_KEY ausente. Configure a chave no arquivo .env na raiz do projeto."
 )
 SESSION_COOKIE_NAME = "posto360_session"
-SESSION_DAYS = 7
+SESSION_DAYS = max(36500, int(os.getenv("POSTO360_SESSION_DAYS", "36500")))
 COMBUSTIVEIS_DECISAO = {
     "gasolina_comum",
     "gasolina_aditivada",
@@ -103,10 +107,18 @@ PRICE_SANITY_RANGES = {
 }
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(ORIGINAL_UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(THUMBNAIL_UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(DEBUG_VISION_FOLDER, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 reverse_geocode_cache = {}
+
+if RUNNING_ON_RENDER and not USING_POSTGRES:
+    raise RuntimeError(
+        "Posto360 em produção precisa de DATABASE_URL com PostgreSQL persistente. "
+        "Sem isso, contas e logins seriam salvos em armazenamento efêmero."
+    )
 
 
 @app.get("/favicon.ico", include_in_schema=False)
@@ -174,6 +186,8 @@ def init_db() -> None:
             CREATE TABLE IF NOT EXISTS companies (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
+                plan TEXT NOT NULL DEFAULT 'trial',
+                onboarding_completed INTEGER NOT NULL DEFAULT 0,
                 created_at TEXT NOT NULL
             );
 
@@ -183,8 +197,9 @@ def init_db() -> None:
                 name TEXT NOT NULL,
                 email TEXT NOT NULL UNIQUE,
                 password_hash TEXT NOT NULL,
-                role TEXT NOT NULL CHECK(role IN ('admin', 'manager', 'operator')),
+                role TEXT NOT NULL CHECK(role IN ('owner', 'admin', 'manager', 'operator')),
                 created_at TEXT NOT NULL,
+                last_login TEXT,
                 FOREIGN KEY(company_id) REFERENCES companies(id) ON DELETE CASCADE
             );
 
@@ -220,12 +235,21 @@ def init_db() -> None:
                 latitude REAL,
                 longitude REAL,
                 image_path TEXT,
+                original_image_path TEXT,
+                thumbnail_path TEXT,
                 source_type TEXT NOT NULL DEFAULT 'concorrente',
+                user_id TEXT,
+                street TEXT,
+                neighborhood TEXT,
+                city TEXT,
+                state TEXT,
+                ocr_json TEXT,
                 confidence REAL,
                 status TEXT,
                 created_at TEXT NOT NULL,
                 FOREIGN KEY(company_id) REFERENCES companies(id) ON DELETE CASCADE,
-                FOREIGN KEY(station_id) REFERENCES stations(id) ON DELETE SET NULL
+                FOREIGN KEY(station_id) REFERENCES stations(id) ON DELETE SET NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
             );
 
             CREATE TABLE IF NOT EXISTS company_settings (
@@ -241,6 +265,9 @@ def init_db() -> None:
             );
             """
         )
+        ensure_column(conn, "companies", "plan", "TEXT NOT NULL DEFAULT 'trial'")
+        ensure_column(conn, "companies", "onboarding_completed", "INTEGER NOT NULL DEFAULT 0")
+        ensure_column(conn, "users", "last_login", "TEXT")
         ensure_column(conn, "company_settings", "onboarding_completed", "INTEGER NOT NULL DEFAULT 0")
         ensure_column(conn, "company_settings", "network_station_count", "INTEGER")
         ensure_column(conn, "company_settings", "main_city", "TEXT")
@@ -252,6 +279,14 @@ def init_db() -> None:
         ensure_column(conn, "company_settings", "analysis_frequency", "TEXT")
         ensure_column(conn, "company_settings", "onboarding_answers_json", "TEXT NOT NULL DEFAULT '{}'")
         ensure_column(conn, "company_settings", "tutorial_completed", "INTEGER NOT NULL DEFAULT 0")
+        ensure_column(conn, "readings", "user_id", "TEXT")
+        ensure_column(conn, "readings", "original_image_path", "TEXT")
+        ensure_column(conn, "readings", "thumbnail_path", "TEXT")
+        ensure_column(conn, "readings", "street", "TEXT")
+        ensure_column(conn, "readings", "neighborhood", "TEXT")
+        ensure_column(conn, "readings", "city", "TEXT")
+        ensure_column(conn, "readings", "state", "TEXT")
+        ensure_column(conn, "readings", "ocr_json", "TEXT")
 
 
 def ensure_column(conn: DatabaseConnection, table_name: str, column_name: str, definition: str) -> None:
@@ -277,6 +312,27 @@ def now_utc_iso() -> str:
 
 def row_to_dict(row: sqlite3.Row | dict | None) -> dict | None:
     return dict(row) if row else None
+
+
+def owner_role_for_connection(conn: DatabaseConnection) -> str:
+    if conn.backend == "sqlite":
+        row = conn.execute("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'").fetchone()
+        table_sql = (row["sql"] if row else "") or ""
+        return "owner" if "'owner'" in table_sql else "admin"
+
+    rows = conn.execute(
+        """
+        SELECT pg_get_constraintdef(c.oid) AS definition
+        FROM pg_constraint c
+        JOIN pg_class t ON t.oid = c.conrelid
+        WHERE t.relname = 'users' AND c.contype = 'c'
+        """
+    ).fetchall()
+    for row in rows:
+        definition = row.get("definition") or ""
+        if "role" in definition and "owner" not in definition:
+            return "admin"
+    return "owner"
 
 
 def hash_password(password: str) -> str:
@@ -314,6 +370,11 @@ def create_session(user_id: str) -> str:
             (hash_session_token(token), user_id, expires_at, now_utc_iso()),
         )
     return token
+
+
+def mark_user_login(user_id: str) -> None:
+    with db_connect() as conn:
+        conn.execute("UPDATE users SET last_login = ? WHERE id = ?", (now_utc_iso(), user_id))
 
 
 def delete_session(token: str | None) -> None:
@@ -354,9 +415,6 @@ def get_user_by_session(token: str | None) -> dict | None:
     user = row_to_dict(row)
     if not user:
         return None
-    if parse_data_registro(user.get("expires_at")) < datetime.now(timezone.utc):
-        delete_session(token)
-        return None
     return user
 
 
@@ -393,19 +451,23 @@ def create_company_and_admin(name: str, email: str, password: str, company_name:
     created_at = now_utc_iso()
 
     with db_connect() as conn:
+        owner_role = owner_role_for_connection(conn)
         conn.execute(
-            "INSERT INTO companies (id, name, created_at) VALUES (?, ?, ?)",
+            """
+            INSERT INTO companies (id, name, plan, onboarding_completed, created_at)
+            VALUES (?, ?, 'trial', 0, ?)
+            """,
             (company_id, company_name.strip(), created_at),
         )
         conn.execute(
             """
             INSERT INTO users (id, company_id, name, email, password_hash, role, created_at)
-            VALUES (?, ?, ?, ?, ?, 'admin', ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (user_id, company_id, name.strip(), email.strip().lower(), hash_password(password), created_at),
+            (user_id, company_id, name.strip(), email.strip().lower(), hash_password(password), owner_role, created_at),
         )
         conn.execute(
-            "INSERT INTO company_settings (company_id, onboarding_completed) VALUES (?, 1)",
+            "INSERT INTO company_settings (company_id, onboarding_completed) VALUES (?, 0)",
             (company_id,),
         )
 
@@ -472,18 +534,28 @@ def insert_reading(
     longitude,
     image_path: str | None,
     source_type: str,
+    original_image_path: str | None = None,
+    thumbnail_path: str | None = None,
     confidence=None,
     status: str | None = None,
     created_at: str | None = None,
+    user_id: str | None = None,
+    street: str | None = None,
+    neighborhood: str | None = None,
+    city: str | None = None,
+    state: str | None = None,
+    ocr_json: str | None = None,
 ) -> None:
     with db_connect() as conn:
         conn.execute(
             """
             INSERT INTO readings (
                 id, company_id, station_id, fuel_type, price, competitor_name, address,
-                region, latitude, longitude, image_path, source_type, confidence, status, created_at
+                region, latitude, longitude, image_path, original_image_path, thumbnail_path,
+                source_type, confidence, status, created_at,
+                user_id, street, neighborhood, city, state, ocr_json
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 str(uuid.uuid4()),
@@ -497,10 +569,18 @@ def insert_reading(
                 latitude,
                 longitude,
                 image_path,
+                original_image_path or image_path,
+                thumbnail_path or image_path,
                 source_type,
                 confidence,
                 status,
                 created_at or now_utc_iso(),
+                user_id,
+                street,
+                neighborhood,
+                city,
+                state,
+                ocr_json,
             ),
         )
 
@@ -508,8 +588,12 @@ def insert_reading(
 def delete_image_readings(company_id: str, image_path: str) -> None:
     with db_connect() as conn:
         conn.execute(
-            "DELETE FROM readings WHERE company_id = ? AND image_path = ?",
-            (company_id, image_path),
+            """
+            DELETE FROM readings
+            WHERE company_id = ?
+              AND (image_path = ? OR original_image_path = ? OR thumbnail_path = ?)
+            """,
+            (company_id, image_path, image_path, image_path),
         )
 
 
@@ -522,15 +606,33 @@ def list_company_readings(company_id: str) -> List[dict]:
     with db_connect() as conn:
         rows = conn.execute(
             """
-            SELECT readings.*, stations.name AS station_name, stations.region AS station_region
+            SELECT readings.*, stations.name AS station_name, stations.region AS station_region,
+                   users.name AS user_name
             FROM readings
             LEFT JOIN stations ON stations.id = readings.station_id AND stations.company_id = readings.company_id
+            LEFT JOIN users ON users.id = readings.user_id AND users.company_id = readings.company_id
             WHERE readings.company_id = ?
             ORDER BY readings.created_at DESC
             """,
             (company_id,),
         ).fetchall()
     return [dict(row) for row in rows]
+
+
+def company_can_access_image(company_id: str, image_path: str) -> bool:
+    if not image_path:
+        return False
+    with db_connect() as conn:
+        row = conn.execute(
+            """
+            SELECT id FROM readings
+            WHERE company_id = ?
+              AND (image_path = ? OR original_image_path = ? OR thumbnail_path = ?)
+            LIMIT 1
+            """,
+            (company_id, os.path.basename(image_path), os.path.basename(image_path), os.path.basename(image_path)),
+        ).fetchone()
+    return bool(row)
 
 
 def station_to_dashboard(station: dict) -> dict:
@@ -548,9 +650,13 @@ def station_to_dashboard(station: dict) -> dict:
 def reading_to_dashboard_item(reading: dict) -> dict:
     station_name = reading.get("station_name") or reading.get("competitor_name") or "Posto nao informado"
     region = reading.get("region") or reading.get("station_region") or "Regiao nao informada"
-    address = reading.get("address")
+    address = reading.get("address") or reading.get("street")
+    thumbnail_path = reading.get("thumbnail_path") or reading.get("image_path")
+    original_image_path = reading.get("original_image_path") or reading.get("image_path")
     return {
         "arquivo": reading.get("image_path") or reading.get("id"),
+        "thumbnail_path": thumbnail_path,
+        "original_image_path": original_image_path,
         "tipo": reading.get("fuel_type"),
         "preco": reading.get("price"),
         "confianca": reading.get("confidence"),
@@ -559,13 +665,14 @@ def reading_to_dashboard_item(reading: dict) -> dict:
         "posto": station_name,
         "posto_id": reading.get("station_id"),
         "origem_preco": reading.get("source_type") or "concorrente",
+        "usuario": reading.get("user_name") or "Equipe",
         "latitude": reading.get("latitude"),
         "longitude": reading.get("longitude"),
         "endereco_formatado": address,
-        "rua": address,
-        "bairro": None,
-        "cidade": None,
-        "estado": None,
+        "rua": reading.get("street") or address,
+        "bairro": reading.get("neighborhood"),
+        "cidade": reading.get("city"),
+        "estado": reading.get("state"),
         "leituras_detectadas": [],
         "leituras_descartadas": [],
         "status": reading.get("status") or "lido_com_sucesso",
@@ -576,10 +683,11 @@ def reading_to_dashboard_item(reading: dict) -> dict:
 def carregar_empresa_em_memoria(company_id: str) -> None:
     stations = [station_to_dashboard(item) for item in list_company_stations(company_id)]
     readings = list_company_readings(company_id)
-    itens = [reading_to_dashboard_item(item) for item in readings if item.get("price") is not None]
+    leituras = [reading_to_dashboard_item(item) for item in readings]
+    itens = [item for item in leituras if item.get("preco") is not None]
 
     dados_dashboard["postos_cadastrados"] = stations
-    dados_dashboard["leituras_imagem"] = itens
+    dados_dashboard["leituras_imagem"] = leituras
     dados_dashboard["precos_imagem"] = itens
     dados_dashboard["analises"] = []
     atualizar_resumo_dashboard()
@@ -667,6 +775,10 @@ def complete_onboarding(
                 company_id,
             ),
         )
+        conn.execute(
+            "UPDATE companies SET onboarding_completed = 1 WHERE id = ?",
+            (company_id,),
+        )
 
     if station_name.strip():
         create_station(
@@ -738,6 +850,10 @@ def complete_onboarding_quiz(
                 json.dumps(answers, ensure_ascii=False),
                 user["company_id"],
             ),
+        )
+        conn.execute(
+            "UPDATE companies SET onboarding_completed = 1 WHERE id = ?",
+            (user["company_id"],),
         )
 
 
@@ -816,6 +932,9 @@ dados_dashboard = {
     "upload_posto_ids": {},
     "upload_company_ids": {},
     "upload_station_ids": {},
+    "upload_user_ids": {},
+    "upload_original_paths": {},
+    "upload_thumbnail_paths": {},
     "upload_localizacoes": {},
     "upload_tipos": {},
     "postos_cadastrados": [],
@@ -1503,12 +1622,29 @@ def mapear_combustivel_ia(tipo: str | None) -> str | None:
 
 
 def nome_arquivo_processado(nome_arquivo: str) -> str:
-    base, extensao = os.path.splitext(nome_arquivo)
+    _, extensao = os.path.splitext(nome_arquivo)
+    extensao = extensao.lower()
 
-    if extensao.lower() in {".heic", ".heif", ".webp", ".png"}:
-        return f"{base}.jpg"
+    if extensao in {".heic", ".heif", ".webp", ".png", ".bmp"}:
+        extensao = ".jpg"
 
-    return nome_arquivo
+    if extensao not in {".jpg", ".jpeg"}:
+        extensao = ".jpg"
+
+    return f"{uuid.uuid4().hex}{extensao}"
+
+
+def nome_arquivo_original(nome_arquivo: str) -> str:
+    _, extensao = os.path.splitext(nome_arquivo or "")
+    extensao = extensao.lower()
+    if extensao not in formatos_upload_validos():
+        extensao = ".jpg"
+    return f"{uuid.uuid4().hex}{extensao}"
+
+
+def nome_thumbnail_para_original(nome_original: str) -> str:
+    base, _ = os.path.splitext(os.path.basename(nome_original))
+    return f"{base}.jpg"
 
 
 def formatos_upload_validos() -> set[str]:
@@ -1747,18 +1883,46 @@ def parse_data_registro(valor: str | None) -> datetime:
 
 
 def manter_registros_recentes(registros: List[dict]) -> List[dict]:
-    limite = datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)
-    return [item for item in registros if parse_data_registro(item.get("created_at")) >= limite]
+    return registros
+
+
+def caminho_em_uploads(caminho: str) -> bool:
+    try:
+        base = os.path.abspath(UPLOAD_FOLDER)
+        alvo = os.path.abspath(caminho)
+        return os.path.commonpath([base, alvo]) == base
+    except ValueError:
+        return False
+
+
+def limpar_imagens_expiradas() -> int:
+    limite = datetime.now(timezone.utc) - timedelta(days=PHOTO_RETENTION_DAYS)
+    total_removidos = 0
+    pastas_imagens = [UPLOAD_FOLDER, ORIGINAL_UPLOAD_FOLDER, THUMBNAIL_UPLOAD_FOLDER, DEBUG_VISION_FOLDER]
+
+    for pasta in pastas_imagens:
+        if not os.path.isdir(pasta):
+            continue
+        for nome_arquivo in os.listdir(pasta):
+            caminho = os.path.join(pasta, nome_arquivo)
+            if not os.path.isfile(caminho) or not caminho_em_uploads(caminho):
+                continue
+            if os.path.splitext(nome_arquivo.lower())[1] not in formatos_upload_validos():
+                continue
+            criado_em = datetime.fromtimestamp(os.path.getmtime(caminho), timezone.utc)
+            if criado_em >= limite:
+                continue
+            try:
+                os.remove(caminho)
+                total_removidos += 1
+            except OSError:
+                print(f"[RETENCAO_IMAGEM] nao_foi_possivel_remover={caminho}")
+
+    return total_removidos
 
 
 def podar_historico_antigo() -> None:
-    dados_dashboard["analises"] = manter_registros_recentes(dados_dashboard["analises"])
-    dados_dashboard["leituras_imagem"] = manter_registros_recentes(dados_dashboard["leituras_imagem"])
-    dados_dashboard["precos_imagem"] = [
-        item
-        for item in manter_registros_recentes(dados_dashboard["precos_imagem"])
-        if item.get("preco") is not None
-    ]
+    limpar_imagens_expiradas()
 
     arquivos_validos = {item["arquivo"] for item in dados_dashboard["leituras_imagem"]}
     if dados_dashboard.get("processamento_upload", {}).get("em_andamento"):
@@ -1787,6 +1951,21 @@ def podar_historico_antigo() -> None:
     dados_dashboard["upload_station_ids"] = {
         arquivo: station_id
         for arquivo, station_id in dados_dashboard["upload_station_ids"].items()
+        if arquivo in arquivos_validos
+    }
+    dados_dashboard["upload_user_ids"] = {
+        arquivo: user_id
+        for arquivo, user_id in dados_dashboard["upload_user_ids"].items()
+        if arquivo in arquivos_validos
+    }
+    dados_dashboard["upload_original_paths"] = {
+        arquivo: original_path
+        for arquivo, original_path in dados_dashboard["upload_original_paths"].items()
+        if arquivo in arquivos_validos
+    }
+    dados_dashboard["upload_thumbnail_paths"] = {
+        arquivo: thumbnail_path
+        for arquivo, thumbnail_path in dados_dashboard["upload_thumbnail_paths"].items()
         if arquivo in arquivos_validos
     }
     dados_dashboard["upload_localizacoes"] = {
@@ -2587,6 +2766,9 @@ def limpar_dados_teste() -> int:
         dados_dashboard["upload_posto_ids"] = {}
         dados_dashboard["upload_company_ids"] = {}
         dados_dashboard["upload_station_ids"] = {}
+        dados_dashboard["upload_user_ids"] = {}
+        dados_dashboard["upload_original_paths"] = {}
+        dados_dashboard["upload_thumbnail_paths"] = {}
         dados_dashboard["upload_localizacoes"] = {}
         dados_dashboard["upload_tipos"] = {}
         dados_dashboard["processamento_upload"] = {
@@ -2673,6 +2855,22 @@ def salvar_imagem_optimizada(upload: UploadFile, caminho_destino: str) -> bool:
             return True
         except Exception:
             return False
+
+
+def salvar_imagem_original(upload: UploadFile, nome_salvo: str) -> bool:
+    caminho_original = os.path.join(ORIGINAL_UPLOAD_FOLDER, os.path.basename(nome_salvo))
+    try:
+        upload.file.seek(0)
+        with open(caminho_original, "wb") as buffer:
+            shutil.copyfileobj(upload.file, buffer)
+        upload.file.seek(0)
+        return True
+    except Exception:
+        try:
+            upload.file.seek(0)
+        except Exception:
+            pass
+        return False
 
 
 def extrair_precos_do_texto(texto: str) -> List[float]:
@@ -3006,6 +3204,26 @@ def montar_dados_concorrencia(user: dict) -> dict:
         "resumo_por_tipo": dados.get("resumo_por_tipo", {}),
         "recentes": recent,
         "erro": "",
+    }
+
+
+def montar_dados_modo_campo(user: dict, station_id: str | None = None) -> dict:
+    dados_meu_posto = montar_dados_meu_posto(user, station_id)
+    dados_concorrencia = montar_dados_concorrencia(user)
+    fuels = [
+        fuel
+        for fuel in dados_meu_posto.get("fuel_cards", [])
+        if fuel.get("slug") in {"gasolina_comum", "gasolina_aditivada", "etanol", "diesel", "diesel_s10"}
+    ]
+    return {
+        "company_name": get_display_company_name(user),
+        "stations": dados_meu_posto.get("stations", []),
+        "selected_station": dados_meu_posto.get("selected_station"),
+        "fuel_cards": fuels,
+        "history": dados_meu_posto.get("history", [])[:5],
+        "has_stations": dados_meu_posto.get("has_stations", False),
+        "regioes": dados_concorrencia.get("regioes", []),
+        "recentes_concorrencia": dados_concorrencia.get("recentes", [])[:4],
     }
 
 
@@ -3401,6 +3619,9 @@ def processar_arquivo_visao_ia(caminho_arquivo: str) -> dict:
     origem_preco = dados_dashboard["upload_tipos"].get(nome_arquivo, "concorrente")
     company_id = dados_dashboard["upload_company_ids"].get(nome_arquivo)
     station_id = dados_dashboard["upload_station_ids"].get(nome_arquivo)
+    user_id = dados_dashboard["upload_user_ids"].get(nome_arquivo)
+    original_image_path = dados_dashboard["upload_original_paths"].get(nome_arquivo)
+    thumbnail_path = dados_dashboard["upload_thumbnail_paths"].get(nome_arquivo, nome_arquivo)
     print(f"[VISION] iniciando leitura arquivo={nome_arquivo}")
     try:
         leitura = analisar_imagem_com_openai(caminho_arquivo)
@@ -3539,6 +3760,8 @@ def processar_arquivo_visao_ia(caminho_arquivo: str) -> dict:
 
         return {
             "arquivo": nome_arquivo,
+            "original_image_path": original_image_path,
+            "thumbnail_path": thumbnail_path,
             "tipo": tipo_combustivel,
             "preco": round(preco, 3),
             "confianca": round(float(confianca), 2),
@@ -3565,6 +3788,7 @@ def processar_arquivo_visao_ia(caminho_arquivo: str) -> dict:
             "posto_id": dados_dashboard["upload_posto_ids"].get(nome_arquivo),
             "company_id": company_id,
             "station_id": station_id,
+            "user_id": user_id,
             "origem_preco": origem_preco,
             **localizacao_leitura,
             "status": status_final,
@@ -3574,6 +3798,8 @@ def processar_arquivo_visao_ia(caminho_arquivo: str) -> dict:
         print(f"[VISION] erro arquivo={nome_arquivo} {erro_visao}")
         return {
             "arquivo": nome_arquivo,
+            "original_image_path": original_image_path,
+            "thumbnail_path": thumbnail_path,
             "tipo": "nao_identificado",
             "preco": None,
             "confianca": None,
@@ -3600,6 +3826,7 @@ def processar_arquivo_visao_ia(caminho_arquivo: str) -> dict:
             "posto_id": dados_dashboard["upload_posto_ids"].get(nome_arquivo),
             "company_id": company_id,
             "station_id": station_id,
+            "user_id": user_id,
             "origem_preco": origem_preco,
             **localizacao_leitura,
             "status": "sem_leitura",
@@ -3626,6 +3853,8 @@ def atualizar_resultados_imagem(resultado: dict) -> None:
                 precos_normalizados.append(
                     {
                         "arquivo": item["arquivo"],
+                        "original_image_path": item.get("original_image_path"),
+                        "thumbnail_path": item.get("thumbnail_path") or item["arquivo"],
                         "tipo": leitura["tipo"],
                         "preco": leitura["preco"],
                         "confianca": leitura.get("confianca"),
@@ -3635,6 +3864,7 @@ def atualizar_resultados_imagem(resultado: dict) -> None:
                         "posto_id": item.get("posto_id"),
                         "station_id": item.get("station_id"),
                         "company_id": item.get("company_id"),
+                        "user_id": item.get("user_id"),
                         "origem_preco": item.get("origem_preco", "concorrente"),
                         "latitude": item.get("latitude"),
                         "longitude": item.get("longitude"),
@@ -3647,6 +3877,16 @@ def atualizar_resultados_imagem(resultado: dict) -> None:
                         "bairro_provavel": item.get("bairro_provavel"),
                         "cidade_provavel": item.get("cidade_provavel"),
                         "referencia_visual": item.get("referencia_visual"),
+                        "ocr_json": json.dumps(
+                            {
+                                "leituras_detectadas": item.get("leituras_detectadas") or [],
+                                "leituras_descartadas": item.get("leituras_descartadas") or [],
+                                "bandeira": item.get("bandeira"),
+                                "posto_provavel": item.get("posto_provavel"),
+                                "referencia_visual": item.get("referencia_visual"),
+                            },
+                            ensure_ascii=False,
+                        ),
                         "created_at": item["created_at"],
                     }
                 )
@@ -3654,6 +3894,8 @@ def atualizar_resultados_imagem(resultado: dict) -> None:
             precos_normalizados.append(
                 {
                     "arquivo": item["arquivo"],
+                    "original_image_path": item.get("original_image_path"),
+                    "thumbnail_path": item.get("thumbnail_path") or item["arquivo"],
                     "tipo": item["tipo"],
                     "preco": item["preco"],
                     "confianca": item.get("confianca"),
@@ -3663,6 +3905,7 @@ def atualizar_resultados_imagem(resultado: dict) -> None:
                     "posto_id": item.get("posto_id"),
                     "station_id": item.get("station_id"),
                     "company_id": item.get("company_id"),
+                    "user_id": item.get("user_id"),
                     "origem_preco": item.get("origem_preco", "concorrente"),
                     "latitude": item.get("latitude"),
                     "longitude": item.get("longitude"),
@@ -3675,6 +3918,16 @@ def atualizar_resultados_imagem(resultado: dict) -> None:
                     "bairro_provavel": item.get("bairro_provavel"),
                     "cidade_provavel": item.get("cidade_provavel"),
                     "referencia_visual": item.get("referencia_visual"),
+                    "ocr_json": json.dumps(
+                        {
+                            "leituras_detectadas": item.get("leituras_detectadas") or [],
+                            "leituras_descartadas": item.get("leituras_descartadas") or [],
+                            "bandeira": item.get("bandeira"),
+                            "posto_provavel": item.get("posto_provavel"),
+                            "referencia_visual": item.get("referencia_visual"),
+                        },
+                        ensure_ascii=False,
+                    ),
                     "created_at": item["created_at"],
                 }
             )
@@ -3685,9 +3938,11 @@ def atualizar_resultados_imagem(resultado: dict) -> None:
     if company_id and resultado.get("arquivo"):
         delete_image_readings(company_id, resultado["arquivo"])
         station_id = resultado.get("station_id")
+        inseriu_leitura = False
         for item in precos_normalizados:
             if item.get("arquivo") != resultado["arquivo"] or item.get("company_id") != company_id:
                 continue
+            inseriu_leitura = True
             insert_reading(
                 company_id=company_id,
                 station_id=station_id,
@@ -3699,10 +3954,53 @@ def atualizar_resultados_imagem(resultado: dict) -> None:
                 latitude=item.get("latitude"),
                 longitude=item.get("longitude"),
                 image_path=item.get("arquivo"),
+                original_image_path=item.get("original_image_path"),
+                thumbnail_path=item.get("thumbnail_path"),
                 source_type=item.get("origem_preco", "concorrente"),
                 confidence=item.get("confianca"),
                 status=item.get("status") or resultado.get("status"),
                 created_at=item.get("created_at"),
+                user_id=item.get("user_id") or resultado.get("user_id"),
+                street=item.get("rua"),
+                neighborhood=item.get("bairro"),
+                city=item.get("cidade"),
+                state=item.get("estado"),
+                ocr_json=item.get("ocr_json"),
+            )
+        if not inseriu_leitura:
+            insert_reading(
+                company_id=company_id,
+                station_id=station_id,
+                fuel_type=resultado.get("tipo") or "nao_identificado",
+                price=None,
+                competitor_name=resultado.get("posto"),
+                address=resultado.get("endereco_formatado") or resultado.get("rua"),
+                region=resultado.get("regiao"),
+                latitude=resultado.get("latitude"),
+                longitude=resultado.get("longitude"),
+                image_path=resultado.get("arquivo"),
+                original_image_path=resultado.get("original_image_path"),
+                thumbnail_path=resultado.get("thumbnail_path"),
+                source_type=resultado.get("origem_preco", "concorrente"),
+                confidence=resultado.get("confianca"),
+                status=resultado.get("status"),
+                created_at=resultado.get("created_at"),
+                user_id=resultado.get("user_id"),
+                street=resultado.get("rua"),
+                neighborhood=resultado.get("bairro"),
+                city=resultado.get("cidade"),
+                state=resultado.get("estado"),
+                ocr_json=json.dumps(
+                    {
+                        "leituras_detectadas": resultado.get("leituras_detectadas") or [],
+                        "leituras_descartadas": resultado.get("leituras_descartadas") or [],
+                        "bandeira": resultado.get("bandeira"),
+                        "posto_provavel": resultado.get("posto_provavel"),
+                        "referencia_visual": resultado.get("referencia_visual"),
+                        "mensagem": resultado.get("mensagem"),
+                    },
+                    ensure_ascii=False,
+                ),
             )
 
 
@@ -3807,6 +4105,7 @@ def login_submit(request: Request, email: str = Form(""), senha: str = Form(""))
             status_code=400,
         )
 
+    mark_user_login(user["id"])
     response = RedirectResponse(url=destination_for_user(user), status_code=303)
     response.set_cookie(
         SESSION_COOKIE_NAME,
@@ -3864,7 +4163,8 @@ def register_submit(
             status_code=400,
         )
 
-    response = RedirectResponse(url="/dashboard", status_code=303)
+    mark_user_login(user["id"])
+    response = RedirectResponse(url="/onboarding", status_code=303)
     response.set_cookie(
         SESSION_COOKIE_NAME,
         create_session(user["id"]),
@@ -3920,9 +4220,7 @@ def onboarding_submit(
         skipped=skipped == "1",
     )
     carregar_empresa_em_memoria(user["company_id"])
-    if skipped == "1":
-        return RedirectResponse(url="/dashboard", status_code=303)
-    return RedirectResponse(url=onboarding_destination(start_choice), status_code=303)
+    return RedirectResponse(url="/dashboard", status_code=303)
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
@@ -3995,6 +4293,40 @@ def reset_dados_teste(request: Request):
     return RedirectResponse(url="/dashboard", status_code=303)
 
 
+@app.get("/uploads/{filename}", include_in_schema=False)
+def imagem_upload(filename: str, request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    nome_arquivo = os.path.basename(filename)
+    if nome_arquivo != filename or not company_can_access_image(user["company_id"], nome_arquivo):
+        return RedirectResponse(url="/historico", status_code=303)
+
+    caminho_original = os.path.join(ORIGINAL_UPLOAD_FOLDER, nome_arquivo)
+    caminho_processado = os.path.join(UPLOAD_FOLDER, nome_arquivo)
+    caminho = caminho_original if os.path.exists(caminho_original) else caminho_processado
+    if not os.path.exists(caminho):
+        return RedirectResponse(url="/historico", status_code=303)
+    return FileResponse(caminho)
+
+
+@app.get("/uploads/thumbs/{filename}", include_in_schema=False)
+def thumbnail_upload(filename: str, request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    nome_arquivo = os.path.basename(filename)
+    if nome_arquivo != filename or not company_can_access_image(user["company_id"], nome_arquivo):
+        return RedirectResponse(url="/historico", status_code=303)
+
+    caminho = os.path.join(THUMBNAIL_UPLOAD_FOLDER, nome_arquivo)
+    if not os.path.exists(caminho):
+        caminho = os.path.join(UPLOAD_FOLDER, nome_arquivo)
+    if not os.path.exists(caminho):
+        return RedirectResponse(url="/historico", status_code=303)
+    return FileResponse(caminho, media_type="image/jpeg")
+
+
 @app.get("/leituras", response_class=HTMLResponse)
 def leituras(request: Request):
     user = require_user(request)
@@ -4059,6 +4391,22 @@ def alertas(request: Request):
         request=request,
         name="alertas.html",
         context={"dados": dados_alertas},
+    )
+
+
+@app.get("/modo-campo", response_class=HTMLResponse)
+def modo_campo(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    station_id = request.query_params.get("station_id") or None
+    return templates.TemplateResponse(
+        request=request,
+        name="modo_campo.html",
+        context={"dados": montar_dados_modo_campo(user, station_id)},
     )
 
 
@@ -4129,9 +4477,13 @@ def salvar_precos_meu_posto(
             image_path=None,
             source_type="meu_posto",
             status="manual",
+            user_id=user["id"],
         )
 
     carregar_empresa_em_memoria(user["company_id"])
+    referer = request.headers.get("referer", "")
+    if "/modo-campo" in referer:
+        return RedirectResponse(url=f"/modo-campo?station_id={station['id']}", status_code=303)
     return RedirectResponse(url=f"/meu-posto?station_id={station['id']}", status_code=303)
 
 
@@ -4148,6 +4500,17 @@ def concorrencia(request: Request):
         name="concorrencia.html",
         context={"dados": montar_dados_concorrencia(user)},
     )
+
+
+@app.get("/planos")
+def planos(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    return RedirectResponse(url="/configuracoes", status_code=303)
 
 
 @app.get("/posto360-ai", response_class=HTMLResponse)
@@ -4441,6 +4804,7 @@ def enviar_formulario(
         image_path=None,
         source_type="meu_posto",
         status="manual",
+        user_id=user["id"],
     )
 
     atualizar_resumo_dashboard()
@@ -4486,10 +4850,14 @@ async def upload_imagens(
         if not imagem.filename or not arquivo_eh_imagem(imagem.filename):
             continue
 
-        nome_salvo = nome_arquivo_processado(imagem.filename)
-        caminho = f"{UPLOAD_FOLDER}/{nome_salvo}"
+        nome_original = nome_arquivo_original(imagem.filename)
+        nome_salvo = nome_thumbnail_para_original(nome_original)
+        caminho = os.path.join(THUMBNAIL_UPLOAD_FOLDER, nome_salvo)
         dados_dashboard["upload_company_ids"][nome_salvo] = user["company_id"]
         dados_dashboard["upload_station_ids"][nome_salvo] = station["id"] if station else None
+        dados_dashboard["upload_user_ids"][nome_salvo] = user["id"]
+        dados_dashboard["upload_original_paths"][nome_salvo] = nome_original
+        dados_dashboard["upload_thumbnail_paths"][nome_salvo] = nome_salvo
         dados_dashboard["upload_tipos"][nome_salvo] = tipo_leitura
         dados_dashboard["upload_regioes"][nome_salvo] = regiao_upload or "Regiao nao informada"
         if tipo_leitura == "meu_posto" and posto_cadastrado:
@@ -4502,9 +4870,33 @@ async def upload_imagens(
             "longitude": longitude,
         }
 
+        salvar_imagem_original(imagem, nome_original)
         if not salvar_imagem_optimizada(imagem, caminho):
             continue
 
+        localizacao_inicial = montar_localizacao_leitura(nome_salvo)
+        insert_reading(
+            company_id=user["company_id"],
+            station_id=station["id"] if station else None,
+            fuel_type="nao_identificado",
+            price=None,
+            competitor_name=dados_dashboard["upload_postos"].get(nome_salvo, "Concorrente"),
+            address=localizacao_inicial.get("endereco_formatado") or localizacao_inicial.get("rua"),
+            region=dados_dashboard["upload_regioes"].get(nome_salvo),
+            latitude=latitude,
+            longitude=longitude,
+            image_path=nome_salvo,
+            original_image_path=nome_original,
+            thumbnail_path=nome_salvo,
+            source_type=tipo_leitura,
+            status="aguardando_ocr",
+            user_id=user["id"],
+            street=localizacao_inicial.get("rua"),
+            neighborhood=localizacao_inicial.get("bairro"),
+            city=localizacao_inicial.get("cidade"),
+            state=localizacao_inicial.get("estado"),
+            ocr_json=json.dumps({"status": "aguardando_ocr"}, ensure_ascii=False),
+        )
         caminhos.append(caminho)
 
     with PROCESSING_LOCK:

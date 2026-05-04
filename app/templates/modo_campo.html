@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <link rel="icon" type="image/png" href="/static/favicon.png?v=1">
+    <link rel="apple-touch-icon" href="/static/favicon.png?v=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modo Campo | Posto360</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700&display=swap");
+        :root {
+            --bg: #06111f;
+            --bg-accent: radial-gradient(circle at top, rgba(37,99,235,.22), transparent 34%), radial-gradient(circle at 85% 10%, rgba(16,185,129,.16), transparent 22%), linear-gradient(180deg,#08111d 0%,#040914 100%);
+            --panel: rgba(10,19,35,.93);
+            --panel-strong: rgba(15,27,47,.98);
+            --soft: rgba(148,163,184,.08);
+            --border: rgba(148,163,184,.16);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --primary: #38bdf8;
+            --primary-strong: #2563eb;
+            --success: #34d399;
+            --shadow: 0 18px 46px rgba(2,6,23,.38);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { min-height: 100vh; font-family: "Manrope","Segoe UI",sans-serif; background: var(--bg); background-image: var(--bg-accent); color: var(--text); padding: 14px; }
+        a { color: inherit; text-decoration: none; }
+        .shell { width: min(860px, 100%); margin: 0 auto; display: grid; gap: 14px; }
+        .hero, .panel, .quick-card, .history-card { border: 1px solid var(--border); background: var(--panel); box-shadow: var(--shadow); border-radius: 24px; }
+        .hero { display: grid; gap: 18px; padding: 22px; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .brand { color: #dbeafe; font-size: .78rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+        .company { min-width: 0; overflow: hidden; color: #93c5fd; font-size: .82rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+        h1, h2, h3 { font-family: "Space Grotesk","Manrope",sans-serif; letter-spacing: -.03em; }
+        h1 { font-size: clamp(2.2rem, 13vw, 4rem); line-height: .96; }
+        h2 { font-size: 1.35rem; }
+        p { color: var(--muted); line-height: 1.55; }
+        .quick-grid { display: grid; gap: 12px; }
+        .quick-card { min-height: 112px; padding: 18px; display: grid; align-content: center; gap: 6px; background: linear-gradient(180deg,var(--panel-strong),rgba(8,15,27,.98)); }
+        .quick-card strong { font-size: 1.08rem; }
+        .quick-card span { color: #bae6fd; font-size: .88rem; font-weight: 800; }
+        .panel { padding: 18px; background: linear-gradient(180deg,var(--panel-strong),rgba(8,15,27,.98)); display: grid; gap: 14px; }
+        form { display: grid; gap: 14px; }
+        label { display: grid; gap: 8px; color: #dbeafe; font-weight: 800; font-size: .92rem; }
+        select, input { width: 100%; min-height: 54px; border-radius: 16px; border: 1px solid rgba(148,163,184,.18); background: rgba(15,23,42,.74); color: var(--text); padding: 0 14px; outline: none; font: inherit; }
+        input[type="file"] { min-height: 72px; padding: 16px; border-style: dashed; color: var(--muted); }
+        select:focus, input:focus { border-color: rgba(56,189,248,.56); box-shadow: 0 0 0 4px rgba(56,189,248,.1); }
+        .fuel-grid { display: grid; gap: 10px; }
+        .fuel-line { display: grid; grid-template-columns: minmax(0,1fr) 132px; gap: 10px; align-items: end; padding: 12px; border: 1px solid rgba(148,163,184,.12); border-radius: 18px; background: var(--soft); }
+        .fuel-line input { text-align: right; }
+        .actions { display: grid; gap: 10px; }
+        .btn-primary, .btn-secondary, button { display: inline-flex; align-items: center; justify-content: center; min-height: 56px; border-radius: 16px; padding: 0 16px; font: inherit; font-weight: 900; cursor: pointer; }
+        .btn-primary, button { border: 0; color: #eff6ff; background: linear-gradient(135deg,var(--primary),var(--primary-strong)); box-shadow: 0 16px 32px rgba(37,99,235,.28); }
+        .btn-secondary { border: 1px solid var(--border); color: #dbeafe; background: rgba(15,23,42,.62); }
+        .empty { padding: 16px; border-radius: 18px; border: 1px dashed var(--border); color: var(--muted); background: var(--soft); }
+        .status { color: #bae6fd; font-size: .88rem; font-weight: 800; }
+        .history-grid { display: grid; gap: 10px; }
+        .history-card { padding: 13px; background: var(--soft); display: grid; gap: 4px; }
+        @media (min-width: 760px) {
+            body { padding: 28px; }
+            .hero { padding: 30px; }
+            .quick-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+            .actions { grid-template-columns: repeat(2,minmax(0,1fr)); }
+            .history-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+        }
+    </style>
+</head>
+<body>
+    {% set stations = dados.stations if dados is defined and dados.stations is defined else [] %}
+    {% set selected = dados.selected_station if dados is defined else none %}
+    {% set fuels = dados.fuel_cards if dados is defined and dados.fuel_cards is defined else [] %}
+    {% set history = dados.history if dados is defined and dados.history is defined else [] %}
+    {% set recentes_concorrencia = dados.recentes_concorrencia if dados is defined and dados.recentes_concorrencia is defined else [] %}
+    {% set regioes = dados.regioes if dados is defined and dados.regioes is defined else [] %}
+    <main class="shell">
+        <section class="hero">
+            <div class="topbar">
+                <span class="brand">Posto360</span>
+                <span class="company">{{ dados.company_name if dados is defined else "Sua rede" }}</span>
+            </div>
+            <div>
+                <h1>Modo Campo</h1>
+                <p>Operação diária da sua equipe</p>
+            </div>
+            <div class="quick-grid">
+                <a class="quick-card" href="#precos">
+                    <strong>Atualizar preço do meu posto</strong>
+                    <span>Abrir preços</span>
+                </a>
+                <a class="quick-card" href="#concorrente">
+                    <strong>Registrar concorrente</strong>
+                    <span>Fotografar placa</span>
+                </a>
+            </div>
+            <div class="actions">
+                <a class="btn-secondary" href="/dashboard">Dashboard</a>
+                <a class="btn-secondary" href="/historico">Histórico</a>
+            </div>
+        </section>
+
+        <section class="panel" id="precos">
+            <h2>Atualizar preço</h2>
+            {% if not dados.has_stations %}
+            <div class="empty">
+                Cadastre um posto antes de salvar preços.
+                <div style="margin-top:12px;"><a class="btn-primary" href="/postos">Cadastrar posto</a></div>
+            </div>
+            {% else %}
+            <form method="post" action="/meu-posto">
+                <label>
+                    Posto
+                    <select name="station_id">
+                        {% for posto in stations %}
+                        <option value="{{ posto.id }}" {% if selected and selected.id == posto.id %}selected{% endif %}>{{ posto.nome }}{% if posto.regiao %} · {{ posto.regiao }}{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <div class="fuel-grid">
+                    {% for fuel in fuels %}
+                    <div class="fuel-line">
+                        <label>
+                            {{ fuel.label }}
+                            <span class="status">{{ fuel.updated }}</span>
+                        </label>
+                        <input type="number" step="0.001" name="{{ fuel.slug }}" value="{{ fuel.price }}" placeholder="0,000">
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="submit">Salvar preços</button>
+            </form>
+            {% if history %}
+            <div class="history-grid">
+                {% for item in history[:4] %}
+                <article class="history-card">
+                    <strong>{{ item.combustivel }}</strong>
+                    <span>{{ item.preco }}</span>
+                    <p>{{ item.atualizado }}</p>
+                </article>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endif %}
+        </section>
+
+        <section class="panel" id="concorrente">
+            <h2>Registrar concorrente</h2>
+            <form id="field-upload-form" action="/upload-imagens" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="tipo_leitura" value="concorrente">
+                <input id="latitude" type="hidden" name="latitude">
+                <input id="longitude" type="hidden" name="longitude">
+                <label>
+                    Região
+                    <input type="text" name="regiao" list="regioes-list" placeholder="GPS automático ou região">
+                    <datalist id="regioes-list">
+                        {% for regiao in regioes %}
+                        <option value="{{ regiao }}"></option>
+                        {% endfor %}
+                    </datalist>
+                </label>
+                <label>
+                    Foto da placa
+                    <input type="file" name="imagens" accept=".jpg,.jpeg,.png,.webp,.heic,.heif,image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment" required>
+                </label>
+                <p class="status" id="geo-status">Localização pronta ao salvar.</p>
+                <button type="submit">Salvar concorrente</button>
+            </form>
+            {% if recentes_concorrencia %}
+            <div class="history-grid">
+                {% for item in recentes_concorrencia %}
+                <article class="history-card">
+                    <strong>{{ item.combustivel }}</strong>
+                    <span>{{ item.preco }}</span>
+                    <p>{{ item.regiao }} · {{ item.atualizado }}</p>
+                </article>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </section>
+    </main>
+    <script>
+        const form = document.getElementById("field-upload-form");
+        const latitudeInput = document.getElementById("latitude");
+        const longitudeInput = document.getElementById("longitude");
+        const geoStatus = document.getElementById("geo-status");
+        function submitFieldForm() { form.dataset.geoReady = "true"; form.submit(); }
+        form.addEventListener("submit", function(event) {
+            if (form.dataset.geoReady === "true") { form.dataset.geoReady = "false"; return; }
+            event.preventDefault();
+            if (!navigator.geolocation) { submitFieldForm(); return; }
+            geoStatus.textContent = "Capturando GPS...";
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    latitudeInput.value = position.coords.latitude.toFixed(6);
+                    longitudeInput.value = position.coords.longitude.toFixed(6);
+                    geoStatus.textContent = "GPS anexado.";
+                    submitFieldForm();
+                },
+                function() {
+                    latitudeInput.value = "";
+                    longitudeInput.value = "";
+                    geoStatus.textContent = "Salvando sem GPS.";
+                    submitFieldForm();
+                },
+                { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
+            );
+        });
+    </script>
+</body>
+</html>

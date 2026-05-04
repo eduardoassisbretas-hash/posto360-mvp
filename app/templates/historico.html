@@ -28,6 +28,7 @@
         label { display:grid; gap:8px; color:#dbeafe; font-weight:800; flex:1 1 180px; }
         .list { display:grid; gap:10px; }
         .item { padding:14px; background:var(--soft); display:grid; gap:6px; }
+        .thumb { width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:16px; border:1px solid var(--border); background:rgba(15,23,42,.72); }
         .item-top { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
         .status { color:#bae6fd; font-weight:800; }
         .empty { padding:18px; border-radius:18px; border:1px dashed var(--border); color:var(--muted); background:var(--soft); }
@@ -73,6 +74,9 @@
             <div class="list" style="margin-top:14px;">
                 {% for item in itens %}
                 <article class="item">
+                    {% if item.fonte == "openai_vision" and item.thumbnail_path %}
+                    <img class="thumb" src="/uploads/thumbs/{{ item.thumbnail_path }}" alt="Foto da placa">
+                    {% endif %}
                     <div class="item-top">
                         <strong>{{ item.tipo_label if item.tipo_label is defined else item.tipo }}</strong>
                         <span class="status">{{ "R$ %.2f"|format(item.preco) if item.preco is not none else "Revisar imagem" }}</span>
@@ -81,7 +85,11 @@
                     {% if item.rua or item.endereco_formatado %}
                     <p>{{ item.rua or item.endereco_formatado }}</p>
                     {% endif %}
+                    {% if item.usuario %}<span class="muted">{{ item.usuario }}</span>{% endif %}
                     <span class="muted">{{ "Leitura concluída" if item.preco is not none else "Não foi possível identificar preço com segurança" }}</span>
+                    {% if item.fonte == "openai_vision" and item.original_image_path %}
+                    <a class="btn-secondary" href="/uploads/{{ item.original_image_path }}" target="_blank" rel="noopener">Ver foto</a>
+                    {% endif %}
                 </article>
                 {% endfor %}
             </div>

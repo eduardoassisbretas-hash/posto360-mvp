@@ -152,6 +152,13 @@
             background: rgba(56, 189, 248, 0.08);
         }
 
+        .menu-field-link {
+            justify-content: space-between;
+            border: 1px solid rgba(52, 211, 153, 0.18);
+            background: rgba(52, 211, 153, 0.08);
+            color: #d1fae5;
+        }
+
         .menu-ai-badge {
             display: inline-flex;
             align-items: center;
@@ -1219,9 +1226,11 @@
             <a href="/dashboard">Dashboard</a>
             <a href="/meu-posto">Meu Posto</a>
             <a href="/concorrencia">Concorrência</a>
+            <a href="/modo-campo" class="menu-field-link">Modo Campo <span class="menu-ai-badge">OP</span></a>
             <a href="/historico">Histórico</a>
             <a href="/posto360-ai" class="menu-ai-link">Posto360 AI <span class="menu-ai-badge">AI</span></a>
             <a href="/alertas">Alertas</a>
+            <a href="/planos">Planos</a>
             <a href="/configuracoes">Configurações</a>
             <a href="/logout">Sair</a>
         </nav>
@@ -1263,8 +1272,8 @@
             </p>
 
             <div class="hero-actions">
-                <a href="/meu-posto" class="btn-primary">Atualizar meu posto</a>
-                <a href="/concorrencia" class="btn-secondary" data-tour="upload">Monitorar concorrência</a>
+                <a href="/modo-campo" class="btn-primary" data-tour="field-mode">Modo Campo</a>
+                <a href="/concorrencia" class="btn-secondary">Ver concorrência regional</a>
             </div>
 
             {% if configuracao_alerta %}
@@ -1542,7 +1551,7 @@
                         <h2>Análises recentes</h2>
                         <p>Histórico curto para contexto operacional sem roubar o foco da decisão de preço.</p>
                     </div>
-                    <a href="/meu-posto" class="btn-secondary">Atualizar meu posto</a>
+                    <a href="/modo-campo" class="btn-secondary">Abrir modo campo</a>
                 </div>
 
                 {% if analises %}
@@ -1592,8 +1601,8 @@
                 <span id="tour-progress">Passo 1 de 5</span>
                 <button class="tour-button tour-button-ghost" type="button" id="tour-skip">Pular</button>
             </div>
-            <h2 id="tour-title">Monitorar concorrência</h2>
-            <p id="tour-copy">Envie fotos de placas concorrentes aqui para ativar sua inteligência operacional.</p>
+            <h2 id="tour-title">Modo Campo</h2>
+            <p id="tour-copy">Atualize preços e registre concorrentes sem misturar operação com gestão.</p>
             <div class="tour-actions">
                 <div class="tour-actions-left">
                     <button class="tour-button" type="button" id="tour-back">Voltar</button>
@@ -1608,9 +1617,9 @@
         (function () {
             const steps = [
                 {
-                    selector: '[data-tour="upload"]',
-                    title: 'Monitorar concorrência',
-                    copy: 'Envie fotos de placas concorrentes aqui para ativar sua inteligência operacional.'
+                    selector: '[data-tour="field-mode"]',
+                    title: 'Modo Campo',
+                    copy: 'Operação diária fica em uma área própria para atualizar preços e registrar concorrentes.'
                 },
                 {
                     selector: '[data-tour="readings"]',
