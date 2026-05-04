@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planos | Posto360</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png?v=1">
+    <link rel="apple-touch-icon" href="/static/favicon.png?v=1">
+    <style>
+        :root {
+            --bg: #050914;
+            --panel: rgba(10, 18, 32, 0.82);
+            --panel-strong: rgba(12, 22, 40, 0.94);
+            --line: rgba(148, 163, 184, 0.18);
+            --line-strong: rgba(56, 189, 248, 0.32);
+            --text: #f8fafc;
+            --muted: #9fb0c8;
+            --cyan: #38bdf8;
+            --green: #34d399;
+            --shadow: 0 22px 70px rgba(0, 0, 0, 0.36);
+            --radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Manrope", "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at 16% 10%, rgba(56, 189, 248, 0.16), transparent 26%),
+                radial-gradient(circle at 84% 4%, rgba(52, 211, 153, 0.1), transparent 28%),
+                linear-gradient(180deg, #08111f 0%, var(--bg) 52%, #030712 100%);
+            color: var(--text);
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .page-shell {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 24px 0 56px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 34px;
+        }
+
+        .brand {
+            display: grid;
+            gap: 4px;
+            min-width: 0;
+        }
+
+        .brand strong {
+            font-size: 1.08rem;
+            letter-spacing: 0;
+        }
+
+        .company {
+            max-width: 46vw;
+            overflow: hidden;
+            color: var(--muted);
+            font-size: 0.88rem;
+            font-weight: 800;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 0 14px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.76);
+            color: #dbeafe;
+            font-size: 0.86rem;
+            font-weight: 900;
+        }
+
+        .hero {
+            display: grid;
+            gap: 18px;
+            margin-bottom: 26px;
+        }
+
+        .status-pill {
+            width: fit-content;
+            max-width: 100%;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border: 1px solid rgba(56, 189, 248, 0.28);
+            border-radius: 999px;
+            background: rgba(8, 18, 32, 0.72);
+            box-shadow: 0 0 34px rgba(56, 189, 248, 0.14);
+            color: #dbeafe;
+            font-size: 0.84rem;
+            font-weight: 900;
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--cyan), var(--green));
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+        }
+
+        h1 {
+            max-width: 820px;
+            margin: 0;
+            font-size: clamp(2.1rem, 6vw, 4.8rem);
+            line-height: 0.96;
+            letter-spacing: 0;
+        }
+
+        .hero-copy {
+            max-width: 720px;
+            margin: 0;
+            color: #b9c6d8;
+            font-size: 1.02rem;
+            line-height: 1.7;
+        }
+
+        .trial-panel {
+            display: grid;
+            gap: 10px;
+            padding: 16px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: rgba(10, 19, 35, 0.72);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+        }
+
+        .trial-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            color: #dbeafe;
+            font-weight: 900;
+        }
+
+        .trial-row span:last-child {
+            color: var(--cyan);
+            white-space: nowrap;
+        }
+
+        .progress {
+            height: 8px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.16);
+        }
+
+        .progress span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--cyan), var(--green));
+        }
+
+        .plans {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin: 28px 0;
+        }
+
+        .plan-card {
+            display: grid;
+            align-content: start;
+            gap: 18px;
+            min-height: 100%;
+            padding: 22px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--panel);
+            box-shadow: 0 18px 54px rgba(0, 0, 0, 0.24);
+            backdrop-filter: blur(18px);
+        }
+
+        .plan-card.featured {
+            position: relative;
+            border-color: var(--line-strong);
+            background: linear-gradient(180deg, rgba(14, 30, 52, 0.96), rgba(8, 17, 31, 0.9));
+            box-shadow: var(--shadow), 0 0 42px rgba(56, 189, 248, 0.12);
+        }
+
+        .recommended {
+            width: fit-content;
+            padding: 6px 9px;
+            border: 1px solid rgba(52, 211, 153, 0.32);
+            border-radius: 999px;
+            background: rgba(52, 211, 153, 0.1);
+            color: #bbf7d0;
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .plan-head {
+            display: grid;
+            gap: 9px;
+        }
+
+        .plan-name {
+            margin: 0;
+            font-size: 1.28rem;
+        }
+
+        .price {
+            display: flex;
+            align-items: baseline;
+            gap: 7px;
+            font-weight: 950;
+        }
+
+        .price strong {
+            font-size: 2.1rem;
+        }
+
+        .price span {
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .plan-copy,
+        .feature-list,
+        .faq p,
+        .roi-copy {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .feature-list {
+            display: grid;
+            gap: 10px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .feature-list li {
+            display: flex;
+            gap: 9px;
+            align-items: flex-start;
+        }
+
+        .feature-list li::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            margin-top: 9px;
+            flex: 0 0 auto;
+            border-radius: 999px;
+            background: var(--cyan);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.38);
+        }
+
+        .cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            width: 100%;
+            border-radius: 999px;
+            border: 1px solid rgba(56, 189, 248, 0.36);
+            background: rgba(56, 189, 248, 0.12);
+            color: #e0f2fe;
+            font-weight: 950;
+        }
+
+        .cta.primary {
+            border: 0;
+            background: linear-gradient(135deg, var(--cyan), var(--green));
+            color: #04111f;
+            box-shadow: 0 16px 34px rgba(56, 189, 248, 0.18);
+        }
+
+        .value-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 16px;
+            margin-top: 18px;
+        }
+
+        .roi,
+        .faq {
+            padding: 22px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--panel-strong);
+        }
+
+        .roi h2,
+        .faq h2 {
+            margin: 0 0 12px;
+            font-size: 1.28rem;
+        }
+
+        .roi-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .metric {
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: rgba(15, 23, 42, 0.58);
+        }
+
+        .metric strong {
+            display: block;
+            color: #eff6ff;
+            font-size: 1.15rem;
+        }
+
+        .metric span {
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 800;
+        }
+
+        .faq-item + .faq-item {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid var(--line);
+        }
+
+        .faq h3 {
+            margin: 0 0 7px;
+            font-size: 0.98rem;
+        }
+
+        .faq p {
+            margin: 0;
+        }
+
+        @media (max-width: 900px) {
+            .plans,
+            .value-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .plan-card.featured {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .page-shell {
+                width: min(100% - 24px, 1120px);
+                padding-top: 16px;
+            }
+
+            .topbar {
+                align-items: flex-start;
+            }
+
+            .company {
+                max-width: 58vw;
+            }
+
+            .back-link {
+                padding: 0 12px;
+                font-size: 0.8rem;
+            }
+
+            .trial-row {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .roi-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% set premium = monetization if monetization is defined else {} %}
+    <main class="page-shell">
+        <header class="topbar">
+            <a class="brand" href="/dashboard" aria-label="Voltar para o dashboard">
+                <strong>Posto360</strong>
+                <span class="company">{{ company_name if company_name is defined and company_name else "Sua rede" }}</span>
+            </a>
+            <a class="back-link" href="/dashboard">Dashboard</a>
+        </header>
+
+        <section class="hero" aria-labelledby="plans-title">
+            <div class="status-pill">
+                <span class="status-dot" aria-hidden="true"></span>
+                <span>{{ premium.get('label', 'Upgrade para Pro') }}</span>
+            </div>
+            <h1 id="plans-title">Monetizacao simples para uma operacao mais lucrativa.</h1>
+            <p class="hero-copy">
+                Planos pensados para redes que querem padronizar campo, auditar leituras e tomar decisoes de preco com mais velocidade.
+            </p>
+            <div class="trial-panel" aria-label="Progresso do beta">
+                <div class="trial-row">
+                    <span>{{ premium.get('headline', 'Desbloqueie IA avancada') }}</span>
+                    <span>{{ premium.get('days_remaining', 0) }} de {{ premium.get('trial_days', 7) }} dias</span>
+                </div>
+                <div class="progress" aria-hidden="true">
+                    <span style="width: {{ premium.get('trial_progress', 0) }}%;"></span>
+                </div>
+            </div>
+        </section>
+
+        <section class="plans" aria-label="Planos Posto360">
+            <article class="plan-card">
+                <div class="plan-head">
+                    <h2 class="plan-name">Beta Gratuito</h2>
+                    <div class="price"><strong>R$0</strong><span>/ beta</span></div>
+                    <p class="plan-copy">Ideal para validar a rotina de campo e provar valor antes da expansao.</p>
+                </div>
+                <ul class="feature-list">
+                    <li>OCR de placas de preco</li>
+                    <li>Dashboard basico</li>
+                    <li>Modo Campo</li>
+                    <li>Ate 50 leituras no beta</li>
+                </ul>
+                <a class="cta" href="/dashboard">Continuar no beta</a>
+            </article>
+
+            <article class="plan-card featured">
+                <span class="recommended">Recomendado</span>
+                <div class="plan-head">
+                    <h2 class="plan-name">Pro</h2>
+                    <div class="price"><strong>R$299</strong><span>/ mes</span></div>
+                    <p class="plan-copy">Para redes que querem controle operacional, historico confiavel e alertas de margem.</p>
+                </div>
+                <ul class="feature-list">
+                    <li>Alertas inteligentes</li>
+                    <li>Historico completo</li>
+                    <li>Insights operacionais</li>
+                    <li>Multi posto</li>
+                    <li>Melhor suporte</li>
+                </ul>
+                <a class="cta primary" href="/configuracoes">Fazer Upgrade</a>
+            </article>
+
+            <article class="plan-card">
+                <div class="plan-head">
+                    <h2 class="plan-name">Pro AI</h2>
+                    <div class="price"><strong>R$999</strong><span>/ mes</span></div>
+                    <p class="plan-copy">Camada estrategica para diretores que querem previsao, recomendacao e analise regional premium.</p>
+                </div>
+                <ul class="feature-list">
+                    <li>IA estrategica</li>
+                    <li>Previsao operacional</li>
+                    <li>Recomendacoes avancadas</li>
+                    <li>Analise regional premium</li>
+                    <li>Recursos completos</li>
+                </ul>
+                <a class="cta" href="/posto360-ai">Ver IA estrategica</a>
+            </article>
+        </section>
+
+        <section class="value-grid" aria-label="Valor comercial">
+            <div class="roi">
+                <h2>ROI que conversa com dono de rede</h2>
+                <p class="roi-copy">
+                    Pequenas correcoes de preco, capturadas mais cedo, podem pagar o software antes do fim do mes. O Posto360 ajuda a reduzir atraso de campo e aumenta a confianca na decisao.
+                </p>
+                <div class="roi-metrics">
+                    <div class="metric">
+                        <strong>R$300+</strong>
+                        <span>economia potencial por posto</span>
+                    </div>
+                    <div class="metric">
+                        <strong>{{ metrics.postos if metrics is defined else 0 }}</strong>
+                        <span>postos acompanhados</span>
+                    </div>
+                    <div class="metric">
+                        <strong>{{ metrics.leituras if metrics is defined else 0 }}</strong>
+                        <span>leituras registradas</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq">
+                <h2>Perguntas rapidas</h2>
+                <div class="faq-item">
+                    <h3>O beta bloqueia meus dados?</h3>
+                    <p>Nao. Contas, empresas, postos e historico operacional permanecem vinculados a sua rede.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Posso crescer para varios postos?</h3>
+                    <p>Sim. O plano Pro foi desenhado para operacao multi posto com visao consolidada.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>A IA substitui o gestor?</h3>
+                    <p>Nao. Ela organiza sinais, sugere caminhos e acelera decisoes que continuam sob controle da empresa.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

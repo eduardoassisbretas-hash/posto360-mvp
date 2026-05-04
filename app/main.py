@@ -75,6 +75,7 @@ OPENAI_CONFIG_ERROR_MESSAGE = (
 )
 SESSION_COOKIE_NAME = "posto360_session"
 SESSION_DAYS = max(36500, int(os.getenv("POSTO360_SESSION_DAYS", "36500")))
+TRIAL_DAYS = int(os.getenv("POSTO360_TRIAL_DAYS", "7"))
 COMBUSTIVEIS_DECISAO = {
     "gasolina_comum",
     "gasolina_aditivada",
@@ -388,7 +389,8 @@ def get_user_by_email(email: str) -> dict | None:
     with db_connect() as conn:
         row = conn.execute(
             """
-            SELECT users.*, companies.name AS company_name
+            SELECT users.*, companies.name AS company_name, companies.plan AS company_plan,
+                   companies.created_at AS company_created_at
             FROM users
             JOIN companies ON companies.id = users.company_id
             WHERE lower(users.email) = lower(?)
@@ -404,7 +406,8 @@ def get_user_by_session(token: str | None) -> dict | None:
     with db_connect() as conn:
         row = conn.execute(
             """
-            SELECT users.*, companies.name AS company_name, sessions.expires_at
+            SELECT users.*, companies.name AS company_name, companies.plan AS company_plan,
+                   companies.created_at AS company_created_at, sessions.expires_at
             FROM sessions
             JOIN users ON users.id = sessions.user_id
             JOIN companies ON companies.id = users.company_id
@@ -711,6 +714,27 @@ def get_display_company_name(user: dict | None) -> str:
     if not user:
         return "Sua rede"
     return (user.get("company_name") or "").strip() or "Sua rede"
+
+
+def monetization_context(user: dict | None) -> dict:
+    plan = (user or {}).get("company_plan") or "trial"
+    created_at = parse_data_registro((user or {}).get("company_created_at"))
+    elapsed_days = max(0, (datetime.now(timezone.utc) - created_at).days)
+    days_remaining = max(0, TRIAL_DAYS - elapsed_days)
+    trial_progress = min(100, max(0, round((elapsed_days / max(TRIAL_DAYS, 1)) * 100)))
+    is_trial = plan in {"trial", "beta", "free"}
+    label = f"Beta Gratuito • {days_remaining} dias restantes" if is_trial and days_remaining > 0 else "Upgrade para Pro"
+    if is_trial and days_remaining == 1:
+        label = "Beta Gratuito • 1 dia restante"
+    return {
+        "plan": plan,
+        "is_trial": is_trial,
+        "days_remaining": days_remaining,
+        "trial_days": TRIAL_DAYS,
+        "trial_progress": trial_progress,
+        "label": label,
+        "headline": "Seu beta expira em breve" if is_trial and days_remaining <= 3 else "Desbloqueie IA avançada",
+    }
 
 
 def tutorial_completed(user: dict) -> bool:
@@ -4260,6 +4284,7 @@ def dashboard(request: Request):
             "dados": dados_filtrados,
             "company_name": get_display_company_name(user),
             "current_company": {"name": get_display_company_name(user)},
+            "monetization": monetization_context(user),
             "tutorial_completed": tutorial_completed(user),
         },
     )
@@ -4502,7 +4527,7 @@ def concorrencia(request: Request):
     )
 
 
-@app.get("/planos")
+@app.get("/planos", response_class=HTMLResponse)
 def planos(request: Request):
     user = require_user(request)
     if isinstance(user, RedirectResponse):
@@ -4510,7 +4535,21 @@ def planos(request: Request):
     onboarding_redirect = require_onboarding(user)
     if onboarding_redirect:
         return onboarding_redirect
-    return RedirectResponse(url="/configuracoes", status_code=303)
+    carregar_empresa_em_memoria(user["company_id"])
+    metrics = {
+        "postos": len(dados_dashboard.get("postos_cadastrados", [])),
+        "leituras": len(dados_dashboard.get("leituras_imagem", [])),
+        "alertas": len(dados_dashboard.get("alertas", [])),
+    }
+    return templates.TemplateResponse(
+        request=request,
+        name="planos.html",
+        context={
+            "company_name": get_display_company_name(user),
+            "monetization": monetization_context(user),
+            "metrics": metrics,
+        },
+    )
 
 
 @app.get("/posto360-ai", response_class=HTMLResponse)

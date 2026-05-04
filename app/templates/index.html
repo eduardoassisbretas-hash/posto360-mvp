@@ -60,6 +60,58 @@
             z-index: 20;
         }
 
+        .premium-topbar {
+            position: fixed;
+            top: 18px;
+            left: 18px;
+            z-index: 19;
+            max-width: min(230px, calc(100vw - 92px));
+        }
+
+        .premium-upgrade {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 44px;
+            max-width: 100%;
+            padding: 0 14px 0 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(56, 189, 248, 0.26);
+            background: rgba(10, 19, 35, 0.78);
+            box-shadow: 0 16px 38px rgba(2, 6, 23, 0.34), 0 0 28px rgba(56, 189, 248, 0.12);
+            backdrop-filter: blur(18px);
+            color: #dbeafe;
+            font-size: 0.82rem;
+            font-weight: 900;
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .premium-upgrade:hover {
+            transform: translateY(-1px);
+            border-color: rgba(125, 211, 252, 0.46);
+            box-shadow: 0 20px 44px rgba(2, 6, 23, 0.42), 0 0 34px rgba(56, 189, 248, 0.18);
+        }
+
+        .premium-upgrade-label {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .premium-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            flex: 0 0 auto;
+            border-radius: 999px;
+            color: #06111f;
+            background: linear-gradient(135deg, #38bdf8, #34d399);
+            box-shadow: 0 0 18px rgba(56, 189, 248, 0.34);
+        }
+
         .app-menu summary {
             display: inline-flex;
             align-items: center;
@@ -1056,6 +1108,17 @@
                 right: 12px;
             }
 
+            .premium-topbar {
+                top: 12px;
+                left: 12px;
+            }
+
+            .premium-upgrade {
+                min-height: 40px;
+                padding: 0 12px 0 14px;
+                font-size: 0.76rem;
+            }
+
             .hero::after,
             .stat-card::before {
                 display: none;
@@ -1210,6 +1273,14 @@
 </head>
 <body>
     {% set display_company_name = company_name if company_name is defined and company_name else "Sua rede" %}
+    {% set premium = monetization if monetization is defined else {} %}
+    <div class="premium-topbar" aria-label="Status do plano">
+        <a class="premium-upgrade" href="/planos" title="{{ premium.get('headline', 'Desbloqueie IA avançada') }}">
+            <span class="premium-upgrade-label">Upgrade para Pro</span>
+            <span class="premium-icon" aria-hidden="true">★</span>
+        </a>
+    </div>
+
     <details class="app-menu" data-tour="menu">
         <summary aria-label="Abrir menu">
             <span class="menu-icon" aria-hidden="true">
@@ -1225,12 +1296,8 @@
             </div>
             <a href="/dashboard">Dashboard</a>
             <a href="/meu-posto">Meu Posto</a>
-            <a href="/concorrencia">Concorrência</a>
             <a href="/modo-campo" class="menu-field-link">Modo Campo <span class="menu-ai-badge">OP</span></a>
-            <a href="/historico">Histórico</a>
             <a href="/posto360-ai" class="menu-ai-link">Posto360 AI <span class="menu-ai-badge">AI</span></a>
-            <a href="/alertas">Alertas</a>
-            <a href="/planos">Planos</a>
             <a href="/configuracoes">Configurações</a>
             <a href="/logout">Sair</a>
         </nav>
