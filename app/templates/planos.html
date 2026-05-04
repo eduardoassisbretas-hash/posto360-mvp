@@ -9,33 +9,67 @@
     <style>
         :root {
             --bg: #050914;
-            --panel: rgba(10, 18, 32, 0.86);
-            --panel-strong: rgba(12, 22, 40, 0.96);
+            --panel: rgba(10, 18, 32, 0.78);
+            --panel-strong: rgba(12, 22, 40, 0.92);
             --line: rgba(148, 163, 184, 0.18);
-            --line-strong: rgba(56, 189, 248, 0.36);
+            --line-blue: rgba(56, 189, 248, 0.36);
             --text: #f8fafc;
-            --muted: #a6b5c9;
+            --muted: #a7b6cb;
             --cyan: #38bdf8;
-            --blue: #2563eb;
             --green: #34d399;
             --gold: #facc15;
-            --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
             --radius: 8px;
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
         }
 
         * {
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             margin: 0;
             min-height: 100vh;
+            overflow-x: hidden;
             font-family: "Manrope", "Segoe UI", sans-serif;
             background:
-                radial-gradient(circle at 16% 6%, rgba(56, 189, 248, 0.16), transparent 25%),
-                radial-gradient(circle at 88% 0%, rgba(37, 99, 235, 0.18), transparent 28%),
-                linear-gradient(180deg, #08111f 0%, var(--bg) 52%, #030712 100%);
+                radial-gradient(circle at 18% 0%, rgba(56, 189, 248, 0.18), transparent 27%),
+                radial-gradient(circle at 88% 8%, rgba(37, 99, 235, 0.18), transparent 25%),
+                linear-gradient(180deg, #08111f 0%, var(--bg) 48%, #030712 100%);
             color: var(--text);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.34;
+            background-image:
+                radial-gradient(circle, rgba(125, 211, 252, 0.28) 1px, transparent 1px),
+                radial-gradient(circle, rgba(52, 211, 153, 0.18) 1px, transparent 1px);
+            background-position: 0 0, 34px 42px;
+            background-size: 92px 92px, 136px 136px;
+            animation: drift 18s linear infinite;
+        }
+
+        @keyframes drift {
+            from { transform: translate3d(0, 0, 0); }
+            to { transform: translate3d(-36px, 24px, 0); }
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(18px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         a {
@@ -44,7 +78,8 @@
         }
 
         .page-shell {
-            width: min(1240px, calc(100% - 32px));
+            position: relative;
+            width: min(1200px, calc(100% - 32px));
             margin: 0 auto;
             padding: 24px 0 64px;
         }
@@ -54,7 +89,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 16px;
-            margin-bottom: 22px;
+            margin-bottom: 34px;
         }
 
         .brand {
@@ -79,7 +114,8 @@
         }
 
         .back-link,
-        .cta {
+        .button,
+        .plan-cta {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -97,120 +133,150 @@
             font-size: 0.86rem;
         }
 
-        .trial-bar {
-            display: grid;
-            gap: 9px;
-            margin-bottom: 34px;
-            padding: 14px 16px;
-            border: 1px solid rgba(56, 189, 248, 0.24);
-            border-radius: var(--radius);
-            background: rgba(10, 19, 35, 0.68);
-            box-shadow: 0 18px 48px rgba(2, 6, 23, 0.28), 0 0 30px rgba(56, 189, 248, 0.08);
-            backdrop-filter: blur(18px);
-        }
-
-        .trial-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 14px;
-            color: #dbeafe;
-            font-size: 0.9rem;
-            font-weight: 950;
-        }
-
-        .trial-row span:last-child {
-            color: var(--cyan);
-            white-space: nowrap;
-        }
-
-        .progress {
-            height: 6px;
-            overflow: hidden;
-            border-radius: 999px;
-            background: rgba(148, 163, 184, 0.16);
-        }
-
-        .progress span {
-            display: block;
-            height: 100%;
-            border-radius: inherit;
-            background: linear-gradient(90deg, var(--cyan), var(--green));
-        }
-
         .hero {
+            position: relative;
             display: grid;
-            gap: 18px;
-            margin-bottom: 32px;
+            gap: 20px;
+            min-height: 520px;
+            align-content: center;
+            padding: 44px 0 28px;
+            animation: rise 0.55s ease both;
         }
 
-        .eyebrow {
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: 8% -18% auto auto;
+            width: min(430px, 70vw);
+            aspect-ratio: 1;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.24), transparent 68%);
+            filter: blur(2px);
+            pointer-events: none;
+        }
+
+        .hero-badge {
             width: fit-content;
             max-width: 100%;
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 8px 11px;
-            border: 1px solid rgba(56, 189, 248, 0.26);
+            padding: 9px 13px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
             border-radius: 999px;
-            background: rgba(8, 18, 32, 0.72);
+            background: rgba(8, 18, 32, 0.74);
+            box-shadow: 0 0 34px rgba(56, 189, 248, 0.12);
             color: #dbeafe;
-            font-size: 0.78rem;
+            font-size: 0.82rem;
             font-weight: 950;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+            backdrop-filter: blur(18px);
         }
 
-        .eyebrow::before {
+        .hero-badge::before {
             content: "";
             width: 8px;
             height: 8px;
             border-radius: 999px;
             background: linear-gradient(135deg, var(--cyan), var(--green));
-            box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.62);
         }
 
         h1 {
-            max-width: 980px;
+            max-width: 930px;
             margin: 0;
-            font-size: clamp(2.4rem, 7vw, 5.4rem);
+            font-size: clamp(2.55rem, 8vw, 5.8rem);
             line-height: 0.94;
             letter-spacing: 0;
         }
 
         .hero-copy {
-            max-width: 780px;
+            max-width: 720px;
             margin: 0;
-            color: #c4cfdd;
-            font-size: 1.06rem;
+            color: #c7d2e2;
+            font-size: 1.08rem;
             line-height: 1.75;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .button {
+            min-height: 52px;
+            padding: 0 20px;
+            border: 1px solid rgba(56, 189, 248, 0.34);
+            color: #e0f2fe;
+            background: rgba(56, 189, 248, 0.1);
+        }
+
+        .button.primary,
+        .plan-cta.primary {
+            border: 0;
+            color: #04111f;
+            background: linear-gradient(135deg, var(--cyan), var(--green));
+            box-shadow: 0 18px 42px rgba(56, 189, 248, 0.2);
+        }
+
+        .button:hover,
+        .back-link:hover,
+        .plan-card:hover,
+        .plan-cta:hover {
+            transform: translateY(-2px);
+        }
+
+        .button:hover,
+        .back-link:hover,
+        .plan-cta:hover {
+            border-color: rgba(125, 211, 252, 0.5);
+            box-shadow: 0 18px 40px rgba(2, 6, 23, 0.28), 0 0 26px rgba(56, 189, 248, 0.12);
         }
 
         .plans {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 14px;
-            margin: 34px 0;
+            gap: 16px;
+            margin: 18px 0 34px;
         }
 
         .plan-card {
             position: relative;
             display: grid;
-            align-content: start;
-            gap: 18px;
+            gap: 17px;
             min-height: 100%;
             padding: 20px;
             border: 1px solid var(--line);
             border-radius: var(--radius);
-            background: linear-gradient(180deg, rgba(12, 22, 40, 0.9), rgba(8, 15, 27, 0.88));
-            box-shadow: 0 18px 56px rgba(0, 0, 0, 0.26);
+            background: linear-gradient(180deg, rgba(12, 22, 40, 0.86), rgba(8, 15, 27, 0.82));
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
             backdrop-filter: blur(18px);
+            animation: rise 0.55s ease both;
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        .plan-card:nth-child(2) {
+            animation-delay: 0.06s;
+        }
+
+        .plan-card:nth-child(3) {
+            animation-delay: 0.12s;
+        }
+
+        .plan-card:nth-child(4) {
+            animation-delay: 0.18s;
+        }
+
+        .plan-card:hover {
+            border-color: rgba(56, 189, 248, 0.45);
+            box-shadow: var(--shadow), 0 0 38px rgba(56, 189, 248, 0.13);
         }
 
         .plan-card.featured {
-            border-color: rgba(56, 189, 248, 0.5);
-            background: linear-gradient(180deg, rgba(16, 36, 64, 0.98), rgba(8, 17, 31, 0.94));
-            box-shadow: var(--shadow), 0 0 46px rgba(56, 189, 248, 0.16);
+            border-color: rgba(56, 189, 248, 0.52);
+            background: linear-gradient(180deg, rgba(16, 38, 68, 0.97), rgba(8, 17, 31, 0.92));
+            box-shadow: var(--shadow), 0 0 46px rgba(56, 189, 248, 0.18);
         }
 
         .plan-card.scale {
@@ -218,7 +284,7 @@
         }
 
         .plan-card.enterprise {
-            background: linear-gradient(180deg, rgba(18, 24, 38, 0.96), rgba(8, 12, 22, 0.94));
+            background: linear-gradient(180deg, rgba(18, 24, 38, 0.94), rgba(8, 12, 22, 0.9));
         }
 
         .badge {
@@ -230,8 +296,8 @@
             color: #bfdbfe;
             font-size: 0.7rem;
             font-weight: 950;
-            text-transform: uppercase;
             letter-spacing: 0.06em;
+            text-transform: uppercase;
         }
 
         .featured .badge {
@@ -247,8 +313,7 @@
 
         .plan-name {
             margin: 0;
-            font-size: 1.35rem;
-            letter-spacing: 0;
+            font-size: 1.34rem;
         }
 
         .price {
@@ -259,34 +324,29 @@
         }
 
         .price strong {
-            font-size: clamp(2rem, 4vw, 2.7rem);
+            font-size: clamp(2.1rem, 5vw, 3rem);
+            line-height: 1;
         }
 
-        .price span {
+        .price span,
+        .coverage,
+        .plan-copy,
+        .feature-list,
+        .section-copy,
+        .trust-card span,
+        .faq details p {
             color: var(--muted);
-            font-size: 0.88rem;
+            line-height: 1.58;
         }
 
         .coverage {
             display: grid;
-            gap: 4px;
-            padding: 12px;
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: var(--radius);
-            background: rgba(15, 23, 42, 0.54);
+            gap: 2px;
+            min-height: 54px;
         }
 
         .coverage strong {
             color: #eff6ff;
-        }
-
-        .coverage span,
-        .plan-copy,
-        .feature-list,
-        .section-copy,
-        .faq p {
-            color: var(--muted);
-            line-height: 1.58;
         }
 
         .feature-list {
@@ -315,27 +375,13 @@
             box-shadow: 0 0 12px rgba(56, 189, 248, 0.34);
         }
 
-        .cta {
+        .plan-cta {
             min-height: 48px;
             width: 100%;
             margin-top: auto;
             border: 1px solid rgba(56, 189, 248, 0.34);
-            background: rgba(56, 189, 248, 0.12);
             color: #e0f2fe;
-        }
-
-        .cta:hover,
-        .back-link:hover {
-            transform: translateY(-1px);
-            border-color: rgba(125, 211, 252, 0.48);
-            box-shadow: 0 16px 34px rgba(2, 6, 23, 0.22);
-        }
-
-        .cta.primary {
-            border: 0;
-            background: linear-gradient(135deg, var(--cyan), var(--green));
-            color: #04111f;
-            box-shadow: 0 18px 38px rgba(56, 189, 248, 0.2);
+            background: rgba(56, 189, 248, 0.1);
         }
 
         .section-panel {
@@ -346,8 +392,9 @@
             border: 1px solid var(--line);
             border-radius: var(--radius);
             background: var(--panel-strong);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.26);
             backdrop-filter: blur(18px);
+            animation: rise 0.55s ease both;
         }
 
         .section-heading {
@@ -357,8 +404,7 @@
 
         .section-heading h2 {
             margin: 0;
-            font-size: clamp(1.5rem, 3vw, 2.2rem);
-            letter-spacing: 0;
+            font-size: clamp(1.55rem, 3vw, 2.35rem);
         }
 
         .section-copy {
@@ -366,115 +412,133 @@
             margin: 0;
         }
 
-        .comparison-wrap {
-            overflow-x: auto;
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-        }
-
-        .comparison-table {
-            width: 100%;
-            min-width: 860px;
-            border-collapse: collapse;
-        }
-
-        .comparison-table th,
-        .comparison-table td {
-            padding: 14px 13px;
-            border-bottom: 1px solid var(--line);
-            color: var(--muted);
-            text-align: left;
-            font-size: 0.9rem;
-            font-weight: 800;
-        }
-
-        .comparison-table th {
-            color: #eff6ff;
-            background: rgba(56, 189, 248, 0.08);
-            font-size: 0.82rem;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-        }
-
-        .comparison-table tr:last-child td {
-            border-bottom: 0;
-        }
-
-        .yes {
-            color: #bbf7d0;
-        }
-
-        .limited {
-            color: #fde68a;
-        }
-
-        .roi-grid {
+        .roi-grid,
+        .trust-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 14px;
         }
 
-        .roi-card {
-            padding: 18px;
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            background: rgba(15, 23, 42, 0.58);
+        .trust-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
         }
 
-        .roi-card span {
-            color: var(--muted);
-            font-weight: 850;
-        }
-
-        .roi-card strong {
-            display: block;
-            margin-top: 8px;
-            color: #eff6ff;
-            font-size: clamp(1.8rem, 4vw, 2.6rem);
-            line-height: 1;
-        }
-
-        .roi-message {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 0;
-            color: #dbeafe;
-            font-size: 1rem;
-            font-weight: 950;
-        }
-
-        .faq {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 14px;
-        }
-
-        .faq-item {
+        .roi-card,
+        .trust-card {
             padding: 18px;
             border: 1px solid var(--line);
             border-radius: var(--radius);
             background: rgba(15, 23, 42, 0.52);
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
         }
 
-        .faq h3 {
-            margin: 0 0 8px;
-            font-size: 1rem;
+        .roi-card:hover,
+        .trust-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(56, 189, 248, 0.36);
+            box-shadow: 0 18px 36px rgba(2, 6, 23, 0.22);
         }
 
-        .faq p {
+        .roi-card strong,
+        .trust-card strong {
+            display: block;
+            color: #eff6ff;
+            font-size: 1.05rem;
+            margin-bottom: 8px;
+        }
+
+        .faq {
+            display: grid;
+            gap: 10px;
+        }
+
+        .faq details {
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: rgba(15, 23, 42, 0.52);
+            overflow: hidden;
+        }
+
+        .faq summary {
+            min-height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 0 16px;
+            color: #eff6ff;
+            cursor: pointer;
+            font-weight: 950;
+            list-style: none;
+        }
+
+        .faq summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .faq summary::after {
+            content: "+";
+            color: var(--cyan);
+            font-size: 1.2rem;
+        }
+
+        .faq details[open] summary::after {
+            content: "-";
+        }
+
+        .faq details p {
             margin: 0;
+            padding: 0 16px 16px;
+        }
+
+        .footer-cta {
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            justify-items: center;
+        }
+
+        .footer-cta::before {
+            content: "";
+            position: absolute;
+            inset: -40% 12% auto;
+            height: 220px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.18), transparent 70%);
+            pointer-events: none;
+        }
+
+        .footer-cta > * {
+            position: relative;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                scroll-behavior: auto !important;
+                transition: none !important;
+            }
         }
 
         @media (max-width: 1120px) {
             .plans {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
+
+            .trust-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
         }
 
         @media (max-width: 720px) {
+            body::before {
+                opacity: 0.22;
+            }
+
             .page-shell {
-                width: min(100% - 24px, 1240px);
+                width: min(100% - 24px, 1200px);
                 padding-top: 16px;
             }
 
@@ -486,15 +550,19 @@
                 max-width: 58vw;
             }
 
-            .plans,
-            .roi-grid,
-            .faq {
-                grid-template-columns: 1fr;
+            .hero {
+                min-height: auto;
+                padding: 28px 0 20px;
             }
 
-            .trial-row {
-                align-items: flex-start;
-                flex-direction: column;
+            .hero-actions {
+                display: grid;
+            }
+
+            .plans,
+            .roi-grid,
+            .trust-grid {
+                grid-template-columns: 1fr;
             }
 
             .plan-card.featured {
@@ -509,7 +577,6 @@
 </head>
 <body>
     {% set premium = monetization if monetization is defined else {} %}
-    {% set days_remaining = premium.get('days_remaining', 0) %}
     <main class="page-shell">
         <header class="topbar">
             <a class="brand" href="/dashboard" aria-label="Voltar para o dashboard">
@@ -519,219 +586,183 @@
             <a class="back-link" href="/dashboard">Dashboard</a>
         </header>
 
-        <section class="trial-bar" aria-label="Status do teste gratuito">
-            <div class="trial-row">
-                <span>Seu teste gratuito está ativo: {{ days_remaining }} {{ "dia restante" if days_remaining == 1 else "dias restantes" }}</span>
-                <span>{{ premium.get('trial_days', 7) }} dias incluídos na criação da conta</span>
-            </div>
-            <div class="progress" aria-hidden="true">
-                <span style="width: {{ premium.get('trial_progress', 0) }}%;"></span>
-            </div>
-        </section>
-
         <section class="hero" aria-labelledby="plans-title">
-            <div class="eyebrow">Planos corporativos Posto360</div>
-            <h1 id="plans-title">Inteligência de preço para redes que decidem com margem.</h1>
+            <div class="hero-badge">{{ premium.get('trial_days', 7) }} dias grátis • Sem compromisso</div>
+            <h1 id="plans-title">Escolha o plano ideal para escalar sua operação</h1>
             <p class="hero-copy">
-                Transforme leituras de campo, concorrencia regional e gestao de postos em uma operacao executiva, auditavel e preparada para escala.
+                Automação, inteligência competitiva e gestão estratégica para postos que querem lucrar mais.
             </p>
+            <div class="hero-actions">
+                <a class="button primary" href="/dashboard">Testar grátis</a>
+                <a class="button" href="mailto:comercial@posto360app.com.br?subject=Posto360%20Especialista">Falar com especialista</a>
+            </div>
         </section>
 
-        <section class="plans" aria-label="Planos corporativos">
+        <section class="plans" aria-label="Planos Posto360">
             <article class="plan-card">
-                <span class="badge">Ideal para redes em crescimento</span>
+                <span class="badge">Crescimento</span>
                 <div class="plan-head">
                     <h2 class="plan-name">Growth</h2>
-                    <div class="price"><strong>R$997</strong><span>/mes</span></div>
+                    <div class="price"><strong>R$997</strong><span>/mês</span></div>
                     <div class="coverage">
-                        <strong>Ate 10 postos</strong>
+                        <strong>Até 10 postos</strong>
                         <span>Aprox. R$99/posto</span>
                     </div>
-                    <p class="plan-copy">Para operacoes que precisam mais margem, velocidade e controle diario.</p>
+                    <p class="plan-copy">Controle diário para redes que precisam enxergar concorrência, margem e operação em um só lugar.</p>
                 </div>
                 <ul class="feature-list">
-                    <li>OCR inteligente de placas de preco</li>
-                    <li>Upload em lote de imagens</li>
-                    <li>Dashboard executivo completo</li>
-                    <li>Modo Campo para equipes externas</li>
-                    <li>Cadastro e gestao de multiplos postos</li>
-                    <li>Historico completo de leituras</li>
-                    <li>Alertas de concorrencia por regiao</li>
-                    <li>Comparativo regional automatico</li>
-                    <li>Sugestoes operacionais iniciais</li>
-                    <li>Monitoramento de precos da concorrencia</li>
-                    <li>Gestao de margem operacional</li>
-                    <li>Painel mobile otimizado</li>
-                    <li>Suporte padrao prioritario</li>
+                    <li>OCR inteligente de placas</li>
+                    <li>Dashboard executivo</li>
+                    <li>Modo Campo mobile</li>
+                    <li>Histórico de leituras</li>
+                    <li>Alertas por região</li>
                 </ul>
-                <a class="cta" href="/configuracoes?upgrade=growth">Fazer upgrade</a>
+                <a class="plan-cta" href="/configuracoes?upgrade=growth">Fazer upgrade</a>
             </article>
 
             <article class="plan-card featured">
-                <span class="badge">MAIS ESCOLHIDO</span>
+                <span class="badge">Mais escolhido</span>
                 <div class="plan-head">
                     <h2 class="plan-name">Pro</h2>
-                    <div class="price"><strong>R$1.997</strong><span>/mes</span></div>
+                    <div class="price"><strong>R$1.997</strong><span>/mês</span></div>
                     <div class="coverage">
-                        <strong>Ate 25 postos</strong>
+                        <strong>Até 25 postos</strong>
                         <span>Aprox. R$79/posto</span>
                     </div>
-                    <p class="plan-copy">Para redes em expansao que precisam previsibilidade, inteligencia estrategica e maior automacao.</p>
+                    <p class="plan-copy">Inteligência estratégica para redes em expansão que precisam de previsibilidade e automação.</p>
                 </div>
                 <ul class="feature-list">
-                    <li>Inclui tudo do Growth</li>
-                    <li>IA estrategica avancada</li>
-                    <li>Previsao operacional de preco</li>
-                    <li>Recomendacoes avancadas de margem</li>
-                    <li>Insights premium por posto</li>
-                    <li>Gestao por equipe e usuarios</li>
-                    <li>Relatorios executivos</li>
-                    <li>Priorizacao de oportunidades</li>
-                    <li>Auditoria avancada de leituras</li>
-                    <li>Historico estrategico regional</li>
-                    <li>Alertas inteligentes expandidos</li>
-                    <li>Suporte prioritario premium</li>
-                    <li>Melhor performance operacional</li>
-                    <li>Escalabilidade para expansao</li>
+                    <li>Tudo do Growth</li>
+                    <li>IA estratégica avançada</li>
+                    <li>Relatórios executivos</li>
+                    <li>Gestão por usuários</li>
+                    <li>Auditoria avançada</li>
                 </ul>
-                <a class="cta primary" href="/configuracoes?upgrade=pro">Escalar operacao</a>
+                <a class="plan-cta primary" href="/configuracoes?upgrade=pro">Escalar operação</a>
             </article>
 
             <article class="plan-card scale">
-                <span class="badge">Máxima performance</span>
+                <span class="badge">Performance</span>
                 <div class="plan-head">
                     <h2 class="plan-name">Scale</h2>
-                    <div class="price"><strong>R$3.497</strong><span>/mes</span></div>
+                    <div class="price"><strong>R$3.497</strong><span>/mês</span></div>
                     <div class="coverage">
-                        <strong>Ate 50 postos</strong>
+                        <strong>Até 50 postos</strong>
                         <span>Aprox. R$69/posto</span>
                     </div>
-                    <p class="plan-copy">Para operacoes robustas que exigem maxima eficiencia, padronizacao e inteligencia de rede.</p>
+                    <p class="plan-copy">Padronização e inteligência de rede para operações robustas com múltiplas frentes regionais.</p>
                 </div>
                 <ul class="feature-list">
-                    <li>Inclui tudo do Pro</li>
-                    <li>Gestao avancada multi-rede</li>
+                    <li>Tudo do Pro</li>
+                    <li>Gestão multi-rede</li>
                     <li>Consultoria premium</li>
-                    <li>Atendimento prioritario maximo</li>
-                    <li>Customizacoes estrategicas</li>
-                    <li>Estrutura operacional avancada</li>
-                    <li>Relatorios corporativos expandidos</li>
-                    <li>Expansao de governanca operacional</li>
-                    <li>Prioridade em novas funcionalidades</li>
-                    <li>Inteligencia regional premium</li>
-                    <li>Camada executiva para tomada de decisao</li>
-                    <li>Escala corporativa</li>
+                    <li>Prioridade em recursos</li>
+                    <li>Governança operacional</li>
                 </ul>
-                <a class="cta" href="mailto:comercial@posto360app.com.br?subject=Posto360%20Scale">Maximizar rede</a>
+                <a class="plan-cta" href="mailto:comercial@posto360app.com.br?subject=Posto360%20Scale">Maximizar rede</a>
             </article>
 
             <article class="plan-card enterprise">
-                <span class="badge">Enterprise</span>
+                <span class="badge">Institucional</span>
                 <div class="plan-head">
                     <h2 class="plan-name">Enterprise</h2>
                     <div class="price"><strong>Sob consulta</strong></div>
                     <div class="coverage">
                         <strong>50+ postos</strong>
-                        <span>Grandes grupos, distribuidoras e operacoes nacionais</span>
+                        <span>Grupos, distribuidoras e operação nacional</span>
                     </div>
-                    <p class="plan-copy">Para operacoes que precisam solucao personalizada, governanca nacional e suporte estrategico dedicado.</p>
+                    <p class="plan-copy">Solução personalizada para governança corporativa, integrações e atendimento estratégico dedicado.</p>
                 </div>
                 <ul class="feature-list">
-                    <li>Implantacao dedicada</li>
-                    <li>Integracoes futuras TOTVS, Tecnox e ERP</li>
-                    <li>Customizacoes completas</li>
-                    <li>Atendimento estrategico dedicado</li>
-                    <li>Consultoria de implantacao</li>
-                    <li>Estrutura corporativa personalizada</li>
+                    <li>Implantação dedicada</li>
+                    <li>Integrações futuras</li>
+                    <li>Customizações completas</li>
                     <li>SLA premium</li>
-                    <li>Gestao nacional e regional</li>
-                    <li>Expansao enterprise</li>
+                    <li>Gestão nacional</li>
                 </ul>
-                <a class="cta" href="mailto:comercial@posto360app.com.br?subject=Posto360%20Enterprise">Falar com especialista</a>
+                <a class="plan-cta" href="mailto:comercial@posto360app.com.br?subject=Posto360%20Enterprise">Falar com especialista</a>
             </article>
         </section>
 
-        <section class="section-panel" aria-label="Comparativo de planos">
+        <section class="section-panel" aria-label="Valor operacional">
             <div class="section-heading">
-                <h2>Comparativo profissional</h2>
-                <p class="section-copy">Compare a cobertura das camadas para escolher o nivel certo de automacao, inteligencia e suporte.</p>
-            </div>
-            <div class="comparison-wrap">
-                <table class="comparison-table">
-                    <thead>
-                        <tr>
-                            <th>Recurso</th>
-                            <th>Growth</th>
-                            <th>Pro</th>
-                            <th>Scale</th>
-                            <th>Enterprise</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>OCR de placas</td><td class="yes">Completo</td><td class="yes">Completo</td><td class="yes">Completo</td><td class="yes">Completo</td></tr>
-                        <tr><td>Dashboard executivo</td><td class="yes">Completo</td><td class="yes">Completo</td><td class="yes">Corporativo</td><td class="yes">Personalizado</td></tr>
-                        <tr><td>Multi postos</td><td>Ate 10</td><td>Ate 25</td><td>Ate 50</td><td>50+</td></tr>
-                        <tr><td>Modo Campo</td><td class="yes">Incluido</td><td class="yes">Incluido</td><td class="yes">Incluido</td><td class="yes">Incluido</td></tr>
-                        <tr><td>Historico operacional</td><td class="yes">Completo</td><td class="yes">Avancado</td><td class="yes">Corporativo</td><td class="yes">Personalizado</td></tr>
-                        <tr><td>Alertas inteligentes</td><td>Regional</td><td class="yes">Expandido</td><td class="yes">Avancado</td><td class="yes">Personalizado</td></tr>
-                        <tr><td>Comparativo regional</td><td class="yes">Automatico</td><td class="yes">Avancado</td><td class="yes">Premium</td><td class="yes">Nacional</td></tr>
-                        <tr><td>IA estrategica</td><td class="limited">Inicial</td><td class="yes">Avancada</td><td class="yes">Premium</td><td class="yes">Sob medida</td></tr>
-                        <tr><td>Previsao operacional</td><td>-</td><td class="yes">Incluida</td><td class="yes">Avancada</td><td class="yes">Sob medida</td></tr>
-                        <tr><td>Relatorios executivos</td><td>-</td><td class="yes">Incluidos</td><td class="yes">Expandidos</td><td class="yes">Corporativos</td></tr>
-                        <tr><td>Gestao por equipe</td><td>-</td><td class="yes">Incluida</td><td class="yes">Avancada</td><td class="yes">Personalizada</td></tr>
-                        <tr><td>Consultoria premium</td><td>-</td><td>-</td><td class="yes">Incluida</td><td class="yes">Dedicada</td></tr>
-                        <tr><td>Integracoes futuras</td><td>-</td><td>-</td><td class="limited">Planejadas</td><td class="yes">TOTVS, Tecnox e ERP</td></tr>
-                        <tr><td>Atendimento prioritario</td><td>Padrao prioritario</td><td class="yes">Premium</td><td class="yes">Maximo</td><td class="yes">Dedicado</td></tr>
-                        <tr><td>Customizacao</td><td>-</td><td>-</td><td class="limited">Estrategica</td><td class="yes">Completa</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="section-panel" aria-label="ROI estimado">
-            <div class="section-heading">
-                <h2>Quanto sua operação pode recuperar por mês?</h2>
-                <p class="section-copy">Se o Posto360 gerar apenas R$500 de ganho operacional por posto:</p>
+                <h2>Um único ajuste estratégico pode gerar economia superior ao valor da mensalidade.</h2>
+                <p class="section-copy">O Posto360 reduz atraso operacional e transforma dados de campo em decisões comerciais melhores.</p>
             </div>
             <div class="roi-grid">
-                <div class="roi-card">
-                    <span>10 postos</span>
-                    <strong>+R$5.000/mês</strong>
-                </div>
-                <div class="roi-card">
-                    <span>25 postos</span>
-                    <strong>+R$12.500/mês</strong>
-                </div>
-                <div class="roi-card">
-                    <span>50 postos</span>
-                    <strong>+R$25.000/mês</strong>
-                </div>
+                <article class="roi-card">
+                    <strong>Redução de perdas</strong>
+                    <span>Identifique distorções de preço antes que virem margem perdida.</span>
+                </article>
+                <article class="roi-card">
+                    <strong>Melhor precificação</strong>
+                    <span>Compare regiões e ajuste com mais velocidade, sem achismo.</span>
+                </article>
+                <article class="roi-card">
+                    <strong>Inteligência competitiva</strong>
+                    <span>Use leituras de campo para entender concorrentes com precisão.</span>
+                </article>
             </div>
-            <p class="roi-message">
-                <span>Mais margem.</span>
-                <span>Mais velocidade.</span>
-                <span>Mais inteligência.</span>
-            </p>
         </section>
 
-        <section class="section-panel" aria-label="Beneficios empresariais">
+        <section class="section-panel" aria-label="Confiança">
             <div class="section-heading">
-                <h2>Construido para operacao real de rede</h2>
-                <p class="section-copy">O Posto360 combina execucao de campo, auditoria visual e inteligencia comercial para transformar preco em vantagem operacional.</p>
+                <h2>Feito para redes independentes e operações multi-postos</h2>
+                <p class="section-copy">Uma camada de decisão para donos, sócios e supervisores que precisam agir rápido sem perder controle.</p>
+            </div>
+            <div class="trust-grid">
+                <article class="trust-card">
+                    <strong>Decisões mais rápidas</strong>
+                    <span>Menos planilhas, mais clareza operacional.</span>
+                </article>
+                <article class="trust-card">
+                    <strong>Mais margem</strong>
+                    <span>Sinais melhores para proteger rentabilidade.</span>
+                </article>
+                <article class="trust-card">
+                    <strong>Mais controle</strong>
+                    <span>Campo, concorrência e histórico em fluxo único.</span>
+                </article>
+                <article class="trust-card">
+                    <strong>Operação escalável</strong>
+                    <span>Preparado para crescer com a rede.</span>
+                </article>
+            </div>
+        </section>
+
+        <section class="section-panel" aria-label="Perguntas frequentes">
+            <div class="section-heading">
+                <h2>Perguntas rápidas</h2>
+                <p class="section-copy">Tudo que o gestor precisa saber antes de avançar.</p>
             </div>
             <div class="faq">
-                <div class="faq-item">
-                    <h3>O trial gratuito continua?</h3>
-                    <p>Sim. O teste de 7 dias e ativado automaticamente na criacao da conta e nao aparece como plano principal.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Os dados ficam preservados?</h3>
-                    <p>Sim. Empresas, usuarios, postos, historico e configuracoes permanecem vinculados a sua rede.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Posso escalar depois?</h3>
-                    <p>Sim. A estrutura foi pensada para crescer de uma rede regional ate uma operacao corporativa nacional.</p>
-                </div>
+                <details>
+                    <summary>Posso testar grátis?</summary>
+                    <p>Sim. O teste gratuito de 7 dias é ativado automaticamente ao criar sua conta.</p>
+                </details>
+                <details>
+                    <summary>Funciona para múltiplos postos?</summary>
+                    <p>Sim. Os planos foram desenhados para redes pequenas, médias e operações com dezenas de postos.</p>
+                </details>
+                <details>
+                    <summary>Preciso instalar algo?</summary>
+                    <p>Não. O Posto360 roda no navegador e o Modo Campo funciona muito bem no celular.</p>
+                </details>
+                <details>
+                    <summary>Existe suporte?</summary>
+                    <p>Sim. Cada plano inclui suporte proporcional à complexidade e escala da operação.</p>
+                </details>
+            </div>
+        </section>
+
+        <section class="section-panel footer-cta" aria-label="Começar agora">
+            <div class="section-heading">
+                <h2>Posto360</h2>
+                <p class="section-copy">Automação, inteligência competitiva e gestão estratégica para redes de postos modernas.</p>
+            </div>
+            <div class="hero-actions">
+                <a class="button primary" href="/dashboard">Testar grátis</a>
+                <a class="button" href="mailto:comercial@posto360app.com.br?subject=Posto360%20Especialista">Falar com especialista</a>
             </div>
         </section>
     </main>
