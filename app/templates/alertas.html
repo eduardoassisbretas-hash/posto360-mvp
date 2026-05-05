@@ -205,7 +205,7 @@
                 {% set alerta_classe = alerta.classe_lista if alerta.classe_lista is defined else 'attention' %}
                 <article class="alert-card {{ alerta_classe }}">
                     <span class="kind">{{ alerta_titulo }}</span>
-                    <h2>{{ alerta.posto if alerta.posto is defined else 'Posto não identificado' }}</h2>
+                    <h2>{{ alerta.posto if alerta.posto is defined else 'Nome do posto pendente' }}</h2>
                     <p class="alert-meta">{{ alerta.regiao if alerta.regiao is defined else 'Região não informada' }} · {{ alerta.combustivel if alerta.combustivel is defined else 'Combustível' }}</p>
                     {% if alerta.preco_meu_posto is defined %}
                     <p class="alert-meta">Seu preço: {{ alerta.preco_meu_posto }}</p>

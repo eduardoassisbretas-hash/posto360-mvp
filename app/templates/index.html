@@ -867,24 +867,44 @@
 .inline-form {
     display: grid;
     gap: 8px;
-    margin-top: 6px;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid rgba(56, 189, 248, 0.16);
+    border-radius: 16px;
+    background: rgba(2, 6, 23, 0.22);
+}
+
+.inline-form label {
+    display: grid;
+    gap: 6px;
+    color: #dbeafe;
+    font-size: 0.74rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
 .inline-form input {
     width: 100%;
-    min-height: 44px;
-    border-radius: 12px;
-    border: 1px solid rgba(148, 163, 184, 0.18);
+    min-height: 50px;
+    border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
     background: rgba(15, 23, 42, 0.72);
     color: var(--text);
-    padding: 0 12px;
+    padding: 0 14px;
+    font: inherit;
+    font-size: 16px;
+}
+
+.inline-form input::placeholder {
+    color: #64748b;
 }
 
 .mini-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 38px;
+    min-height: 46px;
     border: 1px solid rgba(148, 163, 184, 0.18);
     border-radius: 10px;
     background: rgba(56, 189, 248, 0.16);
@@ -893,6 +913,13 @@
     cursor: pointer;
     padding: 0 12px;
     font-size: 0.88rem;
+}
+
+.review-hint {
+    color: #93c5fd;
+    font-size: 0.82rem;
+    font-weight: 800;
+    line-height: 1.45;
 }
 
 .decision-grid {
@@ -1561,7 +1588,7 @@
                     {% set alerta_classe = alerta.classe_dashboard if alerta.classe_dashboard is defined else 'alert-card-attention' %}
                     <article class="alert-card {{ alerta_classe }}">
                         <span class="alert-kind">{{ alerta_titulo }}</span>
-                        <h3>{{ alerta.posto if alerta.posto is defined else 'Posto não identificado' }}</h3>
+                        <h3>{{ alerta.posto if alerta.posto is defined else 'Nome do posto pendente' }}</h3>
                         <p class="alert-meta">{{ alerta.regiao if alerta.regiao is defined else 'Região não informada' }} · {{ alerta.combustivel if alerta.combustivel is defined else 'Combustível' }}</p>
                         {% if alerta.preco_meu_posto is defined %}
                         <p class="alert-meta">Seu preço: {{ alerta.preco_meu_posto }}</p>
@@ -1625,7 +1652,7 @@
                         {% else %}
                         <span class="reading-location">Localização não identificada</span>
                         {% endif %}
-                        <span class="reading-meta">{{ item.posto if item.posto is defined and item.posto else "Posto nao informado" }}</span>
+                        <span class="reading-meta">{{ item.posto if item.posto is defined and item.posto else "Nome do posto pendente" }}</span>
                         {% if item.preco is not none %}
                         <span class="reading-result">{{ item.tipo_label if item.tipo_label is defined else item.tipo }} · {{ "R$ %.2f"|format(item.preco) }}</span>
                         <span class="reading-badge reading-badge-success">Leitura concluída</span>
@@ -1636,7 +1663,15 @@
                         <form class="inline-form" action="/confirmar-posto" method="post">
                             <input type="hidden" name="arquivo" value="{{ item.arquivo }}">
                             <input type="hidden" name="redirect_to" value="/dashboard{% if regiao_selecionada or posto_selecionado %}?{% endif %}{% if regiao_selecionada %}regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if regiao_selecionada and posto_selecionado %}&{% endif %}{% if posto_selecionado %}posto={{ posto_selecionado|urlencode }}{% endif %}">
-                            <input type="text" name="posto_nome" value="{{ item.posto_sugerido if item.posto_sugerido is defined else '' }}" placeholder="Nome do posto">
+                            <p class="review-hint">Informe o posto desta placa para organizar melhor a base de concorrentes.</p>
+                            <label>
+                                Nome do posto
+                                <input type="text" name="posto_nome" value="{{ item.posto_sugerido if item.posto_sugerido is defined else '' }}" placeholder="Digite o nome do posto" autocomplete="organization">
+                            </label>
+                            <label>
+                                Bandeira opcional
+                                <input type="text" name="bandeira" value="{{ item.bandeira if item.bandeira is defined and item.bandeira else '' }}" placeholder="Ex: Shell, Ipiranga, BR">
+                            </label>
                             <button class="mini-button" type="submit">Salvar posto</button>
                         </form>
                     </article>
@@ -1670,7 +1705,7 @@
                                 <h3>{{ item.posto }}</h3>
                                 <p>{{ item.produto }}</p>
                                 <div class="analysis-meta">
-                                    <p>Posto: {{ item.posto if item.posto is defined else "Posto nao informado" }}</p>
+                                    <p>Posto: {{ item.posto if item.posto is defined else "Nome do posto pendente" }}</p>
                                     <p>Regiao: {{ item.regiao if item.regiao is defined else "Regiao nao informada" }}</p>
                                     <p>Tipo: {{ item.tipo_label if item.tipo_label is defined else item.tipo }}</p>
                                     <p>Preco: R$ {{ "%.2f"|format(item.preco) if item.preco is defined else "--" }}</p>

@@ -52,11 +52,13 @@
         .meta strong { display:block; margin-top:2px; color:#dbeafe; font-size:.88rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .item-actions { display:flex; gap:8px; flex-wrap:wrap; }
         .item-actions .button-secondary { flex:1 1 150px; min-height:44px; }
-        .inline-form { display:grid; gap:8px; padding:10px; border-radius:16px; background:rgba(2,6,23,.22); border:1px solid rgba(148,163,184,.12); }
+        .inline-form { display:grid; gap:8px; padding:10px; border-radius:16px; background:rgba(2,6,23,.22); border:1px solid rgba(56,189,248,.16); }
+        .inline-form label { display:grid; gap:6px; color:#dbeafe; font-size:.74rem; font-weight:900; letter-spacing:.06em; text-transform:uppercase; }
         .inline-form input { width:100%; min-height:46px; border-radius:13px; border:1px solid rgba(148,163,184,.2); background:rgba(15,23,42,.72); color:#f8fafc; padding:0 12px; font:inherit; font-size:16px; }
         .inline-form input::placeholder { color:#64748b; }
         .mini-button { display:inline-flex; align-items:center; justify-content:center; min-height:44px; border-radius:13px; border:0; background:rgba(56,189,248,.14); color:#bae6fd; font-weight:800; padding:0 14px; cursor:pointer; }
         .empty { padding:16px; border-radius:18px; border:1px dashed var(--border); color:var(--muted); background:var(--soft); }
+        .review-hint { color:#93c5fd; font-size:.82rem; font-weight:800; line-height:1.45; }
         .image-modal[hidden] { display:none; }
         .image-modal { position:fixed; inset:0; z-index:80; display:grid; place-items:center; padding:18px; }
         .modal-backdrop { position:absolute; inset:0; background:rgba(2,6,23,.82); backdrop-filter:blur(10px); }
@@ -184,7 +186,15 @@
                     <form class="inline-form" action="/confirmar-posto" method="post">
                         <input type="hidden" name="arquivo" value="{{ item.arquivo }}">
                         <input type="hidden" name="redirect_to" value="/leituras?page={{ page }}{% if regiao_selecionada %}&regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if posto_selecionado %}&posto={{ posto_selecionado|urlencode }}{% endif %}">
-                        <input type="text" name="posto_nome" value="{{ item.posto_sugerido if item.posto_sugerido is defined else '' }}" placeholder="Nome do posto">
+                        <p class="review-hint">Informe o posto desta placa para deixar o histórico auditável.</p>
+                        <label>
+                            Nome do posto
+                            <input type="text" name="posto_nome" value="{{ item.posto_sugerido if item.posto_sugerido is defined else '' }}" placeholder="Digite o nome do posto" autocomplete="organization">
+                        </label>
+                        <label>
+                            Bandeira opcional
+                            <input type="text" name="bandeira" value="{{ item.bandeira if item.bandeira is defined and item.bandeira else '' }}" placeholder="Ex: Shell, Ipiranga, BR">
+                        </label>
                         <button class="mini-button" type="submit">Salvar posto</button>
                     </form>
                 </article>

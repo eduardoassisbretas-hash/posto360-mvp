@@ -2585,7 +2585,7 @@ def montar_identificacao_alerta(item: dict) -> tuple[str, str]:
     regiao = (item.get("regiao") or "").strip()
 
     if not posto or normalizar_texto(posto) == "posto nao informado":
-        posto = "Posto não identificado"
+        posto = "Nome do posto pendente"
 
     if not regiao or normalizar_texto(regiao) == "regiao nao informada":
         regiao = "Região não informada"
@@ -3262,10 +3262,12 @@ def parse_preco_form(valor: str | None) -> float | None:
 
 
 POSTO360_AI_SUGESTOES = [
-    "Quais postos exigem atenção hoje?",
-    "Resumo operacional da minha rede",
-    "Onde há oportunidades?",
-    "Analisar concorrência",
+    "Onde devo focar hoje?",
+    "Quais postos estão perdendo margem?",
+    "Onde há oportunidade de aumento?",
+    "Quais concorrentes reduziram preço?",
+    "Resumo executivo da minha rede",
+    "Quais regiões exigem atenção?",
 ]
 
 
@@ -4740,6 +4742,7 @@ def confirmar_posto(
     request: Request,
     arquivo: str = Form(""),
     posto_nome: str = Form(""),
+    bandeira: str = Form(""),
     redirect_to: str = Form("/dashboard"),
 ):
     user = require_user(request)
@@ -4750,6 +4753,7 @@ def confirmar_posto(
         return onboarding_redirect
     carregar_empresa_em_memoria(user["company_id"])
     posto_limpo = posto_nome.strip()
+    bandeira_limpa = bandeira.strip()
 
     if arquivo and posto_limpo:
         dados_dashboard["upload_postos"][arquivo] = posto_limpo
@@ -4757,12 +4761,16 @@ def confirmar_posto(
         for item in dados_dashboard["leituras_imagem"]:
             if item.get("arquivo") == arquivo:
                 item["posto"] = posto_limpo
+                if bandeira_limpa:
+                    item["bandeira"] = bandeira_limpa
                 item["confirmacao_necessaria"] = False
                 break
 
         for item in dados_dashboard["precos_imagem"]:
             if item.get("arquivo") == arquivo:
                 item["posto"] = posto_limpo
+                if bandeira_limpa:
+                    item["bandeira"] = bandeira_limpa
 
         atualizar_resumo_dashboard()
 
