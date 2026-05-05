@@ -33,14 +33,14 @@
             background: var(--bg);
             background-image: var(--bg-accent);
             color: var(--text);
-            padding: 20px;
+            padding: 12px;
         }
 
         .page {
             width: min(720px, 100%);
             margin: 0 auto;
             display: grid;
-            gap: 18px;
+            gap: 12px;
         }
 
         .hero,
@@ -49,11 +49,11 @@
             background: var(--panel);
             box-shadow: var(--shadow);
             backdrop-filter: blur(16px);
-            border-radius: 28px;
+            border-radius: 24px;
         }
 
         .hero {
-            padding: 24px;
+            padding: 18px;
         }
 
         .eyebrow {
@@ -83,11 +83,11 @@
 
         p {
             color: var(--muted);
-            line-height: 1.7;
+            line-height: 1.55;
         }
 
         .panel {
-            padding: 22px;
+            padding: 18px;
         }
 
         form {
@@ -109,20 +109,23 @@
         input,
         select {
             width: 100%;
-            min-height: 52px;
+            min-height: 56px;
             padding: 0 14px;
             border-radius: 16px;
             border: 1px solid rgba(148, 163, 184, 0.18);
             background: rgba(15, 23, 42, 0.72);
             color: var(--text);
             outline: none;
+            font: inherit;
+            font-size: 16px;
         }
 
         input::placeholder {
             color: #64748b;
         }
 
-        input:focus {
+        input:focus,
+        select:focus {
             border-color: rgba(56, 189, 248, 0.7);
             box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.12);
         }
@@ -138,11 +141,12 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 52px;
+            min-height: 54px;
             padding: 0 18px;
             border-radius: 16px;
             font-weight: 700;
             text-decoration: none;
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
         }
 
         .btn-primary {
@@ -158,14 +162,27 @@
             color: #dbeafe;
         }
 
+        .btn-primary:hover,
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+        }
+
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 3px solid rgba(56, 189, 248, 0.34);
+            outline-offset: 3px;
+        }
+
         @media (min-width: 720px) {
             body {
-                padding: 28px;
+                padding: 24px;
             }
 
             .hero,
             .panel {
-                padding: 30px;
+                padding: 24px;
             }
 
             .actions {

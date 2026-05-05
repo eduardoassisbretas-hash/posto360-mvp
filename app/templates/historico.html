@@ -8,31 +8,74 @@
     <title>Histórico | Posto360</title>
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap");
-        :root { --bg:#06111f; --bg-accent:radial-gradient(circle at top,rgba(37,99,235,.22),transparent 34%),radial-gradient(circle at 85% 10%,rgba(16,185,129,.16),transparent 22%),linear-gradient(180deg,#08111d 0%,#040914 100%); --panel:rgba(10,19,35,.92); --strong:rgba(15,27,47,.96); --soft:rgba(148,163,184,.08); --border:rgba(148,163,184,.16); --text:#f8fafc; --muted:#94a3b8; --primary:#38bdf8; --primary-strong:#2563eb; --shadow:0 16px 42px rgba(2,6,23,.34); }
+        :root { --bg:#06111f; --bg-accent:radial-gradient(circle at top,rgba(37,99,235,.2),transparent 34%),radial-gradient(circle at 85% 10%,rgba(16,185,129,.13),transparent 22%),linear-gradient(180deg,#08111d 0%,#040914 100%); --panel:rgba(10,19,35,.92); --strong:rgba(15,27,47,.96); --soft:rgba(148,163,184,.08); --border:rgba(148,163,184,.16); --text:#f8fafc; --muted:#94a3b8; --primary:#38bdf8; --primary-strong:#2563eb; --success:#22c55e; --warning:#facc15; --shadow:0 16px 42px rgba(2,6,23,.34); }
         * { box-sizing:border-box; margin:0; padding:0; }
-        body { min-height:100vh; font-family:"Manrope","Segoe UI",sans-serif; background:var(--bg); background-image:var(--bg-accent); color:var(--text); padding:16px; }
+        body { min-height:100vh; font-family:"Manrope","Segoe UI",sans-serif; background:var(--bg); background-image:var(--bg-accent); color:var(--text); padding:12px; }
+        body.modal-open { overflow:hidden; }
         a { color:inherit; text-decoration:none; }
-        .shell { width:min(1120px,100%); margin:0 auto; display:grid; gap:16px; }
-        .hero,.panel,.item { border:1px solid var(--border); background:var(--panel); box-shadow:var(--shadow); border-radius:26px; }
-        .hero { display:grid; gap:18px; padding:22px; }
+        .shell { width:min(1120px,100%); margin:0 auto; display:grid; gap:12px; }
+        .hero,.panel,.item { border:1px solid var(--border); background:var(--panel); box-shadow:var(--shadow); border-radius:22px; }
+        .hero { display:grid; gap:12px; padding:18px; }
         h1,h2 { font-family:"Space Grotesk","Manrope",sans-serif; letter-spacing:-.03em; }
-        h1 { font-size:clamp(2rem,8vw,3.4rem); line-height:1; }
-        p,.muted { color:var(--muted); line-height:1.6; }
-        .badge { display:inline-flex; width:fit-content; padding:8px 12px; border-radius:999px; color:#dbeafe; background:rgba(37,99,235,.16); border:1px solid rgba(96,165,250,.22); font-weight:800; }
-        .actions,.filters,.pager { display:flex; flex-wrap:wrap; gap:10px; }
-        .btn,.btn-secondary,select,button { min-height:48px; border-radius:14px; padding:0 14px; font:inherit; font-weight:800; }
-        .btn,button { display:inline-flex; align-items:center; justify-content:center; border:0; color:#eff6ff; background:linear-gradient(135deg,var(--primary),var(--primary-strong)); }
+        h1 { font-size:clamp(1.95rem,7vw,3.05rem); line-height:.98; margin-top:8px; }
+        h2 { font-size:clamp(1.25rem,4vw,1.7rem); }
+        p,.muted { color:var(--muted); line-height:1.48; }
+        .hero p { max-width:680px; margin-top:8px; }
+        .badge { display:inline-flex; width:fit-content; padding:7px 10px; border-radius:999px; color:#dbeafe; background:rgba(37,99,235,.16); border:1px solid rgba(96,165,250,.22); font-weight:800; font-size:.82rem; }
+        .actions,.pager { display:flex; flex-wrap:wrap; gap:8px; }
+        .btn,.btn-secondary,select,button { min-height:46px; border-radius:14px; padding:0 14px; font:inherit; font-weight:800; }
+        .btn,button { display:inline-flex; align-items:center; justify-content:center; border:0; color:#eff6ff; background:linear-gradient(135deg,var(--primary),var(--primary-strong)); box-shadow:0 12px 24px rgba(37,99,235,.18); cursor:pointer; }
+        .btn:hover,button:hover { transform:translateY(-1px); box-shadow:0 16px 30px rgba(56,189,248,.2); }
         .btn-secondary,select { display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--border); color:#dbeafe; background:rgba(15,23,42,.62); }
-        .panel { padding:18px; background:linear-gradient(180deg,var(--strong),rgba(8,15,27,.98)); }
-        .filters { align-items:end; }
-        label { display:grid; gap:8px; color:#dbeafe; font-weight:800; flex:1 1 180px; }
+        .btn-secondary:hover { border-color:rgba(56,189,248,.38); background:rgba(30,41,59,.74); }
+        .panel { padding:14px; background:linear-gradient(180deg,var(--strong),rgba(8,15,27,.98)); }
+        .filters { display:grid; gap:10px; align-items:end; }
+        label { display:grid; gap:7px; color:#dbeafe; font-weight:800; font-size:.9rem; }
+        select { width:100%; min-height:56px; padding:0 16px; color:#f8fafc; font-size:16px; font-weight:700; outline:none; appearance:auto; border-radius:14px; border-color:rgba(148,163,184,.24); background:linear-gradient(180deg,rgba(15,23,42,.86),rgba(15,23,42,.66)); }
+        .filters button { min-height:56px; width:100%; font-size:16px; }
+        .panel-head { display:flex; justify-content:space-between; gap:10px; align-items:flex-end; flex-wrap:wrap; margin-bottom:12px; }
+        .page-note { font-size:.9rem; }
         .list { display:grid; gap:10px; }
-        .item { padding:14px; background:var(--soft); display:grid; gap:6px; }
-        .thumb { width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:16px; border:1px solid var(--border); background:rgba(15,23,42,.72); }
-        .item-top { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-        .status { color:#bae6fd; font-weight:800; }
-        .empty { padding:18px; border-radius:18px; border:1px dashed var(--border); color:var(--muted); background:var(--soft); }
-        @media (min-width:760px) { body{padding:28px;} .hero{grid-template-columns:1fr auto;align-items:end;padding:30px;} .list{grid-template-columns:repeat(2,minmax(0,1fr));} }
+        .item { padding:12px; background:linear-gradient(180deg,rgba(15,23,42,.78),rgba(15,23,42,.5)); display:grid; gap:10px; overflow:hidden; }
+        .thumb-wrap { position:relative; overflow:hidden; border-radius:16px; border:1px solid rgba(148,163,184,.18); background:rgba(15,23,42,.72); }
+        .thumb { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+        .thumb-placeholder { min-height:126px; display:grid; place-items:center; color:#93c5fd; background:linear-gradient(135deg,rgba(37,99,235,.2),rgba(15,23,42,.75)); font-weight:800; }
+        .status-pill { display:inline-flex; align-items:center; width:fit-content; min-height:30px; padding:0 10px; border-radius:999px; background:rgba(34,197,94,.12); color:#bbf7d0; border:1px solid rgba(34,197,94,.2); font-size:.78rem; font-weight:800; }
+        .status-pill.review { background:rgba(250,204,21,.12); color:#fde68a; border-color:rgba(250,204,21,.22); }
+        .item-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+        .fuel { display:grid; gap:3px; min-width:0; }
+        .fuel strong { font-size:1rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .price { color:#bae6fd; font-size:1.08rem; font-weight:900; white-space:nowrap; }
+        .meta-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+        .meta { min-width:0; padding:9px 10px; border:1px solid rgba(148,163,184,.12); border-radius:14px; background:rgba(2,6,23,.24); }
+        .meta span { display:block; color:#64748b; font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+        .meta strong { display:block; margin-top:2px; color:#dbeafe; font-size:.88rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .item-actions { display:flex; gap:8px; flex-wrap:wrap; }
+        .item-actions .btn-secondary { flex:1 1 150px; min-height:44px; }
+        .empty { padding:16px; border-radius:18px; border:1px dashed var(--border); color:var(--muted); background:var(--soft); }
+        .image-modal[hidden] { display:none; }
+        .image-modal { position:fixed; inset:0; z-index:80; display:grid; place-items:center; padding:18px; }
+        .modal-backdrop { position:absolute; inset:0; background:rgba(2,6,23,.82); backdrop-filter:blur(10px); }
+        .modal-card { position:relative; width:min(920px,100%); max-height:92vh; display:grid; gap:12px; border:1px solid rgba(148,163,184,.24); border-radius:22px; padding:12px; background:rgba(8,15,27,.96); box-shadow:0 30px 80px rgba(0,0,0,.45); }
+        .modal-head { display:flex; justify-content:space-between; gap:10px; align-items:center; }
+        .modal-head strong { font-family:"Space Grotesk","Manrope",sans-serif; }
+        .modal-close { min-height:40px; padding:0 12px; border-radius:12px; background:rgba(15,23,42,.9); border:1px solid rgba(148,163,184,.2); }
+        .modal-image { width:100%; max-height:78vh; object-fit:contain; border-radius:16px; background:#020617; }
+        @media (min-width:760px) {
+            body { padding:24px; }
+            .shell { gap:14px; }
+            .hero { grid-template-columns:1fr auto; align-items:end; padding:24px; }
+            .actions { justify-content:flex-end; }
+            .filters { grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; }
+            .filters button { width:auto; min-width:170px; }
+            .panel { padding:18px; }
+            .list { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        }
+        @media (max-width:520px) {
+            .actions .btn-secondary { flex:1 1 0; min-width:0; padding:0 10px; }
+            .meta-grid { grid-template-columns:1fr; gap:7px; }
+            .item-top { align-items:flex-start; }
+        }
     </style>
 </head>
 <body>
@@ -46,7 +89,7 @@
             <div>
                 <span class="badge">Histórico operacional</span>
                 <h1>Histórico</h1>
-                <p>Consulte leituras por imagem, origem, localização e resultado de análise sem poluir o dashboard executivo.</p>
+                <p>Audite leituras, imagens, localização e resultado OCR em uma visão leve para supervisão da operação.</p>
             </div>
             <div class="actions">
                 <a class="btn-secondary" href="/dashboard">Dashboard</a>
@@ -69,38 +112,93 @@
             <button type="submit">Aplicar filtros</button>
         </form>
         <section class="panel">
-            <h2>Página {{ dados.page if dados is defined else 1 }}</h2>
+            <div class="panel-head">
+                <div>
+                    <h2>Página {{ dados.page if dados is defined else 1 }}</h2>
+                    <p class="muted page-note">Até 10 leituras por carregamento para manter o mobile rápido.</p>
+                </div>
+            </div>
             {% if itens %}
-            <div class="list" style="margin-top:14px;">
+            <div class="list">
                 {% for item in itens %}
                 <article class="item">
-                    {% if item.fonte == "openai_vision" and item.thumbnail_path %}
-                    <img class="thumb" src="/uploads/thumbs/{{ item.thumbnail_path }}" alt="Foto da placa">
-                    {% endif %}
-                    <div class="item-top">
-                        <strong>{{ item.tipo_label if item.tipo_label is defined else item.tipo }}</strong>
-                        <span class="status">{{ "R$ %.2f"|format(item.preco) if item.preco is not none else "Revisar imagem" }}</span>
+                    <div class="thumb-wrap">
+                        {% if item.thumbnail_path %}
+                        <img class="thumb" src="/uploads/thumbs/{{ item.thumbnail_path }}" alt="Foto da placa de preço" loading="lazy" decoding="async">
+                        {% else %}
+                        <div class="thumb-placeholder">Sem miniatura</div>
+                        {% endif %}
                     </div>
-                    <p>{{ item.posto if item.posto is defined and item.posto else "Posto não informado" }} · {{ item.regiao if item.regiao is defined else "Região não informada" }}</p>
-                    {% if item.rua or item.endereco_formatado %}
-                    <p>{{ item.rua or item.endereco_formatado }}</p>
+                    <div class="item-top">
+                        <div class="fuel">
+                            <strong>{{ item.tipo_label if item.tipo_label is defined else item.tipo }}</strong>
+                            <span class="muted">OCR {{ item.status if item.status is defined and item.status else "processado" }}</span>
+                        </div>
+                        <div class="price">{{ "R$ %.2f"|format(item.preco) if item.preco is not none else "Revisar" }}</div>
+                    </div>
+                    <span class="status-pill {% if item.preco is none %}review{% endif %}">{{ "Leitura concluída" if item.preco is not none else "Revisar imagem" }}</span>
+                    <div class="meta-grid">
+                        <div class="meta"><span>Posto</span><strong>{{ item.posto if item.posto is defined and item.posto else "Não informado" }}</strong></div>
+                        <div class="meta"><span>Região</span><strong>{{ item.regiao if item.regiao is defined and item.regiao else "Não informada" }}</strong></div>
+                        <div class="meta"><span>Data</span><strong>{{ item.atualizado if item.atualizado is defined and item.atualizado else item.criado_em if item.criado_em is defined and item.criado_em else "Recente" }}</strong></div>
+                        <div class="meta"><span>Usuário</span><strong>{{ item.usuario if item.usuario else "Equipe" }}</strong></div>
+                    </div>
+                    {% if item.rua or item.endereco_formatado or item.bairro or item.cidade %}
+                    <p class="muted">
+                        {% if item.rua or item.endereco_formatado %}{{ item.rua or item.endereco_formatado }}{% endif %}
+                        {% if (item.rua or item.endereco_formatado) and (item.bairro or item.cidade) %} · {% endif %}
+                        {% if item.bairro %}{{ item.bairro }}{% endif %}{% if item.bairro and item.cidade %} - {% endif %}{% if item.cidade %}{{ item.cidade }}{% endif %}
+                    </p>
                     {% endif %}
-                    {% if item.usuario %}<span class="muted">{{ item.usuario }}</span>{% endif %}
-                    <span class="muted">{{ "Leitura concluída" if item.preco is not none else "Não foi possível identificar preço com segurança" }}</span>
-                    {% if item.fonte == "openai_vision" and item.original_image_path %}
-                    <a class="btn-secondary" href="/uploads/{{ item.original_image_path }}" target="_blank" rel="noopener">Ver foto</a>
-                    {% endif %}
+                    <div class="item-actions">
+                        {% if item.original_image_path %}
+                        <a class="btn-secondary image-link" href="/uploads/{{ item.original_image_path }}" data-image-src="/uploads/{{ item.original_image_path }}">Ver imagem</a>
+                        {% else %}
+                        <span class="btn-secondary">Imagem indisponível</span>
+                        {% endif %}
+                    </div>
                 </article>
                 {% endfor %}
             </div>
-            <div class="pager" style="margin-top:14px;">
-                {% if dados.pagina_anterior %}<a class="btn-secondary" href="/historico?page={{ dados.pagina_anterior }}">Página anterior</a>{% endif %}
-                {% if dados.tem_mais %}<a class="btn" href="/historico?page={{ dados.proxima_page }}">Carregar mais</a>{% endif %}
+            <div class="pager" style="margin-top:12px;">
+                {% if dados.pagina_anterior %}<a class="btn-secondary" href="/historico?page={{ dados.pagina_anterior }}{% if regiao_selecionada %}&regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if posto_selecionado %}&posto={{ posto_selecionado|urlencode }}{% endif %}">Página anterior</a>{% endif %}
+                {% if dados.tem_mais %}<a class="btn" href="/historico?page={{ dados.proxima_page }}{% if regiao_selecionada %}&regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if posto_selecionado %}&posto={{ posto_selecionado|urlencode }}{% endif %}">Carregar mais</a>{% endif %}
             </div>
             {% else %}
-            <div class="empty" style="margin-top:14px;">Nenhuma leitura encontrada.</div>
+            <div class="empty">Nenhuma leitura encontrada.</div>
             {% endif %}
         </section>
     </main>
+    <div class="image-modal" id="image-modal" hidden>
+        <div class="modal-backdrop" data-close-modal></div>
+        <div class="modal-card" role="dialog" aria-modal="true" aria-label="Imagem ampliada da placa">
+            <div class="modal-head">
+                <strong>Imagem original</strong>
+                <button class="modal-close" type="button" data-close-modal>Fechar</button>
+            </div>
+            <img class="modal-image" id="modal-image" alt="Imagem original da placa">
+        </div>
+    </div>
+    <script>
+        const modal = document.getElementById("image-modal");
+        const modalImage = document.getElementById("modal-image");
+        const closeModal = () => {
+            modal.hidden = true;
+            modalImage.removeAttribute("src");
+            document.body.classList.remove("modal-open");
+        };
+        document.querySelectorAll(".image-link").forEach((link) => {
+            link.addEventListener("click", (event) => {
+                event.preventDefault();
+                modalImage.src = link.dataset.imageSrc || link.href;
+                modal.hidden = false;
+                document.body.classList.add("modal-open");
+            });
+        });
+        document.querySelectorAll("[data-close-modal]").forEach((button) => button.addEventListener("click", closeModal));
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && !modal.hidden) closeModal();
+        });
+    </script>
 </body>
 </html>

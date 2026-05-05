@@ -277,6 +277,37 @@
                 justify-content: center;
             }
         }
+
+        @media (max-width: 819px) {
+            body {
+                padding: 12px;
+                place-items: start center;
+            }
+
+            .auth-shell {
+                gap: 12px;
+            }
+
+            .brand-panel,
+            .auth-card {
+                border-radius: 24px;
+                padding: 20px;
+            }
+
+            h1 {
+                margin-top: 14px;
+                font-size: clamp(2rem, 10vw, 3.25rem);
+            }
+
+            .lead {
+                margin-top: 12px;
+                line-height: 1.55;
+            }
+
+            .trust-row {
+                margin-top: 16px;
+            }
+        }
     </style>
 </head>
 <body>

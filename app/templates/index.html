@@ -53,6 +53,15 @@
             text-decoration: none;
         }
 
+        a:focus-visible,
+        button:focus-visible,
+        summary:focus-visible,
+        select:focus-visible,
+        input:focus-visible {
+            outline: 3px solid rgba(56, 189, 248, 0.34);
+            outline-offset: 3px;
+        }
+
         .app-menu {
             position: fixed;
             top: 18px;
@@ -73,6 +82,13 @@
             cursor: pointer;
             list-style: none;
             backdrop-filter: blur(14px);
+            transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+        }
+
+        .app-menu summary:hover {
+            transform: translateY(-1px);
+            border-color: rgba(56, 189, 248, 0.34);
+            background: rgba(15, 27, 47, 0.94);
         }
 
         .app-menu summary::-webkit-details-marker {
@@ -197,10 +213,12 @@
             border-radius: 12px;
             color: #dbeafe;
             font-weight: 700;
+            transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
         }
 
         .menu-panel a:hover {
             background: rgba(148, 163, 184, 0.1);
+            transform: translateX(1px);
         }
 
         .menu-ai-link {
@@ -1128,6 +1146,14 @@
                 right: 12px;
             }
 
+            .menu-panel {
+                width: min(300px, calc(100vw - 24px));
+            }
+
+            .hero {
+                padding: 16px;
+            }
+
             .hero::after,
             .stat-card::before {
                 display: none;
@@ -1149,6 +1175,11 @@
             .filter-form select,
             .filter-form button {
                 width: 100%;
+            }
+
+            .hero-actions {
+                gap: 10px;
+                margin-top: 18px;
             }
 
             .stat-card,

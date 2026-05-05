@@ -5,201 +5,81 @@
     <link rel="apple-touch-icon" href="/static/favicon.png?v=1">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leituras - Posto360</title>
+    <title>Leituras | Posto360</title>
     <style>
-        :root {
-            --bg: #f4efe7;
-            --panel: #fffdf8;
-            --ink: #1d2a36;
-            --muted: #6b7280;
-            --line: rgba(29, 42, 54, 0.1);
-            --accent: #d25b2d;
-            --accent-soft: rgba(210, 91, 45, 0.12);
+        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap");
+        :root { --bg:#06111f; --bg-accent:radial-gradient(circle at top,rgba(37,99,235,.2),transparent 34%),radial-gradient(circle at 86% 8%,rgba(56,189,248,.13),transparent 22%),linear-gradient(180deg,#08111d 0%,#040914 100%); --panel:rgba(10,19,35,.92); --strong:rgba(15,27,47,.96); --soft:rgba(148,163,184,.08); --border:rgba(148,163,184,.16); --text:#f8fafc; --muted:#94a3b8; --primary:#38bdf8; --primary-strong:#2563eb; --shadow:0 16px 42px rgba(2,6,23,.34); }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { min-height:100vh; font-family:"Manrope","Segoe UI",sans-serif; background:var(--bg); background-image:var(--bg-accent); color:var(--text); padding:12px; }
+        body.modal-open { overflow:hidden; }
+        a { color:inherit; text-decoration:none; }
+        .shell { width:min(1120px,100%); margin:0 auto; display:grid; gap:12px; }
+        .hero,.panel,.item { border:1px solid var(--border); background:var(--panel); box-shadow:var(--shadow); border-radius:22px; }
+        .hero { display:grid; gap:12px; padding:18px; }
+        h1,h2 { font-family:"Space Grotesk","Manrope",sans-serif; letter-spacing:-.03em; }
+        h1 { font-size:clamp(1.9rem,7vw,3.05rem); line-height:.98; margin-top:8px; }
+        h2 { font-size:clamp(1.22rem,4vw,1.65rem); }
+        p,.muted { color:var(--muted); line-height:1.48; }
+        .hero p { max-width:680px; margin-top:8px; }
+        .top-row,.actions,.pager { display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+        .badge { display:inline-flex; width:fit-content; padding:7px 10px; border-radius:999px; color:#dbeafe; background:rgba(37,99,235,.16); border:1px solid rgba(96,165,250,.22); font-weight:800; font-size:.82rem; }
+        .button,.button-secondary,select,button { min-height:46px; border-radius:14px; padding:0 14px; font:inherit; font-weight:800; }
+        .button,button { display:inline-flex; align-items:center; justify-content:center; border:0; color:#eff6ff; background:linear-gradient(135deg,var(--primary),var(--primary-strong)); box-shadow:0 12px 24px rgba(37,99,235,.18); cursor:pointer; }
+        .button:hover,button:hover { transform:translateY(-1px); box-shadow:0 16px 30px rgba(56,189,248,.2); }
+        .button-secondary,select { display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--border); color:#dbeafe; background:rgba(15,23,42,.62); }
+        .button-secondary:hover { border-color:rgba(56,189,248,.38); background:rgba(30,41,59,.74); }
+        .panel { padding:14px; background:linear-gradient(180deg,var(--strong),rgba(8,15,27,.98)); }
+        .filters { display:grid; gap:10px; align-items:end; }
+        .filters-group { display:grid; gap:10px; }
+        select { width:100%; min-height:56px; padding:0 16px; color:#f8fafc; font-size:16px; font-weight:700; outline:none; appearance:auto; border-radius:14px; border-color:rgba(148,163,184,.24); background:linear-gradient(180deg,rgba(15,23,42,.86),rgba(15,23,42,.66)); }
+        .filters .button { min-height:56px; width:100%; font-size:16px; }
+        .panel-header { display:flex; justify-content:space-between; gap:10px; align-items:flex-end; flex-wrap:wrap; margin-bottom:12px; }
+        .list { display:grid; gap:10px; }
+        .item { padding:12px; background:linear-gradient(180deg,rgba(15,23,42,.78),rgba(15,23,42,.5)); display:grid; gap:10px; overflow:hidden; }
+        .thumb-wrap { overflow:hidden; border-radius:16px; border:1px solid rgba(148,163,184,.18); background:rgba(15,23,42,.72); }
+        .thumb { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+        .thumb-placeholder { min-height:126px; display:grid; place-items:center; color:#93c5fd; background:linear-gradient(135deg,rgba(37,99,235,.2),rgba(15,23,42,.75)); font-weight:800; }
+        .item-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+        .fuel { display:grid; gap:3px; min-width:0; }
+        .fuel strong { font-size:1rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .filename { color:#64748b; font-size:.78rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
+        .price { color:#bae6fd; font-size:1.08rem; font-weight:900; white-space:nowrap; }
+        .status-pill { display:inline-flex; align-items:center; width:fit-content; min-height:30px; padding:0 10px; border-radius:999px; background:rgba(34,197,94,.12); color:#bbf7d0; border:1px solid rgba(34,197,94,.2); font-size:.78rem; font-weight:800; }
+        .status-pill.review { background:rgba(250,204,21,.12); color:#fde68a; border-color:rgba(250,204,21,.22); }
+        .meta-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+        .meta { min-width:0; padding:9px 10px; border:1px solid rgba(148,163,184,.12); border-radius:14px; background:rgba(2,6,23,.24); }
+        .meta span { display:block; color:#64748b; font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+        .meta strong { display:block; margin-top:2px; color:#dbeafe; font-size:.88rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .item-actions { display:flex; gap:8px; flex-wrap:wrap; }
+        .item-actions .button-secondary { flex:1 1 150px; min-height:44px; }
+        .inline-form { display:grid; gap:8px; padding:10px; border-radius:16px; background:rgba(2,6,23,.22); border:1px solid rgba(148,163,184,.12); }
+        .inline-form input { width:100%; min-height:46px; border-radius:13px; border:1px solid rgba(148,163,184,.2); background:rgba(15,23,42,.72); color:#f8fafc; padding:0 12px; font:inherit; font-size:16px; }
+        .inline-form input::placeholder { color:#64748b; }
+        .mini-button { display:inline-flex; align-items:center; justify-content:center; min-height:44px; border-radius:13px; border:0; background:rgba(56,189,248,.14); color:#bae6fd; font-weight:800; padding:0 14px; cursor:pointer; }
+        .empty { padding:16px; border-radius:18px; border:1px dashed var(--border); color:var(--muted); background:var(--soft); }
+        .image-modal[hidden] { display:none; }
+        .image-modal { position:fixed; inset:0; z-index:80; display:grid; place-items:center; padding:18px; }
+        .modal-backdrop { position:absolute; inset:0; background:rgba(2,6,23,.82); backdrop-filter:blur(10px); }
+        .modal-card { position:relative; width:min(920px,100%); max-height:92vh; display:grid; gap:12px; border:1px solid rgba(148,163,184,.24); border-radius:22px; padding:12px; background:rgba(8,15,27,.96); box-shadow:0 30px 80px rgba(0,0,0,.45); }
+        .modal-head { display:flex; justify-content:space-between; gap:10px; align-items:center; }
+        .modal-head strong { font-family:"Space Grotesk","Manrope",sans-serif; }
+        .modal-close { min-height:40px; padding:0 12px; border-radius:12px; background:rgba(15,23,42,.9); border:1px solid rgba(148,163,184,.2); }
+        .modal-image { width:100%; max-height:78vh; object-fit:contain; border-radius:16px; background:#020617; }
+        @media (min-width:760px) {
+            body { padding:24px; }
+            .shell { gap:14px; }
+            .hero { grid-template-columns:1fr auto; align-items:end; padding:24px; }
+            .top-row { align-items:flex-end; }
+            .filters { grid-template-columns:1fr auto; }
+            .filters-group { grid-template-columns:repeat(2,minmax(0,1fr)); }
+            .filters .button { width:auto; min-width:170px; }
+            .panel { padding:18px; }
+            .list { grid-template-columns:repeat(2,minmax(0,1fr)); }
+            .inline-form { grid-template-columns:1fr auto; align-items:center; }
         }
-
-        * { box-sizing: border-box; }
-
-        body {
-            margin: 0;
-            font-family: "Avenir Next", "Segoe UI", sans-serif;
-            background: linear-gradient(180deg, #f7f1e8 0%, #efe6d7 100%);
-            color: var(--ink);
-        }
-
-        .shell {
-            width: min(100%, 1040px);
-            margin: 0 auto;
-            padding: 20px 16px 40px;
-        }
-
-        .hero, .panel {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 22px;
-            padding: 18px;
-            box-shadow: 0 12px 30px rgba(29, 42, 54, 0.06);
-        }
-
-        .hero {
-            display: grid;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .hero h1 {
-            margin: 0;
-            font-size: clamp(1.7rem, 4vw, 2.4rem);
-        }
-
-        .hero p, .muted {
-            margin: 0;
-            color: var(--muted);
-        }
-
-        .top-row, .panel-header, .filters, .pager {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 8px 12px;
-            border-radius: 999px;
-            background: var(--accent-soft);
-            color: var(--accent);
-            font-weight: 700;
-            font-size: 0.92rem;
-        }
-
-        .button, .button-secondary, select {
-            min-height: 46px;
-            border-radius: 14px;
-            border: 1px solid var(--line);
-            padding: 12px 16px;
-            font: inherit;
-        }
-
-        .button, .button-secondary {
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-        }
-
-        .button {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-
-        .button-secondary {
-            background: white;
-            color: var(--ink);
-        }
-
-        form {
-            margin: 0;
-        }
-
-        .filters {
-            margin-bottom: 16px;
-        }
-
-        .filters-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            flex: 1;
-        }
-
-        select {
-            background: white;
-            min-width: 170px;
-        }
-
-        .list {
-            display: grid;
-            gap: 12px;
-        }
-
-        .item {
-            border: 1px solid var(--line);
-            border-radius: 18px;
-            padding: 16px;
-            background: #fff;
-            display: grid;
-            gap: 6px;
-        }
-
-        .item strong {
-            font-size: 1rem;
-        }
-
-        .inline-form {
-            display: grid;
-            gap: 8px;
-            margin-top: 6px;
-        }
-
-        .inline-form input {
-            width: 100%;
-            min-height: 44px;
-            border-radius: 12px;
-            border: 1px solid var(--line);
-            background: white;
-            color: var(--ink);
-            padding: 0 12px;
-            font: inherit;
-        }
-
-        .mini-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 42px;
-            border-radius: 12px;
-            border: 1px solid var(--line);
-            background: var(--accent-soft);
-            color: var(--accent);
-            font-weight: 700;
-            padding: 0 14px;
-        }
-
-        .empty {
-            padding: 18px;
-            border-radius: 18px;
-            border: 1px dashed var(--line);
-            color: var(--muted);
-            background: rgba(255,255,255,0.6);
-        }
-
-        @media (max-width: 720px) {
-            .shell {
-                padding: 14px 12px 28px;
-            }
-
-            .hero, .panel {
-                border-radius: 18px;
-                padding: 16px;
-            }
-
-            .button, .button-secondary, select {
-                width: 100%;
-            }
-
-            .filters-group {
-                width: 100%;
-            }
-
-            select {
-                min-width: 0;
-                flex: 1 1 100%;
-            }
+        @media (max-width:520px) {
+            .button,.button-secondary { width:100%; }
+            .meta-grid { grid-template-columns:1fr; gap:7px; }
         }
     </style>
 </head>
@@ -217,25 +97,26 @@
 
     <main class="shell">
         <section class="hero">
-            <div class="top-row">
-                <div>
-                    <h1>Todas as leituras</h1>
-                    <p>Historico paginado das leituras por imagem, mantendo o dashboard principal leve.</p>
-                </div>
-                <a class="button-secondary" href="/dashboard{% if regiao_selecionada or posto_selecionado %}?{% endif %}{% if regiao_selecionada %}regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if regiao_selecionada and posto_selecionado %}&{% endif %}{% if posto_selecionado %}posto={{ posto_selecionado|urlencode }}{% endif %}">Voltar ao dashboard</a>
+            <div>
+                <span class="badge">{{ total_lidas_imagem }} imagens processadas</span>
+                <h1>Todas as leituras</h1>
+                <p>Histórico paginado com miniaturas, OCR, localização e vínculo de posto para auditoria rápida em campo.</p>
             </div>
-            <span class="badge">{{ total_lidas_imagem }} imagens processadas</span>
+            <div class="actions">
+                <a class="button-secondary" href="/dashboard{% if regiao_selecionada or posto_selecionado %}?{% endif %}{% if regiao_selecionada %}regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if regiao_selecionada and posto_selecionado %}&{% endif %}{% if posto_selecionado %}posto={{ posto_selecionado|urlencode }}{% endif %}">Voltar ao dashboard</a>
+                <a class="button-secondary" href="/historico{% if regiao_selecionada or posto_selecionado %}?{% endif %}{% if regiao_selecionada %}regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if regiao_selecionada and posto_selecionado %}&{% endif %}{% if posto_selecionado %}posto={{ posto_selecionado|urlencode }}{% endif %}">Histórico</a>
+            </div>
         </section>
 
         <form method="get" action="/leituras" class="panel filters">
             <div class="filters-group">
-                <select name="regiao">
-                    <option value="">Todas as regioes</option>
+                <select name="regiao" aria-label="Filtrar por região">
+                    <option value="">Todas as regiões</option>
                     {% for regiao in regioes %}
                     <option value="{{ regiao }}" {% if regiao == regiao_selecionada %}selected{% endif %}>{{ regiao }}</option>
                     {% endfor %}
                 </select>
-                <select name="posto">
+                <select name="posto" aria-label="Filtrar por posto">
                     <option value="">Todos os postos</option>
                     {% for posto in postos %}
                     <option value="{{ posto }}" {% if posto == posto_selecionado %}selected{% endif %}>{{ posto }}</option>
@@ -249,8 +130,8 @@
         <section class="panel">
             <div class="panel-header">
                 <div>
-                    <h2 style="margin:0;">Página {{ page }}</h2>
-                    <p class="muted">Mostrando no maximo 10 leituras por vez.</p>
+                    <h2>Página {{ page }}</h2>
+                    <p class="muted">Mostrando no máximo 10 leituras por vez para manter a navegação leve.</p>
                 </div>
             </div>
 
@@ -258,37 +139,48 @@
             <div class="list">
                 {% for item in leituras_imagem %}
                 <article class="item">
-                    <strong>{{ item.arquivo }}</strong>
-                    <span>{{ item.tipo_label if item.tipo_label is defined else item.tipo }} | {{ "R$ %.2f"|format(item.preco) if item.preco is not none else "Sem leitura confiavel" }}</span>
-                    <span>Fonte: {{ item.fonte if item.fonte is defined else "openai_vision" }}</span>
-                    {% if item.confianca is not none %}
-                    <span>Confianca: {{ item.confianca }}</span>
-                    {% endif %}
-                    <span>Status: {{ item.status }}</span>
-                    {% if item.rua %}
-                    <span>{{ item.rua }}</span>
-                    {% elif item.endereco_formatado %}
-                    <span>{{ item.endereco_formatado }}</span>
-                    {% elif item.bairro or item.cidade %}
-                    <span>{% if item.bairro %}{{ item.bairro }}{% endif %}{% if item.bairro and item.cidade %} - {% endif %}{% if item.cidade %}{{ item.cidade }}{% endif %}</span>
-                    {% elif item.regiao and item.regiao != "Regiao nao informada" %}
-                    <span>{{ item.regiao }}</span>
-                    {% endif %}
-                    {% if (item.rua or item.endereco_formatado) and (item.bairro or item.cidade) %}
-                    <span>{% if item.bairro %}{{ item.bairro }}{% endif %}{% if item.bairro and item.cidade %} - {% endif %}{% if item.cidade %}{{ item.cidade }}{% endif %}</span>
-                    {% endif %}
-                    {% if item.localizacao_aproximada and not (item.rua or item.bairro or item.cidade or item.endereco_formatado) %}
-                    <span>{{ item.localizacao_aproximada }}</span>
-                    {% endif %}
-                    {% if item.posto %}
-                    <span>Posto: {{ item.posto }}</span>
+                    <div class="thumb-wrap">
+                        {% if item.thumbnail_path %}
+                        <img class="thumb" src="/uploads/thumbs/{{ item.thumbnail_path }}" alt="Foto da placa de preço" loading="lazy" decoding="async">
+                        {% else %}
+                        <div class="thumb-placeholder">Sem miniatura</div>
+                        {% endif %}
+                    </div>
+                    <div class="item-top">
+                        <div class="fuel">
+                            <strong>{{ item.tipo_label if item.tipo_label is defined else item.tipo }}</strong>
+                            <span class="filename">{{ item.arquivo }}</span>
+                        </div>
+                        <div class="price">{{ "R$ %.2f"|format(item.preco) if item.preco is not none else "Revisar" }}</div>
+                    </div>
+                    <span class="status-pill {% if item.preco is none %}review{% endif %}">{{ item.status if item.status else ("Leitura concluída" if item.preco is not none else "Revisar OCR") }}</span>
+                    <div class="meta-grid">
+                        <div class="meta"><span>Posto</span><strong>{{ item.posto if item.posto else "Não informado" }}</strong></div>
+                        <div class="meta"><span>Região</span><strong>{{ item.regiao if item.regiao else "Não informada" }}</strong></div>
+                        <div class="meta"><span>Fonte OCR</span><strong>{{ item.fonte if item.fonte is defined and item.fonte else "openai_vision" }}</strong></div>
+                        <div class="meta"><span>Confiança</span><strong>{{ item.confianca if item.confianca is not none else "Em revisão" }}</strong></div>
+                    </div>
+                    {% if item.rua or item.endereco_formatado or item.bairro or item.cidade or item.localizacao_aproximada %}
+                    <p class="muted">
+                        {% if item.rua or item.endereco_formatado %}{{ item.rua or item.endereco_formatado }}{% endif %}
+                        {% if (item.rua or item.endereco_formatado) and (item.bairro or item.cidade) %} · {% endif %}
+                        {% if item.bairro %}{{ item.bairro }}{% endif %}{% if item.bairro and item.cidade %} - {% endif %}{% if item.cidade %}{{ item.cidade }}{% endif %}
+                        {% if item.localizacao_aproximada and not (item.rua or item.endereco_formatado or item.bairro or item.cidade) %}{{ item.localizacao_aproximada }}{% endif %}
+                    </p>
                     {% endif %}
                     {% if item.leituras_detectadas %}
-                    <span>Leituras visiveis: {{ item.leituras_detectadas|length }}</span>
+                    <p class="muted">Leituras visíveis: {{ item.leituras_detectadas|length }}</p>
                     {% endif %}
                     {% if item.mensagem %}
-                    <span>{{ item.mensagem }}</span>
+                    <p class="muted">{{ item.mensagem }}</p>
                     {% endif %}
+                    <div class="item-actions">
+                        {% if item.original_image_path %}
+                        <a class="button-secondary image-link" href="/uploads/{{ item.original_image_path }}" data-image-src="/uploads/{{ item.original_image_path }}">Ver imagem</a>
+                        {% else %}
+                        <span class="button-secondary">Imagem indisponível</span>
+                        {% endif %}
+                    </div>
                     <form class="inline-form" action="/confirmar-posto" method="post">
                         <input type="hidden" name="arquivo" value="{{ item.arquivo }}">
                         <input type="hidden" name="redirect_to" value="/leituras?page={{ page }}{% if regiao_selecionada %}&regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if posto_selecionado %}&posto={{ posto_selecionado|urlencode }}{% endif %}">
@@ -302,17 +194,46 @@
             <div class="empty">Nenhuma leitura encontrada para este filtro.</div>
             {% endif %}
 
-            <div class="pager" style="margin-top:16px;">
-                <div class="filters-group">
-                    {% if pagina_anterior %}
-                    <a class="button-secondary" href="/leituras?page={{ pagina_anterior }}{% if regiao_selecionada %}&regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if posto_selecionado %}&posto={{ posto_selecionado|urlencode }}{% endif %}">Página anterior</a>
-                    {% endif %}
-                    {% if tem_mais %}
-                    <a class="button" href="/leituras?page={{ proxima_page }}{% if regiao_selecionada %}&regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if posto_selecionado %}&posto={{ posto_selecionado|urlencode }}{% endif %}">Carregar mais</a>
-                    {% endif %}
-                </div>
+            <div class="pager" style="margin-top:12px;">
+                {% if pagina_anterior %}
+                <a class="button-secondary" href="/leituras?page={{ pagina_anterior }}{% if regiao_selecionada %}&regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if posto_selecionado %}&posto={{ posto_selecionado|urlencode }}{% endif %}">Página anterior</a>
+                {% endif %}
+                {% if tem_mais %}
+                <a class="button" href="/leituras?page={{ proxima_page }}{% if regiao_selecionada %}&regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if posto_selecionado %}&posto={{ posto_selecionado|urlencode }}{% endif %}">Carregar mais</a>
+                {% endif %}
             </div>
         </section>
     </main>
+    <div class="image-modal" id="image-modal" hidden>
+        <div class="modal-backdrop" data-close-modal></div>
+        <div class="modal-card" role="dialog" aria-modal="true" aria-label="Imagem ampliada da placa">
+            <div class="modal-head">
+                <strong>Imagem original</strong>
+                <button class="modal-close" type="button" data-close-modal>Fechar</button>
+            </div>
+            <img class="modal-image" id="modal-image" alt="Imagem original da placa">
+        </div>
+    </div>
+    <script>
+        const modal = document.getElementById("image-modal");
+        const modalImage = document.getElementById("modal-image");
+        const closeModal = () => {
+            modal.hidden = true;
+            modalImage.removeAttribute("src");
+            document.body.classList.remove("modal-open");
+        };
+        document.querySelectorAll(".image-link").forEach((link) => {
+            link.addEventListener("click", (event) => {
+                event.preventDefault();
+                modalImage.src = link.dataset.imageSrc || link.href;
+                modal.hidden = false;
+                document.body.classList.add("modal-open");
+            });
+        });
+        document.querySelectorAll("[data-close-modal]").forEach((button) => button.addEventListener("click", closeModal));
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && !modal.hidden) closeModal();
+        });
+    </script>
 </body>
 </html>

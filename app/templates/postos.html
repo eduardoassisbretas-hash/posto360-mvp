@@ -36,7 +36,7 @@
             background: var(--bg);
             background-image: var(--bg-accent);
             color: var(--text);
-            padding: 18px;
+            padding: 12px;
         }
 
         a {
@@ -48,7 +48,7 @@
             width: min(1120px, 100%);
             margin: 0 auto;
             display: grid;
-            gap: 18px;
+            gap: 12px;
         }
 
         .page-header,
@@ -58,13 +58,13 @@
             border: 1px solid var(--border);
             background: var(--panel);
             box-shadow: var(--shadow);
-            border-radius: var(--radius-lg);
+            border-radius: 24px;
         }
 
         .page-header {
             display: grid;
-            gap: 18px;
-            padding: 22px;
+            gap: 12px;
+            padding: 18px;
         }
 
         h1,
@@ -82,13 +82,13 @@
 
         p {
             color: var(--muted);
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         .top-actions {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 8px;
         }
 
         .btn-primary,
@@ -96,11 +96,12 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 48px;
-            padding: 0 18px;
+            min-height: 52px;
+            padding: 0 16px;
             border-radius: 14px;
             font-weight: 800;
             cursor: pointer;
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
         }
 
         .btn-primary {
@@ -115,15 +116,29 @@
             color: #dbeafe;
         }
 
+        .btn-primary:hover,
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+            border-color: rgba(56, 189, 248, 0.36);
+        }
+
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        summary:focus-visible {
+            outline: 3px solid rgba(56, 189, 248, 0.34);
+            outline-offset: 3px;
+        }
+
         .stations-grid {
             display: grid;
-            gap: 16px;
+            gap: 12px;
         }
 
         .station-card {
             display: grid;
-            gap: 16px;
-            padding: 18px;
+            gap: 12px;
+            padding: 16px;
             background: linear-gradient(180deg, rgba(15, 27, 47, 0.94) 0%, rgba(8, 15, 27, 0.98) 100%);
         }
 
@@ -289,8 +304,8 @@
         }
 
         .edit-form input {
-            min-height: 40px;
-            border-radius: 10px;
+            min-height: 46px;
+            border-radius: 12px;
         }
 
         .empty-state {
@@ -303,7 +318,7 @@
         }
 
         .add-panel {
-            padding: 18px;
+            padding: 16px;
         }
 
         .add-panel summary {
@@ -329,24 +344,31 @@
         }
 
         input {
-            min-height: 48px;
+            min-height: 54px;
             border-radius: 14px;
             border: 1px solid rgba(148, 163, 184, 0.18);
             background: rgba(15, 23, 42, 0.72);
             color: var(--text);
             padding: 0 14px;
             outline: none;
+            font: inherit;
+            font-size: 16px;
+        }
+
+        input:focus {
+            border-color: rgba(56, 189, 248, 0.55);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
         }
 
         @media (min-width: 760px) {
             body {
-                padding: 28px;
+                padding: 24px;
             }
 
             .page-header {
                 grid-template-columns: 1fr auto;
                 align-items: center;
-                padding: 30px;
+                padding: 24px;
             }
 
             .stations-grid {
@@ -357,6 +379,29 @@
         @media (min-width: 1100px) {
             .stations-grid {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            .top-actions > *,
+            .card-actions > *,
+            .empty-state .btn-primary {
+                width: 100%;
+            }
+
+            .station-top,
+            .price-main {
+                display: grid;
+                gap: 8px;
+            }
+
+            .badge {
+                justify-self: start;
+            }
+
+            .more-actions {
+                margin-left: 0;
+                justify-self: end;
             }
         }
     </style>
