@@ -194,7 +194,7 @@
         <section class="hero">
             <span class="eyebrow">{% if tipo_padrao == "meu_posto" %}Operação interna{% else %}Concorrência regional{% endif %}</span>
             <h1>{% if tipo_padrao == "meu_posto" %}Upload da minha placa{% else %}Enviar placas concorrentes{% endif %}</h1>
-            <p>{% if tipo_padrao == "meu_posto" %}Use OCR para atualizar preços do próprio posto a partir da placa da unidade.{% else %}Selecione ate 30 imagens de concorrentes por envio para alimentar a inteligência regional.{% endif %}</p>
+            <p>{% if tipo_padrao == "meu_posto" %}Use OCR para atualizar preços do próprio posto a partir da placa da unidade.{% else %}Selecione até 30 imagens de concorrentes por envio para alimentar a inteligência regional.{% endif %}</p>
         </section>
 
         <section class="panel">
@@ -229,7 +229,7 @@
                 </div>
                 {% endif %}
                 <div class="field">
-                    <label for="regiao">Regiao manual (opcional)</label>
+                    <label for="regiao">Região manual (opcional)</label>
                     <input id="regiao" type="text" name="regiao" placeholder="Ex: Centro, Savassi">
                     <p class="support-text">Use apenas se quiser organizar por bairro ou se a localização não for capturada.</p>
                 </div>
@@ -237,8 +237,8 @@
                 <input id="longitude" type="hidden" name="longitude">
                 <input type="file" name="imagens" accept=".jpg,.jpeg,.png,.webp,.heic,.heif,image/jpeg,image/png,image/webp,image/heic,image/heif" multiple required>
                 <div class="field">
-                    <span class="status-chip" id="geo-status">Localizacao ainda nao capturada</span>
-                    <p class="support-text">Ao enviar, o navegador tenta capturar sua localizacao atual. Se nao permitir, o upload continua normalmente.</p>
+                    <span class="status-chip" id="geo-status">Localização ainda não capturada</span>
+                    <p class="support-text">Ao enviar, o navegador tenta capturar sua localização atual. Se não permitir, o upload continua normalmente.</p>
                 </div>
                 <div class="actions">
                     <button type="submit">Enviar imagens</button>
@@ -273,24 +273,24 @@
             event.preventDefault();
 
             if (!navigator.geolocation) {
-                setGeoStatus("Localizacao indisponivel neste navegador");
+                setGeoStatus("Localização indisponível neste navegador");
                 concluirEnvio();
                 return;
             }
 
-            setGeoStatus("Capturando localizacao...");
+            setGeoStatus("Capturando localização...");
 
             navigator.geolocation.getCurrentPosition(
                 function(position) {
                     latitudeInput.value = position.coords.latitude.toFixed(6);
                     longitudeInput.value = position.coords.longitude.toFixed(6);
-                    setGeoStatus("Localizacao detectada e enviada com o lote");
+                    setGeoStatus("Localização detectada e enviada com o lote");
                     concluirEnvio();
                 },
                 function() {
                     latitudeInput.value = "";
                     longitudeInput.value = "";
-                    setGeoStatus("Localizacao nao permitida. Envio sem coordenadas");
+                    setGeoStatus("Localização não permitida. Envio sem coordenadas");
                     concluirEnvio();
                 },
                 {

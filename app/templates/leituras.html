@@ -249,7 +249,7 @@
         <section class="panel">
             <div class="panel-header">
                 <div>
-                    <h2 style="margin:0;">Pagina {{ page }}</h2>
+                    <h2 style="margin:0;">Página {{ page }}</h2>
                     <p class="muted">Mostrando no maximo 10 leituras por vez.</p>
                 </div>
             </div>
@@ -305,7 +305,7 @@
             <div class="pager" style="margin-top:16px;">
                 <div class="filters-group">
                     {% if pagina_anterior %}
-                    <a class="button-secondary" href="/leituras?page={{ pagina_anterior }}{% if regiao_selecionada %}&regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if posto_selecionado %}&posto={{ posto_selecionado|urlencode }}{% endif %}">Pagina anterior</a>
+                    <a class="button-secondary" href="/leituras?page={{ pagina_anterior }}{% if regiao_selecionada %}&regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if posto_selecionado %}&posto={{ posto_selecionado|urlencode }}{% endif %}">Página anterior</a>
                     {% endif %}
                     {% if tem_mais %}
                     <a class="button" href="/leituras?page={{ proxima_page }}{% if regiao_selecionada %}&regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if posto_selecionado %}&posto={{ posto_selecionado|urlencode }}{% endif %}">Carregar mais</a>
