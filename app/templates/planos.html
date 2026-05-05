@@ -183,6 +183,25 @@
             line-height: 1.75;
         }
 
+        .hero-metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .hero-metrics span {
+            display: inline-flex;
+            align-items: center;
+            min-height: 36px;
+            padding: 0 12px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.52);
+            color: #dbeafe;
+            font-size: 0.84rem;
+            font-weight: 850;
+        }
+
         .plans {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -194,9 +213,9 @@
             position: relative;
             display: grid;
             align-content: start;
-            gap: 18px;
+            gap: 16px;
             min-height: 100%;
-            padding: 20px;
+            padding: 22px;
             border: 1px solid var(--line);
             border-radius: var(--radius);
             background: linear-gradient(180deg, rgba(12, 22, 40, 0.9), rgba(8, 15, 27, 0.88));
@@ -215,6 +234,19 @@
             border-color: rgba(56, 189, 248, 0.5);
             background: linear-gradient(180deg, rgba(16, 36, 64, 0.98), rgba(8, 17, 31, 0.94));
             box-shadow: var(--shadow), 0 0 46px rgba(56, 189, 248, 0.16);
+        }
+
+        .plan-card.featured::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), transparent 58%);
+            pointer-events: none;
+        }
+
+        .plan-card > * {
+            position: relative;
         }
 
         .plan-card.scale {
@@ -263,7 +295,8 @@
         }
 
         .price strong {
-            font-size: clamp(2rem, 4vw, 2.7rem);
+            font-size: clamp(2.2rem, 4vw, 3rem);
+            line-height: 1;
         }
 
         .price span {
@@ -278,6 +311,20 @@
             border: 1px solid rgba(148, 163, 184, 0.14);
             border-radius: var(--radius);
             background: rgba(15, 23, 42, 0.54);
+        }
+
+        .unit-price {
+            display: inline-flex;
+            width: fit-content;
+            align-items: center;
+            min-height: 30px;
+            padding: 0 10px;
+            border: 1px solid rgba(52, 211, 153, 0.22);
+            border-radius: 999px;
+            background: rgba(52, 211, 153, 0.08);
+            color: #bbf7d0;
+            font-size: 0.78rem;
+            font-weight: 950;
         }
 
         .coverage strong {
@@ -317,6 +364,11 @@
             border-radius: 999px;
             background: var(--cyan);
             box-shadow: 0 0 12px rgba(56, 189, 248, 0.34);
+        }
+
+        .feature-list .muted-feature {
+            color: #cbd5e1;
+            font-weight: 900;
         }
 
         .cta {
@@ -370,46 +422,107 @@
             margin: 0;
         }
 
-        .comparison-wrap {
-            overflow-x: auto;
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .compare-card {
+            display: grid;
+            gap: 12px;
+            padding: 16px;
             border: 1px solid var(--line);
             border-radius: var(--radius);
+            background: rgba(15, 23, 42, 0.54);
         }
 
-        .comparison-table {
-            width: 100%;
-            min-width: 860px;
-            border-collapse: collapse;
+        .compare-card.featured-compare {
+            border-color: rgba(56, 189, 248, 0.36);
+            background: rgba(14, 34, 60, 0.68);
         }
 
-        .comparison-table th,
-        .comparison-table td {
-            padding: 14px 13px;
-            border-bottom: 1px solid var(--line);
-            color: var(--muted);
-            text-align: left;
-            font-size: 0.9rem;
-            font-weight: 800;
-        }
-
-        .comparison-table th {
+        .compare-card h3 {
+            margin: 0;
             color: #eff6ff;
-            background: rgba(56, 189, 248, 0.08);
-            font-size: 0.82rem;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
+            font-size: 1rem;
         }
 
-        .comparison-table tr:last-child td {
-            border-bottom: 0;
+        .compare-list {
+            display: grid;
+            gap: 9px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
         }
 
-        .yes {
+        .compare-list li {
+            display: flex;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 0.86rem;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+
+        .compare-list li::before {
+            content: "✓";
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            flex: 0 0 auto;
+            border-radius: 999px;
+            background: rgba(52, 211, 153, 0.12);
             color: #bbf7d0;
+            font-size: 0.74rem;
+            font-weight: 950;
         }
 
-        .limited {
-            color: #fde68a;
+        .mobile-compare {
+            display: none;
+        }
+
+        .mobile-compare details {
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: rgba(15, 23, 42, 0.54);
+            overflow: hidden;
+        }
+
+        .mobile-compare details + details {
+            margin-top: 10px;
+        }
+
+        .mobile-compare summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 56px;
+            padding: 0 14px;
+            color: #eff6ff;
+            cursor: pointer;
+            font-weight: 950;
+            list-style: none;
+        }
+
+        .mobile-compare summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .mobile-compare summary::after {
+            content: "+";
+            color: var(--cyan);
+            font-size: 1.2rem;
+        }
+
+        .mobile-compare details[open] summary::after {
+            content: "-";
+        }
+
+        .mobile-compare .compare-list {
+            padding: 0 14px 14px;
         }
 
         .roi-grid {
@@ -418,11 +531,34 @@
             gap: 14px;
         }
 
+        .roi-panel {
+            position: relative;
+            overflow: hidden;
+            border-color: rgba(56, 189, 248, 0.28);
+            background: linear-gradient(180deg, rgba(13, 33, 58, 0.96), rgba(8, 15, 27, 0.94));
+            box-shadow: var(--shadow), 0 0 42px rgba(56, 189, 248, 0.12);
+        }
+
+        .roi-panel::after {
+            content: "";
+            position: absolute;
+            inset: auto -70px -100px auto;
+            width: 220px;
+            height: 220px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(52, 211, 153, 0.18), transparent 70%);
+            pointer-events: none;
+        }
+
+        .roi-panel > * {
+            position: relative;
+        }
+
         .roi-card {
-            padding: 18px;
-            border: 1px solid var(--line);
+            padding: 20px;
+            border: 1px solid rgba(56, 189, 248, 0.18);
             border-radius: var(--radius);
-            background: rgba(15, 23, 42, 0.58);
+            background: rgba(15, 23, 42, 0.66);
         }
 
         .roi-card span {
@@ -434,7 +570,7 @@
             display: block;
             margin-top: 8px;
             color: #eff6ff;
-            font-size: clamp(1.8rem, 4vw, 2.6rem);
+            font-size: clamp(2rem, 4vw, 2.9rem);
             line-height: 1;
         }
 
@@ -474,6 +610,10 @@
             .plans {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
+
+            .compare-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
         }
 
         @media (max-width: 720px) {
@@ -494,6 +634,14 @@
             .roi-grid,
             .faq {
                 grid-template-columns: 1fr;
+            }
+
+            .desktop-compare {
+                display: none;
+            }
+
+            .mobile-compare {
+                display: block;
             }
 
             .trial-row {
@@ -535,10 +683,15 @@
 
         <section class="hero" aria-labelledby="plans-title">
             <div class="eyebrow">Planos corporativos Posto360</div>
-            <h1 id="plans-title">Inteligência de preço para redes que decidem com margem.</h1>
+            <h1 id="plans-title">Recupere margem operacional com inteligência estratégica.</h1>
             <p class="hero-copy">
-                Transforme leituras de campo, concorrência regional e gestão de postos em uma operação executiva, auditável e preparada para escala.
+                IA operacional, concorrência regional e governança para redes de postos que querem escalar com controle.
             </p>
+            <div class="hero-metrics" aria-label="Benefícios principais">
+                <span>IA operacional para postos</span>
+                <span>Expansão com governança</span>
+                <span>Gestão nacional premium</span>
+            </div>
         </section>
 
         <section class="plans" aria-label="Planos corporativos">
@@ -549,24 +702,18 @@
                     <div class="price"><strong>R$997</strong><span>/mês</span></div>
                     <div class="coverage">
                         <strong>Até 10 postos</strong>
-                        <span>Aprox. R$99/posto</span>
+                        <span class="unit-price">≈ R$99 por posto</span>
                     </div>
-                    <p class="plan-copy">Para operações que precisam mais margem, velocidade e controle diário.</p>
+                    <p class="plan-copy">Para redes em crescimento que precisam enxergar margem, concorrência e campo sem planilhas.</p>
                 </div>
                 <ul class="feature-list">
                     <li>OCR inteligente de placas de preço</li>
-                    <li>Upload em lote de imagens</li>
                     <li>Dashboard executivo completo</li>
                     <li>Modo Campo para equipes externas</li>
-                    <li>Cadastro e gestão de múltiplos postos</li>
                     <li>Histórico completo de leituras</li>
                     <li>Alertas de concorrência por região</li>
                     <li>Comparativo regional automático</li>
-                    <li>Sugestões operacionais iniciais</li>
-                    <li>Monitoramento de preços da concorrência</li>
-                    <li>Gestão de margem operacional</li>
-                    <li>Painel mobile otimizado</li>
-                    <li>Suporte padrão prioritário</li>
+                    <li>Monitoramento de preços e margem</li>
                 </ul>
                 <a class="cta" href="/configuracoes?upgrade=growth">Fazer upgrade</a>
             </article>
@@ -578,25 +725,19 @@
                     <div class="price"><strong>R$1.997</strong><span>/mês</span></div>
                     <div class="coverage">
                         <strong>Até 25 postos</strong>
-                        <span>Aprox. R$79/posto</span>
+                        <span class="unit-price">≈ R$79 por posto</span>
                     </div>
-                    <p class="plan-copy">Para redes em expansão que precisam previsibilidade, inteligência estratégica e maior automação.</p>
+                    <p class="plan-copy">Plano principal para redes que querem previsibilidade, IA estratégica e execução com escala.</p>
                 </div>
                 <ul class="feature-list">
-                    <li>Inclui tudo do Growth</li>
+                    <li class="muted-feature">Inclui tudo do Growth</li>
                     <li>IA estratégica avançada</li>
-                    <li>Previsão operacional de preço</li>
                     <li>Recomendações avançadas de margem</li>
                     <li>Insights premium por posto</li>
                     <li>Gestão por equipe e usuários</li>
                     <li>Relatórios executivos</li>
-                    <li>Priorização de oportunidades</li>
                     <li>Auditoria avançada de leituras</li>
-                    <li>Histórico estratégico regional</li>
-                    <li>Alertas inteligentes expandidos</li>
                     <li>Suporte prioritário premium</li>
-                    <li>Melhor performance operacional</li>
-                    <li>Escalabilidade para expansão</li>
                 </ul>
                 <a class="cta primary" href="/configuracoes?upgrade=pro">Escalar operação</a>
             </article>
@@ -608,23 +749,18 @@
                     <div class="price"><strong>R$3.497</strong><span>/mês</span></div>
                     <div class="coverage">
                         <strong>Até 50 postos</strong>
-                        <span>Aprox. R$69/posto</span>
+                        <span class="unit-price">≈ R$69 por posto</span>
                     </div>
-                    <p class="plan-copy">Para operações robustas que exigem máxima eficiência, padronização e inteligência de rede.</p>
+                    <p class="plan-copy">Para operações corporativas que exigem padronização, governança e camada executiva de decisão.</p>
                 </div>
                 <ul class="feature-list">
-                    <li>Inclui tudo do Pro</li>
+                    <li class="muted-feature">Inclui tudo do Pro</li>
                     <li>Gestão avançada multi-rede</li>
                     <li>Consultoria premium</li>
                     <li>Atendimento prioritário máximo</li>
                     <li>Customizações estratégicas</li>
-                    <li>Estrutura operacional avançada</li>
                     <li>Relatórios corporativos expandidos</li>
-                    <li>Expansão de governança operacional</li>
                     <li>Prioridade em novas funcionalidades</li>
-                    <li>Inteligência regional premium</li>
-                    <li>Camada executiva para tomada de decisão</li>
-                    <li>Escala corporativa</li>
                 </ul>
                 <a class="cta" href="mailto:comercial@posto360app.com.br?subject=Posto360%20Scale">Maximizar rede</a>
             </article>
@@ -636,20 +772,17 @@
                     <div class="price"><strong>Sob consulta</strong></div>
                     <div class="coverage">
                         <strong>50+ postos</strong>
-                        <span>Grandes grupos, distribuidoras e operações nacionais</span>
+                        <span class="unit-price">Projeto sob medida</span>
                     </div>
-                    <p class="plan-copy">Para operações que precisam solução personalizada, governança nacional e suporte estratégico dedicado.</p>
+                    <p class="plan-copy">Para grandes grupos, distribuidoras e operações nacionais com necessidades específicas.</p>
                 </div>
                 <ul class="feature-list">
                     <li>Implantação dedicada</li>
                     <li>Integrações futuras TOTVS, Tecnox e ERP</li>
                     <li>Customizações completas</li>
                     <li>Atendimento estratégico dedicado</li>
-                    <li>Consultoria de implantação</li>
-                    <li>Estrutura corporativa personalizada</li>
                     <li>SLA premium</li>
                     <li>Gestão nacional e regional</li>
-                    <li>Expansão enterprise</li>
                 </ul>
                 <a class="cta" href="mailto:comercial@posto360app.com.br?subject=Posto360%20Enterprise">Falar com especialista</a>
             </article>
@@ -657,45 +790,83 @@
 
         <section class="section-panel" aria-label="Comparativo de planos">
             <div class="section-heading">
-                <h2>Comparativo profissional</h2>
-                <p class="section-copy">Compare a cobertura das camadas para escolher o nível certo de automação, inteligência e suporte.</p>
+                <h2>Compare sem virar planilha</h2>
+                <p class="section-copy">Uma leitura rápida das diferenças principais entre operação, inteligência e governança.</p>
             </div>
-            <div class="comparison-wrap">
-                <table class="comparison-table">
-                    <thead>
-                        <tr>
-                            <th>Recurso</th>
-                            <th>Growth</th>
-                            <th>Pro</th>
-                            <th>Scale</th>
-                            <th>Enterprise</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>OCR de placas</td><td class="yes">Completo</td><td class="yes">Completo</td><td class="yes">Completo</td><td class="yes">Completo</td></tr>
-                        <tr><td>Dashboard executivo</td><td class="yes">Completo</td><td class="yes">Completo</td><td class="yes">Corporativo</td><td class="yes">Personalizado</td></tr>
-                        <tr><td>Multi postos</td><td>Até 10</td><td>Até 25</td><td>Até 50</td><td>50+</td></tr>
-                        <tr><td>Modo Campo</td><td class="yes">Incluído</td><td class="yes">Incluído</td><td class="yes">Incluído</td><td class="yes">Incluído</td></tr>
-                        <tr><td>Histórico operacional</td><td class="yes">Completo</td><td class="yes">Avançado</td><td class="yes">Corporativo</td><td class="yes">Personalizado</td></tr>
-                        <tr><td>Alertas inteligentes</td><td>Regional</td><td class="yes">Expandido</td><td class="yes">Avançado</td><td class="yes">Personalizado</td></tr>
-                        <tr><td>Comparativo regional</td><td class="yes">Automático</td><td class="yes">Avançado</td><td class="yes">Premium</td><td class="yes">Nacional</td></tr>
-                        <tr><td>IA estratégica</td><td class="limited">Inicial</td><td class="yes">Avançada</td><td class="yes">Premium</td><td class="yes">Sob medida</td></tr>
-                        <tr><td>Previsão operacional</td><td>-</td><td class="yes">Incluída</td><td class="yes">Avançada</td><td class="yes">Sob medida</td></tr>
-                        <tr><td>Relatórios executivos</td><td>-</td><td class="yes">Incluídos</td><td class="yes">Expandidos</td><td class="yes">Corporativos</td></tr>
-                        <tr><td>Gestão por equipe</td><td>-</td><td class="yes">Incluída</td><td class="yes">Avançada</td><td class="yes">Personalizada</td></tr>
-                        <tr><td>Consultoria premium</td><td>-</td><td>-</td><td class="yes">Incluída</td><td class="yes">Dedicada</td></tr>
-                        <tr><td>Integrações futuras</td><td>-</td><td>-</td><td class="limited">Planejadas</td><td class="yes">TOTVS, Tecnox e ERP</td></tr>
-                        <tr><td>Atendimento prioritário</td><td>Padrão prioritário</td><td class="yes">Premium</td><td class="yes">Máximo</td><td class="yes">Dedicado</td></tr>
-                        <tr><td>Customização</td><td>-</td><td>-</td><td class="limited">Estratégica</td><td class="yes">Completa</td></tr>
-                    </tbody>
-                </table>
+            <div class="compare-grid desktop-compare" aria-label="Comparativo em cards">
+                <article class="compare-card">
+                    <h3>Growth</h3>
+                    <ul class="compare-list">
+                        <li>OCR, Modo Campo e dashboard executivo</li>
+                        <li>Até 10 postos com alertas regionais</li>
+                        <li>Histórico completo para rotina operacional</li>
+                    </ul>
+                </article>
+                <article class="compare-card featured-compare">
+                    <h3>Pro</h3>
+                    <ul class="compare-list">
+                        <li>IA estratégica e recomendações de margem</li>
+                        <li>Até 25 postos com gestão por equipe</li>
+                        <li>Relatórios executivos e auditoria avançada</li>
+                    </ul>
+                </article>
+                <article class="compare-card">
+                    <h3>Scale</h3>
+                    <ul class="compare-list">
+                        <li>Governança para até 50 postos</li>
+                        <li>Consultoria premium e suporte máximo</li>
+                        <li>Relatórios corporativos e prioridade em recursos</li>
+                    </ul>
+                </article>
+                <article class="compare-card">
+                    <h3>Enterprise</h3>
+                    <ul class="compare-list">
+                        <li>Gestão nacional e regional personalizada</li>
+                        <li>Integrações futuras com ERP</li>
+                        <li>SLA premium e atendimento estratégico dedicado</li>
+                    </ul>
+                </article>
+            </div>
+            <div class="mobile-compare" aria-label="Comparativo mobile">
+                <details open>
+                    <summary>Growth</summary>
+                    <ul class="compare-list">
+                        <li>OCR, Modo Campo e dashboard executivo</li>
+                        <li>Até 10 postos com alertas regionais</li>
+                        <li>Histórico completo para rotina operacional</li>
+                    </ul>
+                </details>
+                <details>
+                    <summary>Pro</summary>
+                    <ul class="compare-list">
+                        <li>IA estratégica e recomendações de margem</li>
+                        <li>Até 25 postos com gestão por equipe</li>
+                        <li>Relatórios executivos e auditoria avançada</li>
+                    </ul>
+                </details>
+                <details>
+                    <summary>Scale</summary>
+                    <ul class="compare-list">
+                        <li>Governança para até 50 postos</li>
+                        <li>Consultoria premium e suporte máximo</li>
+                        <li>Relatórios corporativos e prioridade em recursos</li>
+                    </ul>
+                </details>
+                <details>
+                    <summary>Enterprise</summary>
+                    <ul class="compare-list">
+                        <li>Gestão nacional e regional personalizada</li>
+                        <li>Integrações futuras com ERP</li>
+                        <li>SLA premium e atendimento estratégico dedicado</li>
+                    </ul>
+                </details>
             </div>
         </section>
 
-        <section class="section-panel" aria-label="ROI estimado">
+        <section class="section-panel roi-panel" aria-label="ROI estimado">
             <div class="section-heading">
                 <h2>Quanto sua operação pode recuperar por mês?</h2>
-                <p class="section-copy">Se o Posto360 gerar apenas R$500 de ganho operacional por posto:</p>
+                <p class="section-copy">Calculadora estratégica simples: se o Posto360 gerar apenas R$500 de ganho operacional por posto.</p>
             </div>
             <div class="roi-grid">
                 <div class="roi-card">
