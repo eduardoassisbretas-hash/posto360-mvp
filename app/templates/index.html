@@ -408,6 +408,10 @@
         }
 
         .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0;
             border-radius: var(--radius-lg);
             padding: 18px;
             position: relative;
@@ -437,7 +441,7 @@
             color: #dbeafe;
             background: rgba(37, 99, 235, 0.16);
             border: 1px solid rgba(96, 165, 250, 0.22);
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         h1,
@@ -467,7 +471,7 @@
             max-width: min(100%, 460px);
             min-height: 34px;
             padding: 0 12px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             border: 1px solid rgba(56, 189, 248, 0.22);
             border-radius: 999px;
             background: rgba(15, 23, 42, 0.54);
@@ -498,6 +502,7 @@
             font-size: 0.92rem;
             line-height: 1.6;
             max-width: 56ch;
+            margin: 0;
         }
 
         .config-alert {
@@ -1184,6 +1189,7 @@
             }
 
             .hero {
+                align-items: flex-start;
                 padding: 16px;
             }
 
@@ -1200,12 +1206,13 @@
             .company-badge {
                 max-width: min(100%, calc(100vw - 82px));
                 width: fit-content;
-                margin-bottom: 12px;
+                margin-bottom: 10px;
                 padding: 0 11px;
             }
 
             .eyebrow {
-                margin-bottom: 12px;
+                max-width: min(100%, calc(100vw - 82px));
+                margin-bottom: 10px;
             }
 
             .filter-form select,
