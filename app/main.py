@@ -4513,6 +4513,21 @@ def modo_campo(request: Request):
     )
 
 
+@app.get("/guia-rapido", response_class=HTMLResponse)
+def guia_rapido(request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return onboarding_redirect
+    return templates.TemplateResponse(
+        request=request,
+        name="guia_rapido.html",
+        context={"company_name": get_display_company_name(user)},
+    )
+
+
 @app.get("/meu-posto", response_class=HTMLResponse)
 def meu_posto(request: Request):
     user = require_user(request)

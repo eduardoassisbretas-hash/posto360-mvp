@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <link rel="icon" type="image/png" href="/static/favicon.png?v=1">
+    <link rel="apple-touch-icon" href="/static/favicon.png?v=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia Rápido | Posto360</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700&display=swap");
+
+        :root {
+            --bg: #06111f;
+            --bg-accent: radial-gradient(circle at 14% 0%, rgba(56, 189, 248, 0.2), transparent 28%), radial-gradient(circle at 88% 8%, rgba(16, 185, 129, 0.14), transparent 24%), linear-gradient(180deg, #08111d 0%, #040914 100%);
+            --panel: rgba(10, 19, 35, 0.9);
+            --panel-strong: rgba(15, 27, 47, 0.98);
+            --soft: rgba(148, 163, 184, 0.08);
+            --border: rgba(148, 163, 184, 0.16);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --primary: #38bdf8;
+            --primary-strong: #2563eb;
+            --success: #34d399;
+            --shadow: 0 18px 48px rgba(2, 6, 23, 0.34);
+            --radius-lg: 26px;
+            --radius-md: 18px;
+            --radius-sm: 14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { min-height: 100vh; font-family: "Manrope", "Segoe UI", sans-serif; background: var(--bg); background-image: var(--bg-accent); color: var(--text); padding: 12px; }
+        a { color: inherit; text-decoration: none; }
+        a:focus-visible { outline: 3px solid rgba(56, 189, 248, 0.34); outline-offset: 3px; }
+
+        .shell { width: min(1180px, 100%); margin: 0 auto; display: grid; gap: 14px; }
+        .hero, .section, .card, .result-card, .plan-card, .compare-card { border: 1px solid var(--border); background: var(--panel); box-shadow: var(--shadow); border-radius: var(--radius-lg); }
+        .hero { position: relative; overflow: hidden; display: grid; gap: 16px; padding: 20px; }
+        .hero::after { content: ""; position: absolute; inset: auto -90px -110px auto; width: 240px; height: 240px; border-radius: 999px; background: radial-gradient(circle, rgba(56, 189, 248, 0.2), transparent 70%); pointer-events: none; }
+        .hero > * { position: relative; z-index: 1; }
+        .badge { display: inline-flex; width: fit-content; align-items: center; gap: 8px; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(56, 189, 248, 0.24); background: rgba(56, 189, 248, 0.1); color: #dbeafe; font-size: 0.76rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+        .badge::before { content: ""; width: 8px; height: 8px; border-radius: 999px; background: linear-gradient(135deg, var(--primary), var(--success)); box-shadow: 0 0 18px rgba(56, 189, 248, 0.55); }
+        h1, h2, h3 { font-family: "Space Grotesk", "Manrope", sans-serif; letter-spacing: -0.03em; }
+        h1 { max-width: 860px; font-size: clamp(2.25rem, 10vw, 4.7rem); line-height: 0.96; }
+        h2 { font-size: clamp(1.45rem, 5vw, 2.25rem); }
+        h3 { font-size: 1.05rem; }
+        p { color: var(--muted); line-height: 1.55; }
+        .hero-copy { max-width: 720px; color: #cbd5e1; font-size: 1rem; }
+        .company { color: #93c5fd; font-weight: 850; }
+        .actions { display: grid; gap: 10px; margin-top: 2px; }
+        .btn-primary, .btn-secondary { display: inline-flex; align-items: center; justify-content: center; min-height: 54px; padding: 0 16px; border-radius: 16px; font-weight: 900; transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease; }
+        .btn-primary { color: #eff6ff; background: linear-gradient(135deg, var(--primary), var(--primary-strong)); box-shadow: 0 18px 36px rgba(37, 99, 235, 0.28); }
+        .btn-secondary { border: 1px solid var(--border); color: #dbeafe; background: rgba(15, 23, 42, 0.66); }
+        .btn-primary:hover, .btn-secondary:hover { transform: translateY(-1px); border-color: rgba(56, 189, 248, 0.36); }
+
+        .section { display: grid; gap: 14px; padding: 18px; background: linear-gradient(180deg, rgba(15, 27, 47, 0.94), rgba(8, 15, 27, 0.98)); }
+        .section-head { display: grid; gap: 8px; max-width: 780px; }
+        .grid { display: grid; gap: 10px; }
+        .card, .result-card, .plan-card, .compare-card { display: grid; gap: 10px; padding: 16px; background: rgba(15, 27, 47, 0.7); box-shadow: none; border-radius: var(--radius-md); }
+        .icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 14px; color: #06111f; background: linear-gradient(135deg, var(--primary), var(--success)); font-weight: 950; box-shadow: 0 0 24px rgba(56, 189, 248, 0.18); }
+        .step-top { display: flex; gap: 10px; align-items: flex-start; }
+        .step-kicker { color: #93c5fd; font-size: 0.74rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+        .benefit { width: fit-content; max-width: 100%; padding: 7px 10px; border-radius: 999px; border: 1px solid rgba(52, 211, 153, 0.2); background: rgba(52, 211, 153, 0.08); color: #bbf7d0; font-size: 0.82rem; font-weight: 850; }
+        .feature-card { grid-template-columns: 1fr; }
+        .example { padding: 10px; border-radius: 14px; background: rgba(2, 6, 23, 0.24); color: #cbd5e1; font-size: 0.9rem; }
+        .result-card { border-color: rgba(56, 189, 248, 0.18); }
+        .result-card strong { color: #e0f2fe; }
+        .plan-card.featured { border-color: rgba(56, 189, 248, 0.42); background: linear-gradient(180deg, rgba(16, 36, 64, 0.9), rgba(8, 17, 31, 0.9)); }
+        .plan-label { width: fit-content; padding: 6px 9px; border-radius: 999px; color: #bae6fd; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); font-size: 0.76rem; font-weight: 900; }
+        .compare-grid { display: grid; gap: 10px; }
+        .compare-card ul { display: grid; gap: 8px; padding-left: 18px; color: #cbd5e1; line-height: 1.45; }
+        .footer-cta { display: grid; gap: 14px; padding: 20px; border-radius: var(--radius-lg); border: 1px solid rgba(56, 189, 248, 0.22); background: linear-gradient(135deg, rgba(15, 30, 52, 0.94), rgba(8, 15, 27, 0.96)); box-shadow: var(--shadow); }
+
+        @media (min-width: 760px) {
+            body { padding: 24px; }
+            .shell { gap: 16px; }
+            .hero { grid-template-columns: minmax(0, 1fr) auto; align-items: end; padding: 28px; }
+            .actions { grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 380px; }
+            .section { padding: 24px; }
+            .grid.steps { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+            .grid.features { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .grid.results { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .grid.plans { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .compare-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .footer-cta { grid-template-columns: 1fr auto; align-items: center; }
+            .footer-cta .actions { min-width: 520px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 520px) {
+            .hero, .section, .footer-cta { border-radius: 22px; }
+            .actions > * { width: 100%; }
+            h1 { font-size: clamp(2.1rem, 11vw, 2.8rem); }
+            .grid.steps { gap: 9px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <section class="hero">
+            <div>
+                <span class="badge">Guia rápido Posto360</span>
+                <h1>Domine sua operação com o Posto360</h1>
+                <p class="hero-copy">Entenda em poucos minutos como monitorar concorrência, proteger margem e tomar decisões mais inteligentes para <span class="company">{{ company_name if company_name is defined else "sua rede" }}</span>.</p>
+            </div>
+            <div class="actions">
+                <a class="btn-primary" href="/dashboard">Ir para Dashboard</a>
+                <a class="btn-secondary" href="/modo-campo">Começar Modo Campo</a>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-head">
+                <h2>Como funciona</h2>
+                <p>Um fluxo simples: coletar, comparar, filtrar, agir e aprender com o histórico.</p>
+            </div>
+            <div class="grid steps">
+                <article class="card">
+                    <div class="step-top"><span class="icon">1</span><div><span class="step-kicker">Modo Campo</span><h3>Capture preços</h3></div></div>
+                    <p>Fotografe placas concorrentes ou envie imagens da galeria para registrar preços regionais rapidamente.</p>
+                    <span class="benefit">Mais velocidade na coleta.</span>
+                </article>
+                <article class="card">
+                    <div class="step-top"><span class="icon">2</span><div><span class="step-kicker">Concorrência</span><h3>Compare a região</h3></div></div>
+                    <p>Veja seus preços contra a média regional e identifique riscos ou oportunidades.</p>
+                    <span class="benefit">Decisão mais estratégica.</span>
+                </article>
+                <article class="card">
+                    <div class="step-top"><span class="icon">3</span><div><span class="step-kicker">Filtros</span><h3>Refine a análise</h3></div></div>
+                    <p>Filtre por região, posto ou operação específica para análises mais precisas.</p>
+                    <span class="benefit">Gestão personalizada.</span>
+                </article>
+                <article class="card">
+                    <div class="step-top"><span class="icon">4</span><div><span class="step-kicker">Alertas</span><h3>Aja rápido</h3></div></div>
+                    <p>O sistema destaca mudanças importantes no mercado e oportunidades de margem.</p>
+                    <span class="benefit">Menos reação tardia.</span>
+                </article>
+                <article class="card">
+                    <div class="step-top"><span class="icon">5</span><div><span class="step-kicker">Histórico</span><h3>Aprenda com dados</h3></div></div>
+                    <p>Acompanhe evolução operacional, imagens enviadas e decisões anteriores.</p>
+                    <span class="benefit">Gestão orientada por dados.</span>
+                </article>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-head">
+                <h2>Entenda cada função</h2>
+                <p>O essencial para donos, gerentes e operadores usarem a plataforma sem ruído.</p>
+            </div>
+            <div class="grid features">
+                <article class="card feature-card"><h3>Dashboard</h3><p>Central executiva para KPIs, alertas e decisão de preço.</p><p class="example">Exemplo: ver se a gasolina está acima da média.</p><span class="benefit">Decisão rápida.</span></article>
+                <article class="card feature-card"><h3>Modo Campo</h3><p>Ferramenta simples para equipes enviarem placas e preços.</p><p class="example">Exemplo: gerente fotografa concorrente no celular.</p><span class="benefit">Operação padronizada.</span></article>
+                <article class="card feature-card"><h3>Leituras</h3><p>Lista de imagens, OCR, preços e revisão visual.</p><p class="example">Exemplo: conferir placa enviada pela equipe.</p><span class="benefit">Auditoria prática.</span></article>
+                <article class="card feature-card"><h3>Filtros por região</h3><p>Mostram o cenário por bairro, cidade ou corredor comercial.</p><p class="example">Exemplo: comparar Savassi com Centro.</p><span class="benefit">Precisão regional.</span></article>
+                <article class="card feature-card"><h3>Filtros por posto</h3><p>Focam a gestão em uma unidade específica da rede.</p><p class="example">Exemplo: avaliar apenas o Posto Central.</p><span class="benefit">Controle por unidade.</span></article>
+                <article class="card feature-card"><h3>Alertas</h3><p>Apontam riscos, concorrência agressiva e oportunidades.</p><p class="example">Exemplo: concorrentes reduziram diesel.</p><span class="benefit">Ação antecipada.</span></article>
+                <article class="card feature-card"><h3>Histórico</h3><p>Guarda leituras, imagens e decisões para consulta.</p><p class="example">Exemplo: revisar preço da semana passada.</p><span class="benefit">Memória operacional.</span></article>
+                <article class="card feature-card"><h3>Gestão multi-rede</h3><p>Estrutura preparada para múltiplos postos e regiões.</p><p class="example">Exemplo: sócio acompanha várias praças.</p><span class="benefit">Escalabilidade.</span></article>
+                <article class="card feature-card"><h3>Integrações futuras</h3><p>Base preparada para evoluir com ERP, TOTVS e sistemas do setor.</p><p class="example">Exemplo: conectar dados comerciais no futuro.</p><span class="benefit">Visão corporativa.</span></article>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-head">
+                <h2>Resultados para sua rede</h2>
+                <p>Menos improviso, mais governança e decisões comerciais com base real.</p>
+            </div>
+            <div class="grid results">
+                <article class="result-card"><strong>Proteção de margem</strong><p>Identifique preço fora do mercado antes de perder volume.</p></article>
+                <article class="result-card"><strong>Menos WhatsApp</strong><p>Centralize fotos, preços e histórico em um só lugar.</p></article>
+                <article class="result-card"><strong>Padronização</strong><p>Gerentes coletam dados com o mesmo processo.</p></article>
+                <article class="result-card"><strong>Governança</strong><p>Donos e sócios acompanham a operação com clareza.</p></article>
+                <article class="result-card"><strong>Decisão rápida</strong><p>Veja riscos e oportunidades sem montar planilhas.</p></article>
+                <article class="result-card"><strong>Inteligência regional</strong><p>Compare praças e entenda movimentações locais.</p></article>
+                <article class="result-card"><strong>Escala</strong><p>Cresça de poucos postos para uma operação multi-unidade.</p></article>
+                <article class="result-card"><strong>Auditoria visual</strong><p>Confira fotos e leituras enviadas pela equipe.</p></article>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-head">
+                <h2>Planos Posto360</h2>
+                <p>Comece simples e evolua para uma operação cada vez mais inteligente.</p>
+            </div>
+            <div class="grid plans">
+                <article class="plan-card"><span class="plan-label">Starter</span><h3>Para começar</h3><p>Ideal para testar o fluxo, entender o dashboard e validar a coleta de campo.</p><span class="benefit">Trial gratuito incluído.</span></article>
+                <article class="plan-card featured"><span class="plan-label">Pro</span><h3>Para escalar</h3><p>Feito para redes que precisam de alertas, histórico, Modo Campo e inteligência competitiva.</p><span class="benefit">Melhor para operação ativa.</span></article>
+                <article class="plan-card"><span class="plan-label">Enterprise</span><h3>Para grandes grupos</h3><p>Camada corporativa para governança regional, expansão e futuras integrações.</p><span class="benefit">Projeto sob medida.</span></article>
+            </div>
+            <div class="actions">
+                <a class="btn-primary" href="/planos">Ver planos</a>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-head">
+                <h2>Por que o Posto360 é diferente?</h2>
+                <p>Troque operação dispersa por inteligência competitiva centralizada.</p>
+            </div>
+            <div class="compare-grid">
+                <article class="compare-card">
+                    <h3>Gestão manual</h3>
+                    <ul>
+                        <li>Fotos perdidas no WhatsApp</li>
+                        <li>Planilhas difíceis de manter</li>
+                        <li>Decisão lenta e sem histórico</li>
+                        <li>Operação dependente de memória</li>
+                    </ul>
+                </article>
+                <article class="compare-card">
+                    <h3>Posto360</h3>
+                    <ul>
+                        <li>Dashboard centralizado</li>
+                        <li>Modo Campo para coleta rápida</li>
+                        <li>IA operacional e alertas</li>
+                        <li>Expansão com governança</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section class="footer-cta">
+            <div>
+                <h2>Pronto para operar com mais clareza?</h2>
+                <p>Use o guia como referência rápida e volte para a operação quando quiser.</p>
+            </div>
+            <div class="actions">
+                <a class="btn-primary" href="/planos">Contratar plano</a>
+                <a class="btn-secondary" href="/dashboard">Dashboard</a>
+                <a class="btn-secondary" href="/modo-campo">Modo Campo</a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
