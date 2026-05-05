@@ -476,11 +476,17 @@
             font-size: 0.86rem;
             font-weight: 800;
             backdrop-filter: blur(14px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            white-space: nowrap;
         }
 
         .company-badge-name {
             display: inline-block;
+            flex: 1 1 auto;
             min-width: 0;
+            max-width: 100%;
             overflow: hidden;
             color: #f8fafc;
             text-overflow: ellipsis;
@@ -1188,11 +1194,14 @@
 
             .hero-title {
                 font-size: 28px;
+                margin-bottom: 8px;
             }
 
             .company-badge {
-                max-width: calc(100vw - 64px);
+                max-width: min(100%, calc(100vw - 82px));
                 width: fit-content;
+                margin-bottom: 12px;
+                padding: 0 11px;
             }
 
             .eyebrow {
