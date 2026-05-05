@@ -520,7 +520,28 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            margin-top: 22px;
+            width: 100%;
+            margin-top: 24px;
+        }
+
+        .hero-actions .btn-primary,
+        .hero-actions .btn-secondary {
+            min-height: 58px;
+            padding: 0 22px;
+            border-radius: 18px;
+            font-size: 0.98rem;
+            font-weight: 850;
+        }
+
+        .hero-actions .btn-primary {
+            background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+            box-shadow: 0 18px 36px rgba(37, 99, 235, 0.34), 0 0 28px rgba(56, 189, 248, 0.12);
+        }
+
+        .hero-actions .btn-secondary {
+            border-color: rgba(125, 211, 252, 0.24);
+            background: rgba(15, 23, 42, 0.7);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 14px 28px rgba(2, 6, 23, 0.16);
         }
 
         .filter-bar {
@@ -1221,8 +1242,8 @@
             }
 
             .hero-actions {
-                gap: 10px;
-                margin-top: 18px;
+                gap: 12px;
+                margin-top: 22px;
             }
 
             .stat-card,
@@ -1306,11 +1327,21 @@
             .hero-actions {
                 flex-direction: row;
                 align-items: center;
+                width: auto;
+                gap: 12px;
             }
 
             .btn-primary,
             .btn-secondary {
                 width: auto;
+            }
+
+            .hero-actions .btn-primary {
+                min-width: 190px;
+            }
+
+            .hero-actions .btn-secondary {
+                min-width: 240px;
             }
 
             .filter-form {
