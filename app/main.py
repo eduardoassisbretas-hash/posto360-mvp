@@ -18,10 +18,16 @@ from typing import List
 
 import requests
 from fastapi import FastAPI, File, Form, Request, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from dotenv import load_dotenv
+from pydantic import BaseModel
+
+try:
+    from openai import OpenAI
+except ImportError:  # pragma: no cover - dependency is installed in production via requirements.txt.
+    OpenAI = None
 
 try:
     import psycopg2
@@ -62,7 +68,7 @@ VISION_MAX_WORKERS = 4
 OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses"
 NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse"
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
-OPENAI_AI_MODEL = os.getenv("OPENAI_AI_MODEL", "gpt-4.1-mini")
+OPENAI_AI_MODEL = os.getenv("OPENAI_AI_MODEL", "gpt-5.2")
 OPENAI_VISION_MODEL = os.getenv("OPENAI_VISION_MODEL", "gpt-4.1-mini")
 OPENAI_VISION_MIN_CONFIDENCE = float(os.getenv("OPENAI_VISION_MIN_CONFIDENCE", "0.20"))
 OPENAI_VISION_LOW_CONFIDENCE = float(os.getenv("OPENAI_VISION_LOW_CONFIDENCE", "0.65"))
@@ -3270,6 +3276,39 @@ POSTO360_AI_SUGESTOES = [
     "Quais regiões exigem atenção?",
 ]
 
+POSTO360_AI_SYSTEM_PROMPT = """
+Você é o Posto360 AI, um copiloto operacional para donos e gestores de postos de combustível.
+
+Você responde sobre:
+- dados internos do Posto360
+- leituras por imagem
+- preços de combustíveis
+- concorrência regional
+- alertas
+- oportunidades
+- operação de postos
+- gasolina, etanol e diesel
+- dúvidas gerais sobre gestão de postos
+
+Regras:
+- Use primeiro os dados reais do app.
+- Não invente números.
+- Se faltar dado, diga claramente.
+- Pode responder conhecimento geral sobre postos, mas separe o que é dado real do que é orientação geral.
+- Seja direto, executivo e prático.
+- Sempre termine com uma próxima ação recomendada.
+
+Formato:
+1. Resumo direto
+2. O que os dados mostram
+3. Risco ou oportunidade
+4. Próxima ação recomendada
+""".strip()
+
+
+class Posto360AIQuestion(BaseModel):
+    question: str
+
 
 def extrair_historico_ai(history_json: str | None) -> List[dict]:
     if not history_json:
@@ -3452,13 +3491,81 @@ def montar_resumo_operacional_openai(contexto: dict) -> dict:
     }
 
 
+def montar_resumo_compacto_posto360_ai(contexto: dict) -> str:
+    resumo = montar_resumo_operacional_openai(contexto)
+    metricas = resumo.get("metricas", {})
+
+    linhas = [
+        "DADOS REAIS DO POSTO360",
+        f"Empresa/rede: {resumo.get('empresa') or 'não informada'}",
+        f"Total de postos: {metricas.get('postos', 0)}",
+        f"Total de leituras: {metricas.get('leituras', 0)}",
+        f"Leituras de concorrentes: {metricas.get('leituras_concorrentes', 0)}",
+        f"Leituras do próprio posto: {metricas.get('leituras_meu_posto', 0)}",
+        f"Alertas ativos: {metricas.get('alertas', 0)}",
+        f"Regiões monitoradas: {metricas.get('regioes', 0)}",
+        "",
+        "Regiões:",
+    ]
+
+    regioes = resumo.get("regioes_monitoradas") or []
+    linhas.append(", ".join(regioes) if regioes else "Sem regiões suficientes cadastradas.")
+
+    linhas.extend(["", "Médias por combustível:"])
+    combustiveis = resumo.get("resumo_combustiveis") or {}
+    if combustiveis:
+        for item in combustiveis.values():
+            linhas.append(
+                f"- {item.get('label')}: média {item.get('media')}, menor {item.get('menor')}, maior {item.get('maior')}"
+            )
+    else:
+        linhas.append("- Sem médias confiáveis por combustível.")
+
+    linhas.extend(["", "Postos cadastrados e posição vs média:"])
+    postos = resumo.get("postos") or []
+    if postos:
+        for posto in postos[:8]:
+            nome = posto.get("nome") or "Posto sem nome"
+            regiao = posto.get("regiao") or "região não informada"
+            status = posto.get("status") or "sem status"
+            linhas.append(f"- {nome} ({regiao}): {status}.")
+            for preco in (posto.get("precos") or [])[:3]:
+                linhas.append(
+                    f"  {preco.get('combustivel')}: {preco.get('preco')} | média concorrente {preco.get('media_concorrentes')} | diferença {preco.get('diferenca')} | status {preco.get('status')}"
+                )
+    else:
+        linhas.append("- Nenhum posto cadastrado.")
+
+    linhas.extend(["", "Alertas existentes:"])
+    alertas = resumo.get("alertas_prioritarios") or []
+    if alertas:
+        for alerta in alertas[:6]:
+            linhas.append(
+                f"- {alerta.get('posto') or 'Posto'} | {alerta.get('regiao') or 'região'} | {alerta.get('combustivel') or 'combustível'} | {alerta.get('status') or 'alerta'} | diferença {alerta.get('diferenca') or 'n/d'} | ação {alerta.get('acao') or 'revisar'}"
+            )
+    else:
+        linhas.append("- Nenhum alerta ativo.")
+
+    linhas.extend(["", "Últimas leituras e histórico de imagens:"])
+    leituras = resumo.get("leituras_recentes") or []
+    if leituras:
+        for leitura in leituras[:8]:
+            linhas.append(
+                f"- {leitura.get('tipo')}: {leitura.get('preco')} | origem {leitura.get('origem')} | região {leitura.get('regiao') or 'não informada'} | posto {leitura.get('posto') or 'não informado'}"
+            )
+    else:
+        linhas.append("- Sem leituras recentes por imagem.")
+
+    texto = "\n".join(linhas)
+    return texto[:6500]
+
+
 def chamar_openai_posto360_ai(pergunta: str, contexto: dict, historico: List[dict]) -> str:
     if not OPENAI_API_KEY:
         raise RuntimeError("openai_api_key_ausente")
+    if OpenAI is None:
+        raise RuntimeError("openai_sdk_ausente")
 
-    resumo_operacional = montar_resumo_operacional_openai(contexto)
-    resumo_json = json.dumps(resumo_operacional, ensure_ascii=False)
-    resumo_json = resumo_json[:6000]
     historico_curto = [
         {
             "pergunta": limitar_texto_ai(item.get("pergunta"), 180),
@@ -3466,54 +3573,23 @@ def chamar_openai_posto360_ai(pergunta: str, contexto: dict, historico: List[dic
         }
         for item in historico[-3:]
     ]
-
-    instrucoes = (
-        "Você é o Posto360 AI, um copiloto executivo para donos e gestores de redes de postos. "
-        "Responda em português do Brasil, com tom premium, direto e operacional. "
-        "Use exclusivamente o resumo operacional fornecido. Não invente dados, preços, postos ou regiões. "
-        "Se a base estiver insuficiente, diga o que falta coletar. "
-        "Priorize decisões acionáveis: onde focar hoje, risco, oportunidade, concorrência e próximos passos. "
-        "Seja objetivo: no máximo 6 bullets ou 3 parágrafos curtos. "
-        "Nunca mencione API, banco de dados, company_id, OCR, logs ou implementação."
-    )
-    pergunta_contextualizada = (
-        f"Pergunta do gestor: {pergunta.strip()[:500]}\n\n"
-        f"Histórico recente do chat: {json.dumps(historico_curto, ensure_ascii=False)}\n\n"
-        f"Resumo operacional autorizado da empresa logada: {resumo_json}"
-    )
-
-    body = {
-        "model": OPENAI_AI_MODEL,
-        "input": [
-            {"role": "system", "content": [{"type": "input_text", "text": instrucoes}]},
-            {"role": "user", "content": [{"type": "input_text", "text": pergunta_contextualizada}]},
-        ],
-        "max_output_tokens": 520,
-        "temperature": 0.35,
-    }
-
-    request = urllib.request.Request(
-        OPENAI_RESPONSES_URL,
-        data=json.dumps(body).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {OPENAI_API_KEY}",
-        },
-        method="POST",
+    user_context = (
+        f"{montar_resumo_compacto_posto360_ai(contexto)}\n\n"
+        f"HISTÓRICO RECENTE DA CONVERSA:\n{json.dumps(historico_curto, ensure_ascii=False)}"
     )
 
     try:
-        with urllib.request.urlopen(request, timeout=20) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-    except urllib.error.HTTPError as erro:
-        detalhe = erro.read().decode("utf-8", errors="ignore")
-        print(f"[POSTO360_AI] erro_http={erro.code} detalhe={detalhe[:240]}")
-        raise RuntimeError(f"falha_openai_ai_http={erro.code}") from erro
-    except urllib.error.URLError as erro:
-        print(f"[POSTO360_AI] erro_rede={erro}")
-        raise RuntimeError("falha_openai_ai_rede") from erro
+        client = OpenAI(api_key=OPENAI_API_KEY)
+        response = client.responses.create(
+            model=OPENAI_AI_MODEL,
+            instructions=POSTO360_AI_SYSTEM_PROMPT,
+            input=user_context + "\n\nPergunta do usuário: " + pergunta.strip()[:600],
+        )
+    except Exception as erro:
+        print(f"[POSTO360_AI] erro_openai_sdk={erro}")
+        raise RuntimeError("falha_openai_ai_sdk") from erro
 
-    texto = extrair_texto_resposta_openai(payload).strip()
+    texto = (getattr(response, "output_text", "") or "").strip()
     if not texto:
         raise RuntimeError("resposta_openai_ai_vazia")
 
@@ -4567,6 +4643,54 @@ def posto360_ai(request: Request):
         name="posto360_ai.html",
         context={"dados": montar_dados_posto360_ai(user)},
     )
+
+
+@app.post("/api/posto360-ai")
+def posto360_ai_api(payload: Posto360AIQuestion, request: Request):
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return JSONResponse(
+            status_code=401,
+            content={"error": "Faça login para usar o Posto360 AI."},
+        )
+    onboarding_redirect = require_onboarding(user)
+    if onboarding_redirect:
+        return JSONResponse(
+            status_code=403,
+            content={"error": "Conclua o onboarding antes de usar o Posto360 AI."},
+        )
+
+    question = (payload.question or "").strip()
+    if not question:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Digite uma pergunta para o Posto360 AI."},
+        )
+    if not OPENAI_API_KEY:
+        return JSONResponse(
+            status_code=503,
+            content={"error": "OPENAI_API_KEY não configurada. Adicione a variável no Render em Environment."},
+        )
+    if OpenAI is None:
+        return JSONResponse(
+            status_code=503,
+            content={"error": "Dependência openai ausente. Rode a instalação a partir do requirements.txt."},
+        )
+
+    contexto = montar_contexto_posto360_ai(user)
+    try:
+        answer = chamar_openai_posto360_ai(question, contexto, [])
+    except Exception:
+        return JSONResponse(
+            status_code=502,
+            content={"error": "Não foi possível consultar a IA agora. Tente novamente em instantes."},
+        )
+
+    return {
+        "answer": answer,
+        "model": OPENAI_AI_MODEL,
+        "metrics": resumir_metricas_ai(contexto),
+    }
 
 
 @app.post("/posto360-ai", response_class=HTMLResponse)

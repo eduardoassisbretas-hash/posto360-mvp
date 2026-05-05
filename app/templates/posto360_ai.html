@@ -762,7 +762,7 @@
                     {% endif %}
                 </div>
 
-                <form class="composer" id="ai-form" action="/posto360-ai" method="post">
+                <form class="composer" id="ai-form" action="/api/posto360-ai" method="post">
                     <input type="hidden" name="historico_json" value="{{ dados.historico_json|e if dados is defined else '[]' }}">
                     <div class="loading" id="loading">
                         <span class="loading-dot"></span>
@@ -822,7 +822,7 @@
                 });
             });
 
-            document.querySelectorAll(".response-text").forEach(function (container) {
+            function formatResponse(container) {
                 const raw = container.textContent || "";
                 const lines = raw.split("\n").map(function (line) { return line.trim(); }).filter(Boolean);
                 if (!lines.length) return;
@@ -834,10 +834,73 @@
                     item.textContent = isBullet ? line.replace(/^[-•]\s*/, "") : line;
                     container.appendChild(item);
                 });
+            }
+
+            function appendMessage(role, text) {
+                const welcome = messages.querySelector(".welcome-card");
+                if (welcome) welcome.remove();
+
+                const wrapper = document.createElement("div");
+                wrapper.className = "message " + (role === "user" ? "message-user" : "message-ai");
+
+                const label = document.createElement("span");
+                label.className = "message-label";
+                label.textContent = role === "user" ? "Você" : "Posto360 AI";
+
+                const bubble = document.createElement("div");
+                bubble.className = "bubble";
+
+                if (role === "ai") {
+                    const response = document.createElement("div");
+                    response.className = "response-text";
+                    response.textContent = text;
+                    bubble.appendChild(response);
+                    formatResponse(response);
+                } else {
+                    bubble.textContent = text;
+                }
+
+                wrapper.appendChild(label);
+                wrapper.appendChild(bubble);
+                messages.appendChild(wrapper);
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            function setLoading(active) {
+                loading.style.display = active ? "flex" : "none";
+                form.querySelector(".send-button").disabled = active;
+            }
+
+            document.querySelectorAll(".response-text").forEach(function (container) {
+                formatResponse(container);
             });
 
-            form.addEventListener("submit", function () {
-                loading.style.display = "flex";
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault();
+                const question = input.value.trim();
+                if (!question) return;
+
+                appendMessage("user", question);
+                input.value = "";
+                setLoading(true);
+
+                try {
+                    const response = await fetch("/api/posto360-ai", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ question: question })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                        appendMessage("ai", data.error || "Não foi possível analisar os dados agora.");
+                        return;
+                    }
+                    appendMessage("ai", data.answer || "Não recebi uma resposta da IA.");
+                } catch (error) {
+                    appendMessage("ai", "Não foi possível conectar ao Posto360 AI agora. Verifique a conexão e tente novamente.");
+                } finally {
+                    setLoading(false);
+                }
             });
 
             if (messages) {
