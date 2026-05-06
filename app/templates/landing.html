@@ -156,7 +156,7 @@
         }
 
         section {
-            padding: 46px 0;
+            padding: 40px 0;
         }
 
         .section-band {
@@ -193,41 +193,42 @@
         }
 
         h1 {
-            margin-top: 14px;
-            max-width: 620px;
-            font-size: 2.42rem;
-            line-height: 1.04;
+            margin-top: 12px;
+            max-width: 560px;
+            font-size: 2.22rem;
+            line-height: 0.98;
             font-weight: 700;
         }
 
         h2 {
-            font-size: 1.9rem;
-            line-height: 1.12;
+            font-size: 1.72rem;
+            line-height: 1.04;
             font-weight: 700;
         }
 
         h3 {
-            font-size: 1.04rem;
-            line-height: 1.25;
+            font-size: 1rem;
+            line-height: 1.18;
             font-weight: 700;
         }
 
         p {
             color: var(--muted);
-            line-height: 1.62;
+            line-height: 1.48;
         }
 
         .lead {
-            margin-top: 14px;
-            max-width: 610px;
+            margin-top: 12px;
+            max-width: 560px;
             color: var(--muted-strong);
-            font-size: 1rem;
+            font-size: 0.98rem;
+            font-weight: 550;
         }
 
         .section-head {
             display: grid;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 16px;
         }
 
         .section-head p {
@@ -235,7 +236,7 @@
         }
 
         .hero {
-            padding: 42px 0 34px;
+            padding: 36px 0 30px;
         }
 
         .hero-grid {
@@ -251,14 +252,14 @@
         .hero-actions {
             display: grid;
             gap: 10px;
-            margin-top: 22px;
+            margin-top: 20px;
         }
 
         .trust-row {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 8px;
-            margin-top: 22px;
+            margin-top: 18px;
         }
 
         .trust-item {
@@ -396,7 +397,7 @@
 
         .card {
             min-height: 100%;
-            padding: 17px;
+            padding: 15px;
             border-radius: var(--radius-card);
             background: var(--surface);
             border: 1px solid var(--line);
@@ -404,8 +405,8 @@
         }
 
         .card p {
-            margin-top: 7px;
-            font-size: 0.94rem;
+            margin-top: 6px;
+            font-size: 0.9rem;
         }
 
         .pain-card {
@@ -421,6 +422,144 @@
         .feature-detail {
             display: grid;
             gap: 12px;
+        }
+
+        .impact-list {
+            display: grid;
+            gap: 8px;
+            margin-top: 16px;
+            list-style: none;
+        }
+
+        .impact-list li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted-strong);
+            font-size: 0.94rem;
+            font-weight: 700;
+        }
+
+        .impact-list li::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            flex: 0 0 auto;
+            border-radius: 999px;
+            background: var(--green);
+            box-shadow: 0 0 0 4px rgba(11, 122, 83, 0.10);
+        }
+
+        .visual-card {
+            padding: 13px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(238, 244, 241, 0.88));
+            border: 1px solid rgba(220, 230, 225, 0.94);
+            box-shadow: var(--shadow);
+        }
+
+        .light-screen {
+            display: grid;
+            gap: 10px;
+            padding: 13px;
+            border-radius: 8px;
+            background: #ffffff;
+            border: 1px solid var(--line);
+        }
+
+        .screen-header,
+        .screen-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .screen-header {
+            color: var(--blue);
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        .screen-metric {
+            display: grid;
+            gap: 4px;
+            padding: 13px;
+            border-radius: 8px;
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--green), var(--blue));
+        }
+
+        .screen-metric strong {
+            font-size: 1.4rem;
+            line-height: 1;
+        }
+
+        .screen-metric span,
+        .screen-row span {
+            font-size: 0.82rem;
+        }
+
+        .screen-row {
+            padding: 10px;
+            border-radius: 8px;
+            background: var(--surface-soft);
+            color: var(--muted-strong);
+            font-weight: 700;
+        }
+
+        .feature-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .feature-card {
+            display: grid;
+            gap: 12px;
+            padding: 15px;
+            border-radius: var(--radius-card);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .mini-visual {
+            display: grid;
+            gap: 8px;
+            min-height: 118px;
+            padding: 11px;
+            border-radius: 8px;
+            background: #071a16;
+            color: #ffffff;
+        }
+
+        .mini-bar {
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        .mini-bar.fill {
+            width: 72%;
+            background: linear-gradient(90deg, #34d399, #38bdf8);
+        }
+
+        .mini-line {
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 0 9px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #d9efe6;
+            font-size: 0.75rem;
+            font-weight: 750;
+        }
+
+        .feature-card p {
+            font-size: 0.9rem;
         }
 
         .feature-row {
@@ -460,7 +599,7 @@
         }
 
         .roadmap-card {
-            padding: 18px;
+            padding: 17px;
             border-radius: var(--radius-card);
             color: #ffffff;
             background: linear-gradient(135deg, var(--green-dark), var(--blue));
@@ -473,7 +612,7 @@
         }
 
         .roadmap-card p {
-            margin-top: 10px;
+            margin-top: 8px;
             opacity: 0.86;
         }
 
@@ -483,7 +622,7 @@
         }
 
         .roadmap-item {
-            padding: 14px;
+            padding: 12px;
             border-radius: var(--radius-card);
             background: rgba(255, 255, 255, 0.82);
             border: 1px solid rgba(220, 230, 225, 0.92);
@@ -497,12 +636,12 @@
 
         .roadmap-item span {
             color: var(--muted);
-            font-size: 0.92rem;
-            line-height: 1.5;
+            font-size: 0.88rem;
+            line-height: 1.42;
         }
 
         .roi-card {
-            padding: 18px;
+            padding: 16px;
             border-radius: var(--radius-card);
             background: var(--surface);
             border: 1px solid var(--line);
@@ -512,13 +651,13 @@
         .roi-card strong {
             display: block;
             color: var(--blue);
-            font-size: 1.55rem;
+            font-size: 1.44rem;
             line-height: 1.1;
             margin-bottom: 6px;
         }
 
         .roi-highlight {
-            padding: 20px;
+            padding: 17px;
             border-radius: var(--radius-card);
             color: #ffffff;
             background: linear-gradient(135deg, var(--green), var(--blue));
@@ -544,7 +683,7 @@
             display: grid;
             gap: 14px;
             align-content: start;
-            padding: 18px;
+            padding: 16px;
             border-radius: var(--radius-card);
             background: var(--surface);
             border: 1px solid var(--line);
@@ -602,8 +741,8 @@
 
         .proof {
             display: grid;
-            gap: 14px;
-            padding: 20px;
+            gap: 12px;
+            padding: 17px;
             border-radius: var(--radius-card);
             background: var(--surface);
             border: 1px solid var(--line);
@@ -637,21 +776,21 @@
         }
 
         .faq-item {
-            padding: 16px;
+            padding: 14px;
             border-radius: var(--radius-card);
             background: var(--surface);
             border: 1px solid var(--line);
         }
 
         .faq-item p {
-            margin-top: 6px;
-            font-size: 0.94rem;
+            margin-top: 5px;
+            font-size: 0.9rem;
         }
 
         .final-cta {
             display: grid;
             gap: 14px;
-            padding: 22px;
+            padding: 20px;
             border-radius: var(--radius-card);
             color: #ffffff;
             background: linear-gradient(135deg, var(--green-dark), var(--blue));
@@ -695,7 +834,7 @@
             }
 
             h1 {
-                max-width: 12ch;
+                max-width: 11ch;
             }
 
             .hero-actions .btn-ghost {
@@ -731,11 +870,11 @@
             }
 
             section {
-                padding: 64px 0;
+                padding: 56px 0;
             }
 
             .hero {
-                padding: 70px 0 58px;
+                padding: 62px 0 52px;
             }
 
             .hero-grid {
@@ -744,11 +883,11 @@
             }
 
             h1 {
-                font-size: 4.05rem;
+                font-size: 3.62rem;
             }
 
             h2 {
-                font-size: 2.55rem;
+                font-size: 2.34rem;
             }
 
             .lead {
@@ -765,6 +904,10 @@
             .feature-row {
                 grid-template-columns: 42px minmax(0, 1fr);
                 align-items: start;
+            }
+
+            .feature-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
 
             .plans {
@@ -804,15 +947,20 @@
                     <div>
                         <span class="section-kicker">SaaS para redes de postos</span>
                         <h1>
-                            <span class="headline-line">Gestão inteligente</span>
-                            <span class="headline-line">para redes de</span>
-                            <span class="headline-line">postos de combustível</span>
+                            <span class="headline-line">Mais clareza</span>
+                            <span class="headline-line">operacional</span>
+                            <span class="headline-line">para sua rede</span>
                         </h1>
-                        <p class="lead">Centralize monitoramento competitivo, margem, modo campo e apoio à decisão para operar cada unidade com mais controle e velocidade.</p>
+                        <p class="lead">Monitoramento competitivo, margem, campo e apoio à decisão em uma plataforma feita para redes de postos.</p>
                         <div class="hero-actions">
                             <a class="btn btn-primary" href="/register">Teste grátis por 3 dias</a>
                             <a class="btn btn-ghost" href="/login">Ver demonstração / Entrar</a>
                         </div>
+                        <ul class="impact-list" aria-label="Benefícios principais">
+                            <li>Monitore concorrência</li>
+                            <li>Proteja margem</li>
+                            <li>Organize sua rede</li>
+                        </ul>
                         <div class="trust-row" aria-label="Destaques do Posto360">
                             <div class="trust-item"><strong>Campo</strong><span>coleta padronizada</span></div>
                             <div class="trust-item"><strong>Margem</strong><span>alertas de risco</span></div>
@@ -852,17 +1000,15 @@
                     <div class="section-head narrow">
                         <span class="section-kicker">Problemas do setor</span>
                         <h2>Quando a informação chega tarde, a margem paga a conta.</h2>
-                        <p>Redes de postos operam com muita pressão, concorrência agressiva e decisões que precisam de dados confiáveis todos os dias.</p>
+                        <p>O setor exige reação rápida, dados confiáveis e rotina padronizada.</p>
                     </div>
                     <div class="grid grid-4">
-                        <article class="card pain-card"><h3>Margem perdida</h3><p>Pequenas diferenças de preço se acumulam em várias unidades.</p></article>
-                        <article class="card pain-card"><h3>Falta de informação</h3><p>Dados chegam incompletos, fora de padrão ou tarde demais.</p></article>
-                        <article class="card pain-card"><h3>Concorrência agressiva</h3><p>Postos próximos mudam preço sem monitoramento competitivo.</p></article>
-                        <article class="card pain-card"><h3>Gestão manual</h3><p>WhatsApp e planilhas dificultam histórico, comparação e auditoria.</p></article>
-                        <article class="card pain-card"><h3>Estoque ineficiente</h3><p>Falta visão para conectar giro, abastecimento e contexto regional.</p></article>
-                        <article class="card pain-card"><h3>Decisões lentas</h3><p>Sem painel central, a operação depende de conferência manual.</p></article>
-                        <article class="card pain-card"><h3>Baixa visão por unidade</h3><p>Fica difícil saber qual posto precisa de ação imediata.</p></article>
-                        <article class="card pain-card"><h3>Expansão sem padrão</h3><p>Crescer a rede exige processo, governança e leitura clara.</p></article>
+                        <article class="card pain-card"><h3>Margem perdida</h3><p>Pequenas diferenças viram perda recorrente.</p></article>
+                        <article class="card pain-card"><h3>Falta de informação</h3><p>Dados chegam tarde ou sem padrão.</p></article>
+                        <article class="card pain-card"><h3>Concorrência agressiva</h3><p>Preço muda antes da sua equipe reagir.</p></article>
+                        <article class="card pain-card"><h3>Gestão manual</h3><p>WhatsApp e planilhas dispersam a operação.</p></article>
+                        <article class="card pain-card"><h3>Estoque sem contexto</h3><p>Giro e praça ficam desconectados.</p></article>
+                        <article class="card pain-card"><h3>Decisões lentas</h3><p>Falta painel para priorizar ação.</p></article>
                     </div>
                 </div>
             </section>
@@ -871,16 +1017,23 @@
                 <div class="shell solution-layout">
                     <div class="section-head">
                         <span class="section-kicker">Solução Posto360</span>
-                        <h2>Uma central operacional para transformar campo em decisão.</h2>
-                        <p>O Posto360 organiza dados de concorrência, preço, região e unidade para entregar inteligência operacional sem prometer automação de preço.</p>
+                        <h2>Uma central operacional para decidir melhor.</h2>
+                        <p>Dados de preço, concorrência, região e unidade com inteligência operacional. Sem automação de preço.</p>
+                        <ul class="impact-list">
+                            <li>Dashboard por posto</li>
+                            <li>Modo Campo orientado</li>
+                            <li>Alertas e histórico</li>
+                            <li>Planos para escalar</li>
+                        </ul>
                     </div>
-                    <div class="grid grid-2">
-                        <article class="card"><h3>Dashboard operacional</h3><p>Visão executiva para acompanhar rede, regiões e postos.</p></article>
-                        <article class="card"><h3>Modo Campo</h3><p>Coleta orientada para equipes registrarem informações na rua.</p></article>
-                        <article class="card"><h3>OCR de placas</h3><p>Leitura de preços por imagem para acelerar registros.</p></article>
-                        <article class="card"><h3>Comparação regional</h3><p>Monitoramento competitivo por praça, unidade e combustível.</p></article>
-                        <article class="card"><h3>Alertas e histórico</h3><p>Sinais de atenção com rastreabilidade operacional.</p></article>
-                        <article class="card"><h3>Planos escaláveis</h3><p>Estrutura para crescer de poucas unidades a operação enterprise.</p></article>
+                    <div class="visual-card" aria-label="Visual da solução Posto360">
+                        <div class="light-screen">
+                            <div class="screen-header"><span>Rede Posto360</span><span>Visão executiva</span></div>
+                            <div class="screen-metric"><strong>12 leituras novas</strong><span>3 regiões com alerta comercial</span></div>
+                            <div class="screen-row"><span>Modo Campo</span><span>ativo</span></div>
+                            <div class="screen-row"><span>Comparação regional</span><span>atualizada</span></div>
+                            <div class="screen-row"><span>Histórico operacional</span><span>auditável</span></div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -889,19 +1042,34 @@
                 <div class="shell">
                     <div class="section-head narrow">
                         <span class="section-kicker">Funcionalidades detalhadas</span>
-                        <h2>Construído para a rotina real de uma rede de postos.</h2>
-                        <p>Cada módulo resolve uma parte da operação: coleta, comparação, histórico, alertas, relatórios e governança por unidade.</p>
+                        <h2>Produto visível. Operação prática.</h2>
+                        <p>Os principais módulos da rotina em uma experiência clara e comercial.</p>
                     </div>
-                    <div class="feature-detail">
-                        <article class="feature-row"><span class="feature-number">01</span><div class="feature-copy"><h3>Concorrência</h3><p>Acompanhe preços e movimentos por região para entender onde sua rede está exposta.</p></div></article>
-                        <article class="feature-row"><span class="feature-number">02</span><div class="feature-copy"><h3>Modo Campo</h3><p>Padronize a coleta externa e reduza dependência de mensagens soltas.</p></div></article>
-                        <article class="feature-row"><span class="feature-number">03</span><div class="feature-copy"><h3>OCR de placas</h3><p>Registre preços por foto e ganhe velocidade na atualização da base.</p></div></article>
-                        <article class="feature-row"><span class="feature-number">04</span><div class="feature-copy"><h3>Estoque</h3><p>Use contexto operacional para apoiar decisões de abastecimento em fases futuras.</p></div></article>
-                        <article class="feature-row"><span class="feature-number">05</span><div class="feature-copy"><h3>Histórico</h3><p>Consulte leituras recentes e entenda como a operação evoluiu no tempo.</p></div></article>
-                        <article class="feature-row"><span class="feature-number">06</span><div class="feature-copy"><h3>Relatórios</h3><p>Leve dados claros para reuniões comerciais, auditoria e acompanhamento de rede.</p></div></article>
-                        <article class="feature-row"><span class="feature-number">07</span><div class="feature-copy"><h3>Multiunidade</h3><p>Controle postos, regiões e leituras sem perder padrão de gestão.</p></div></article>
-                        <article class="feature-row"><span class="feature-number">08</span><div class="feature-copy"><h3>Alertas estratégicos</h3><p>Receba sinais de risco, oportunidade e necessidade de atenção.</p></div></article>
-                        <article class="feature-row"><span class="feature-number">09</span><div class="feature-copy"><h3>Gestão operacional</h3><p>Transforme rotina dispersa em processo visível, auditável e escalável.</p></div></article>
+                    <div class="feature-grid">
+                        <article class="feature-card">
+                            <div class="mini-visual"><div class="mini-line"><span>Concorrência</span><span>3 alertas</span></div><div class="mini-bar fill"></div><div class="mini-bar"></div></div>
+                            <div><h3>Dashboard e alertas</h3><p>Veja onde agir primeiro.</p></div>
+                        </article>
+                        <article class="feature-card">
+                            <div class="mini-visual"><div class="mini-line"><span>Modo Campo</span><span>enviado</span></div><div class="mini-line"><span>Foto da placa</span><span>ok</span></div></div>
+                            <div><h3>Modo Campo</h3><p>Coleta externa padronizada.</p></div>
+                        </article>
+                        <article class="feature-card">
+                            <div class="mini-visual"><div class="mini-line"><span>OCR</span><span>R$ 5,89</span></div><div class="mini-line"><span>Gasolina</span><span>lida</span></div></div>
+                            <div><h3>OCR de preços</h3><p>Leitura rápida por imagem.</p></div>
+                        </article>
+                        <article class="feature-card">
+                            <div class="mini-visual"><div class="mini-line"><span>Rede</span><span>10 postos</span></div><div class="mini-line"><span>Região norte</span><span>atenção</span></div></div>
+                            <div><h3>Gestão por rede</h3><p>Postos e regiões no mesmo painel.</p></div>
+                        </article>
+                        <article class="feature-card">
+                            <div class="mini-visual"><div class="mini-line"><span>Histórico</span><span>30 dias</span></div><div class="mini-bar fill"></div><div class="mini-bar"></div></div>
+                            <div><h3>Histórico e relatórios</h3><p>Base para reuniões e auditoria.</p></div>
+                        </article>
+                        <article class="feature-card">
+                            <div class="mini-visual"><div class="mini-line"><span>Estoque</span><span>roadmap</span></div><div class="mini-line"><span>Abastecimento</span><span>apoio</span></div></div>
+                            <div><h3>Estoque e expansão</h3><p>Camadas futuras para escala.</p></div>
+                        </article>
                     </div>
                 </div>
             </section>
@@ -911,7 +1079,7 @@
                     <div class="roadmap-card">
                         <span class="section-kicker">Visão de futuro</span>
                         <h2>Preparado para evoluir com redes maiores.</h2>
-                        <p>O caminho do Posto360 é ampliar inteligência operacional e apoio estratégico, sempre mantendo o gestor no controle da decisão.</p>
+                        <p>Mais inteligência operacional, sem tirar o gestor do controle.</p>
                     </div>
                     <div class="roadmap-list">
                         <div class="roadmap-item"><strong>Integrações futuras</strong><span>TOTVS, Tecnox e ERPs podem ser avaliados em fases futuras.</span></div>
@@ -929,13 +1097,13 @@
                     <div class="section-head">
                         <span class="section-kicker">ROI e escala</span>
                         <h2>O ganho aparece quando a rede decide com dados.</h2>
-                        <p>O valor não depende de promessas automáticas. Ele vem de reduzir atraso, enxergar concorrência e agir com mais precisão.</p>
+                        <p>Menos atraso. Mais clareza. Melhor reação comercial.</p>
                     </div>
                     <div class="grid grid-2">
-                        <article class="roi-card"><strong>R$500/mês</strong><p>Se cada posto recuperar apenas esse valor em margem, o impacto já compensa a rotina.</p></article>
-                        <article class="roi-card"><strong>R$5.000/mês</strong><p>Em uma rede com 10 postos, a recuperação potencial chega a R$5.000 mensais.</p></article>
-                        <article class="roi-card"><strong>R$15.000/mês</strong><p>Com 30 postos, pequenas melhorias por unidade escalam rapidamente.</p></article>
-                        <article class="roi-highlight"><h3>Mais controle antes de crescer.</h3><p>Quanto maior a rede, mais importante é padronizar monitoramento competitivo, histórico e apoio à decisão.</p></article>
+                        <article class="roi-card"><strong>R$500/mês</strong><p>recuperados por posto já mudam a conta.</p></article>
+                        <article class="roi-card"><strong>R$5.000/mês</strong><p>potencial em uma rede com 10 postos.</p></article>
+                        <article class="roi-card"><strong>R$15.000/mês</strong><p>potencial em uma rede com 30 postos.</p></article>
+                        <article class="roi-highlight"><h3>Escala exige padrão.</h3><p>Monitoramento, histórico e alertas reduzem ruído operacional.</p></article>
                     </div>
                 </div>
             </section>
@@ -945,12 +1113,12 @@
                     <div class="section-head narrow">
                         <span class="section-kicker">Planos</span>
                         <h2>Comece no tamanho certo e expanda com governança.</h2>
-                        <p>Planos pensados para acompanhar desde uma operação enxuta até redes em escala enterprise.</p>
+                        <p>Sem preço público por enquanto. Comece pelo teste gratuito.</p>
                     </div>
                     <div class="plans">
                         <article class="plan">
                             <span class="plan-label">Até 3 postos</span>
-                            <div class="plan-head"><h3>Starter</h3><span>Para validar a rotina e organizar os primeiros dados.</span></div>
+                            <div class="plan-head"><h3>Starter</h3><span>Primeiros dados organizados.</span></div>
                             <ul>
                                 <li>Dashboard essencial</li>
                                 <li>Modo Campo</li>
@@ -960,7 +1128,7 @@
                         </article>
                         <article class="plan recommended">
                             <span class="plan-label">Recomendado</span>
-                            <div class="plan-head"><h3>Growth</h3><span>Até 10 postos para redes que querem previsibilidade.</span></div>
+                            <div class="plan-head"><h3>Growth</h3><span>Mais previsibilidade para redes.</span></div>
                             <ul>
                                 <li>Alertas regionais</li>
                                 <li>Histórico operacional</li>
@@ -970,7 +1138,7 @@
                         </article>
                         <article class="plan">
                             <span class="plan-label">Até 30 postos</span>
-                            <div class="plan-head"><h3>Scale</h3><span>Para operação multiunidade com governança.</span></div>
+                            <div class="plan-head"><h3>Scale</h3><span>Governança multiunidade.</span></div>
                             <ul>
                                 <li>Relatórios gerenciais</li>
                                 <li>Rotina regional</li>
@@ -980,7 +1148,7 @@
                         </article>
                         <article class="plan">
                             <span class="plan-label">Acima de 30</span>
-                            <div class="plan-head"><h3>Enterprise</h3><span>Para grandes redes e expansão nacional.</span></div>
+                            <div class="plan-head"><h3>Enterprise</h3><span>Expansão nacional.</span></div>
                             <ul>
                                 <li>Projeto sob medida</li>
                                 <li>Governança enterprise</li>
@@ -998,7 +1166,7 @@
                         <div class="section-head">
                             <span class="section-kicker">Prova prática</span>
                             <h2>Baseado em operação real de rede de postos.</h2>
-                            <p>O Posto360 nasceu de problemas reais: margem, concorrência, equipes em campo, histórico e controle por unidade.</p>
+                            <p>Produto criado a partir de rotina real: margem, concorrência, campo e controle por unidade.</p>
                         </div>
                         <div class="proof-grid">
                             <div class="proof-item"><strong>Experiência prática</strong><p>Produto pensado para a rotina de quem decide no dia a dia.</p></div>
@@ -1016,14 +1184,12 @@
                         <h2>Perguntas frequentes</h2>
                     </div>
                     <div class="faq">
-                        <article class="faq-item"><h3>Preciso pagar antes de testar?</h3><p>Não. Você pode testar grátis por 3 dias pelo cadastro.</p></article>
-                        <article class="faq-item"><h3>O Posto360 define meu preço automaticamente?</h3><p>Não. O Posto360 oferece inteligência operacional, alertas e apoio à decisão. A decisão continua com o gestor.</p></article>
-                        <article class="faq-item"><h3>Funciona para posto único?</h3><p>Sim. Ainda assim, o maior ganho aparece em redes com múltiplas unidades e regiões.</p></article>
-                        <article class="faq-item"><h3>O que o Modo Campo resolve?</h3><p>Ele padroniza a coleta externa e reduz dependência de WhatsApp, fotos soltas e planilhas.</p></article>
-                        <article class="faq-item"><h3>O OCR substitui conferência humana?</h3><p>Não. Ele acelera a leitura de placas e ajuda a montar uma base, mas a operação pode revisar dados quando necessário.</p></article>
-                        <article class="faq-item"><h3>Tem integração com TOTVS ou Tecnox?</h3><p>Integrações com TOTVS, Tecnox e ERPs podem ser avaliadas em fases futuras.</p></article>
-                        <article class="faq-item"><h3>Serve para expansão de rede?</h3><p>Sim. A plataforma ajuda a criar padrão de monitoramento, histórico e governança operacional.</p></article>
-                        <article class="faq-item"><h3>O Posto360 AI Pro já está disponível?</h3><p>Ele está no roadmap como camada futura de inteligência operacional e apoio estratégico.</p></article>
+                        <article class="faq-item"><h3>Preciso pagar antes de testar?</h3><p>Não. O teste grátis dura 3 dias.</p></article>
+                        <article class="faq-item"><h3>Define preço automaticamente?</h3><p>Não. Entrega dados, alertas e apoio à decisão.</p></article>
+                        <article class="faq-item"><h3>Funciona para posto único?</h3><p>Sim, mas é mais forte para redes.</p></article>
+                        <article class="faq-item"><h3>O que o Modo Campo resolve?</h3><p>Padroniza coleta externa e reduz planilhas.</p></article>
+                        <article class="faq-item"><h3>O OCR substitui conferência?</h3><p>Não. Ele acelera leitura e permite revisão.</p></article>
+                        <article class="faq-item"><h3>Integra com TOTVS ou Tecnox?</h3><p>Integrações podem ser avaliadas futuramente.</p></article>
                     </div>
                 </div>
             </section>
@@ -1032,8 +1198,8 @@
                 <div class="shell">
                     <div class="final-cta">
                         <span class="section-kicker">Próximo passo</span>
-                        <h2>Transforme dados de campo em decisões melhores para sua rede.</h2>
-                        <p>Comece com um teste gratuito e veja como monitoramento competitivo, histórico e alertas podem deixar sua operação mais clara.</p>
+                        <h2>Dê mais clareza operacional à sua rede.</h2>
+                        <p>Teste monitoramento competitivo, histórico e alertas em uma experiência simples.</p>
                         <div class="final-actions">
                             <a class="btn btn-primary" href="/register">Teste grátis por 3 dias</a>
                             <a class="btn btn-secondary" href="/login">Entrar</a>
