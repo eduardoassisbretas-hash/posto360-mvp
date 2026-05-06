@@ -72,6 +72,7 @@ OPENAI_AI_MODEL = os.getenv("OPENAI_AI_MODEL", "gpt-5.2")
 OPENAI_VISION_MODEL = os.getenv("OPENAI_VISION_MODEL", "gpt-4.1-mini")
 OPENAI_VISION_MIN_CONFIDENCE = float(os.getenv("OPENAI_VISION_MIN_CONFIDENCE", "0.20"))
 OPENAI_VISION_LOW_CONFIDENCE = float(os.getenv("OPENAI_VISION_LOW_CONFIDENCE", "0.65"))
+POSTO360_AI_ENABLED = os.getenv("POSTO360_AI_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
 DECISION_MIN_VALID_READINGS = int(os.getenv("DECISION_MIN_VALID_READINGS", "2"))
 ALERT_MIN_COMPETITOR_READINGS = int(os.getenv("ALERT_MIN_COMPETITOR_READINGS", "2"))
 ENABLE_TEST_RESET = os.getenv("ENABLE_TEST_RESET", "").strip().lower() in {"1", "true", "yes", "on"}
@@ -739,7 +740,7 @@ def monetization_context(user: dict | None) -> dict:
         "trial_days": TRIAL_DAYS,
         "trial_progress": trial_progress,
         "label": label,
-        "headline": "Seu beta expira em breve" if is_trial and days_remaining <= 3 else "Desbloqueie IA avançada",
+        "headline": "Seu beta expira em breve" if is_trial and days_remaining <= 3 else "Conheça os planos Pro",
     }
 
 
@@ -4179,9 +4180,9 @@ def iniciar_processamento_em_thread(caminhos: List[str]) -> None:
     thread.start()
 
 
-@app.get("/")
-def home():
-    return RedirectResponse(url="/dashboard", status_code=303)
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request):
+    return templates.TemplateResponse(request=request, name="landing.html", context={})
 
 
 @app.get("/login", response_class=HTMLResponse)
@@ -4653,11 +4654,13 @@ def posto360_ai(request: Request):
     onboarding_redirect = require_onboarding(user)
     if onboarding_redirect:
         return onboarding_redirect
-    return templates.TemplateResponse(
-        request=request,
-        name="posto360_ai.html",
-        context={"dados": montar_dados_posto360_ai(user)},
-    )
+    if POSTO360_AI_ENABLED:
+        return templates.TemplateResponse(
+            request=request,
+            name="posto360_ai.html",
+            context={"dados": montar_dados_posto360_ai(user)},
+        )
+    return RedirectResponse(url="/dashboard", status_code=303)
 
 
 @app.post("/api/posto360-ai")
@@ -4673,6 +4676,11 @@ def posto360_ai_api(payload: Posto360AIQuestion, request: Request):
         return JSONResponse(
             status_code=403,
             content={"error": "Conclua o onboarding antes de usar o Posto360 AI."},
+        )
+    if not POSTO360_AI_ENABLED:
+        return JSONResponse(
+            status_code=403,
+            content={"error": "Posto360 AI Pro está em breve."},
         )
 
     question = (payload.question or "").strip()

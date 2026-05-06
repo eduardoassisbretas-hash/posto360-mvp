@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <link rel="icon" type="image/png" href="/static/favicon.png?v=1">
+    <link rel="apple-touch-icon" href="/static/favicon.png?v=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Posto360 é uma plataforma de inteligência operacional para postos de combustível, com concorrência, modo campo, alertas e dashboard por unidade.">
+    <meta name="theme-color" content="#f7fbf8">
+    <title>Posto360 | Gestão inteligente para postos de combustível</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700&display=swap");
+
+        :root {
+            --bg: #f7fbf8;
+            --surface: #ffffff;
+            --surface-soft: #eef7f2;
+            --ink: #092018;
+            --muted: #5d7169;
+            --line: #d9e8df;
+            --green: #0f7a54;
+            --green-dark: #07543d;
+            --blue: #0b3b5a;
+            --blue-soft: #e6f2f7;
+            --shadow: 0 18px 48px rgba(9, 32, 24, 0.10);
+            --shadow-soft: 0 10px 28px rgba(9, 32, 24, 0.08);
+            --radius: 22px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Manrope", "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at 88% 2%, rgba(15, 122, 84, 0.12), transparent 28%),
+                linear-gradient(180deg, #f7fbf8 0%, #eef7f2 58%, #f8fbfa 100%);
+            color: var(--ink);
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        a:focus-visible,
+        button:focus-visible {
+            outline: 3px solid rgba(15, 122, 84, 0.28);
+            outline-offset: 4px;
+        }
+
+        .page {
+            overflow: hidden;
+        }
+
+        .shell {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 1px solid rgba(217, 232, 223, 0.78);
+            background: rgba(247, 251, 248, 0.86);
+            backdrop-filter: blur(18px);
+        }
+
+        .topbar-inner {
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-family: "Space Grotesk", "Manrope", sans-serif;
+            font-size: 1.12rem;
+            font-weight: 700;
+            color: var(--blue);
+        }
+
+        .brand-mark {
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--green), var(--blue));
+            box-shadow: 0 10px 24px rgba(15, 122, 84, 0.22);
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 0 18px;
+            border-radius: 14px;
+            border: 1px solid transparent;
+            font-weight: 900;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--green), var(--blue));
+            box-shadow: 0 16px 32px rgba(11, 59, 90, 0.20);
+        }
+
+        .btn-secondary {
+            color: var(--blue);
+            background: rgba(255, 255, 255, 0.76);
+            border-color: var(--line);
+        }
+
+        .hero {
+            padding: 62px 0 38px;
+        }
+
+        .hero-grid {
+            display: grid;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            width: fit-content;
+            align-items: center;
+            min-height: 34px;
+            padding: 0 12px;
+            border-radius: 999px;
+            color: var(--green-dark);
+            background: rgba(15, 122, 84, 0.10);
+            border: 1px solid rgba(15, 122, 84, 0.16);
+            font-size: 0.78rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: "Space Grotesk", "Manrope", sans-serif;
+            letter-spacing: 0;
+            color: var(--ink);
+        }
+
+        h1 {
+            max-width: 760px;
+            margin-top: 18px;
+            font-size: clamp(2.55rem, 11vw, 5.4rem);
+            line-height: 0.96;
+        }
+
+        .hero-copy {
+            max-width: 640px;
+            margin-top: 18px;
+            color: var(--muted);
+            font-size: 1.08rem;
+            line-height: 1.7;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 26px;
+        }
+
+        .hero-panel {
+            position: relative;
+            display: grid;
+            gap: 14px;
+            padding: 18px;
+            border-radius: 28px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(238, 247, 242, 0.86));
+            border: 1px solid rgba(217, 232, 223, 0.9);
+            box-shadow: var(--shadow);
+        }
+
+        .metric-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .metric {
+            min-height: 96px;
+            display: grid;
+            align-content: center;
+            gap: 4px;
+            padding: 14px;
+            border-radius: 18px;
+            background: #ffffff;
+            border: 1px solid var(--line);
+        }
+
+        .metric strong {
+            color: var(--blue);
+            font-size: 1.35rem;
+        }
+
+        .metric span {
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 800;
+        }
+
+        .dashboard-preview {
+            display: grid;
+            gap: 12px;
+            padding: 16px;
+            border-radius: 22px;
+            background: #092018;
+            color: #ffffff;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+
+        .preview-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            color: #bde8d5;
+            font-size: 0.82rem;
+            font-weight: 900;
+        }
+
+        .preview-card {
+            display: grid;
+            gap: 8px;
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .preview-card strong {
+            font-size: 1.4rem;
+        }
+
+        .preview-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            color: #d7efe4;
+            font-size: 0.9rem;
+        }
+
+        section {
+            padding: 42px 0;
+        }
+
+        .section-head {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .section-head h2 {
+            max-width: 720px;
+            font-size: clamp(1.75rem, 6vw, 3rem);
+            line-height: 1.08;
+        }
+
+        .section-head p {
+            max-width: 650px;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .grid {
+            display: grid;
+            gap: 14px;
+        }
+
+        .card {
+            padding: 20px;
+            border-radius: var(--radius);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .card h3 {
+            font-size: 1.12rem;
+            margin-bottom: 8px;
+        }
+
+        .card p,
+        .card li,
+        .faq-item p {
+            color: var(--muted);
+            line-height: 1.62;
+        }
+
+        .problem-card {
+            border-left: 5px solid rgba(15, 122, 84, 0.38);
+        }
+
+        .solution-card {
+            display: grid;
+            gap: 10px;
+        }
+
+        .icon {
+            width: 42px;
+            height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--green), var(--blue));
+            font-weight: 900;
+        }
+
+        .roi {
+            padding: 28px;
+            border-radius: 30px;
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--green-dark), var(--blue));
+            box-shadow: 0 24px 56px rgba(11, 59, 90, 0.22);
+        }
+
+        .roi h2,
+        .roi p {
+            color: #ffffff;
+        }
+
+        .roi p {
+            margin-top: 12px;
+            max-width: 760px;
+            font-size: clamp(1.2rem, 4vw, 2rem);
+            line-height: 1.32;
+            font-weight: 800;
+        }
+
+        .plans {
+            display: grid;
+            gap: 14px;
+        }
+
+        .plan-card {
+            display: grid;
+            gap: 16px;
+        }
+
+        .plan-card ul {
+            display: grid;
+            gap: 9px;
+            padding-left: 18px;
+        }
+
+        .plan-name {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .plan-name span {
+            color: var(--green);
+            font-size: 0.82rem;
+            font-family: "Manrope", sans-serif;
+            font-weight: 900;
+        }
+
+        .proof {
+            display: grid;
+            gap: 12px;
+            padding: 28px;
+            border-radius: 30px;
+            background: var(--blue-soft);
+            border: 1px solid #cfe5ee;
+        }
+
+        .proof h2 {
+            font-size: clamp(1.65rem, 6vw, 2.7rem);
+        }
+
+        .proof p {
+            color: #315367;
+            line-height: 1.7;
+        }
+
+        .faq {
+            display: grid;
+            gap: 12px;
+        }
+
+        .faq-item {
+            padding: 18px;
+            border-radius: 18px;
+            background: #ffffff;
+            border: 1px solid var(--line);
+        }
+
+        .faq-item h3 {
+            margin-bottom: 7px;
+            font-size: 1.02rem;
+        }
+
+        .final-cta {
+            display: grid;
+            justify-items: start;
+            gap: 16px;
+            padding: 28px;
+            border-radius: 30px;
+            background: #ffffff;
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow);
+        }
+
+        footer {
+            padding: 26px 0 34px;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        @media (max-width: 560px) {
+            .topbar-inner {
+                min-height: 66px;
+            }
+
+            .brand-mark {
+                width: 30px;
+                height: 30px;
+                border-radius: 10px;
+            }
+
+            .top-actions .btn-primary {
+                display: none;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .top-actions .btn {
+                width: auto;
+                min-height: 42px;
+                padding: 0 14px;
+            }
+
+            .hero {
+                padding-top: 42px;
+            }
+
+            .metric-strip {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (min-width: 760px) {
+            .hero-grid {
+                grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.75fr);
+            }
+
+            .grid-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .grid-3,
+            .plans {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .plans .enterprise {
+                grid-column: span 3;
+            }
+        }
+
+        @media (min-width: 1020px) {
+            .grid-4 {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+
+            .plans {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+
+            .plans .enterprise {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header class="topbar">
+            <div class="shell topbar-inner">
+                <a class="brand" href="/" aria-label="Posto360">
+                    <span class="brand-mark" aria-hidden="true"></span>
+                    <span>Posto360</span>
+                </a>
+                <nav class="top-actions" aria-label="Acesso">
+                    <a class="btn btn-secondary" href="/login">Entrar</a>
+                    <a class="btn btn-primary" href="/register">Teste grátis por 3 dias</a>
+                </nav>
+            </div>
+        </header>
+
+        <main>
+            <section class="hero">
+                <div class="shell hero-grid">
+                    <div>
+                        <span class="eyebrow">Inteligência operacional para postos</span>
+                        <h1>Gestão inteligente para postos de combustível</h1>
+                        <p class="hero-copy">Monitore concorrência, proteja margem e acompanhe sua operação em tempo real.</p>
+                        <div class="hero-actions">
+                            <a class="btn btn-primary" href="/register">Teste grátis por 3 dias</a>
+                            <a class="btn btn-secondary" href="/login">Entrar</a>
+                        </div>
+                    </div>
+
+                    <aside class="hero-panel" aria-label="Resumo operacional">
+                        <div class="metric-strip">
+                            <div class="metric"><strong>10</strong><span>postos na rede</span></div>
+                            <div class="metric"><strong>R$5k</strong><span>margem potencial</span></div>
+                            <div class="metric"><strong>24h</strong><span>visão de campo</span></div>
+                        </div>
+                        <div class="dashboard-preview">
+                            <div class="preview-top">
+                                <span>Posto360 Dashboard</span>
+                                <span>Ao vivo</span>
+                            </div>
+                            <div class="preview-card">
+                                <span>Concorrência na região</span>
+                                <strong>3 alertas ativos</strong>
+                                <div class="preview-row"><span>Gasolina</span><span>R$ 0,08 abaixo</span></div>
+                                <div class="preview-row"><span>Etanol</span><span>oportunidade</span></div>
+                            </div>
+                            <div class="preview-row"><span>Modo Campo</span><span>leitura enviada</span></div>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+            <section>
+                <div class="shell">
+                    <div class="section-head">
+                        <h2>O preço muda na rua antes de aparecer na planilha.</h2>
+                        <p>O Posto360 ajuda sua rede a sair do improviso e acompanhar o que impacta margem, unidade por unidade.</p>
+                    </div>
+                    <div class="grid grid-4">
+                        <article class="card problem-card"><h3>Perda de margem</h3><p>Decisões tardias reduzem resultado quando falta informação confiável.</p></article>
+                        <article class="card problem-card"><h3>Concorrência rápida</h3><p>Postos próximos mudam preço sem acompanhamento estruturado.</p></article>
+                        <article class="card problem-card"><h3>Gestão manual</h3><p>WhatsApp e planilhas espalham dados e dificultam comparação.</p></article>
+                        <article class="card problem-card"><h3>Baixa visão regional</h3><p>Fica difícil entender desempenho por posto, bairro e corredor.</p></article>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="shell">
+                    <div class="section-head">
+                        <h2>Uma rotina mais clara para decidir preço e operação.</h2>
+                        <p>Campo, concorrência, histórico e alertas no mesmo lugar para apoiar decisões comerciais com dados reais.</p>
+                    </div>
+                    <div class="grid grid-3">
+                        <article class="card solution-card"><span class="icon">01</span><h3>Modo Campo</h3><p>Equipe registra preços e concorrentes direto da rua.</p></article>
+                        <article class="card solution-card"><span class="icon">02</span><h3>OCR de preços</h3><p>Leitura de placas por imagem para acelerar a coleta.</p></article>
+                        <article class="card solution-card"><span class="icon">03</span><h3>Comparação regional</h3><p>Veja diferenças por praça, posto e combustível.</p></article>
+                        <article class="card solution-card"><span class="icon">04</span><h3>Dashboard por posto</h3><p>Acompanhe unidades com visão executiva e operacional.</p></article>
+                        <article class="card solution-card"><span class="icon">05</span><h3>Alertas e oportunidades</h3><p>Identifique movimentos que pedem ação rápida.</p></article>
+                        <article class="card solution-card"><span class="icon">06</span><h3>Histórico operacional</h3><p>Consulte leituras recentes e evolução da operação.</p></article>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="shell">
+                    <div class="roi">
+                        <span class="eyebrow">Economia potencial</span>
+                        <h2>Pequenas recuperações viram resultado real.</h2>
+                        <p>Se cada posto recuperar apenas R$500/mês em margem, uma rede com 10 postos pode recuperar R$5.000/mês.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="shell">
+                    <div class="section-head">
+                        <h2>Funcionalidades para a rotina de uma rede de postos.</h2>
+                    </div>
+                    <div class="grid grid-3">
+                        <article class="card"><h3>Concorrência</h3><p>Monitore preços e movimentações em cada região.</p></article>
+                        <article class="card"><h3>Modo Campo</h3><p>Coleta rápida para equipes externas e gestores.</p></article>
+                        <article class="card"><h3>Meus Postos</h3><p>Controle unidades, regiões e dados próprios.</p></article>
+                        <article class="card"><h3>Alertas</h3><p>Receba sinais de risco e oportunidade operacional.</p></article>
+                        <article class="card"><h3>Planos</h3><p>Evolua conforme sua rede cresce.</p></article>
+                        <article class="card"><h3>Relatórios</h3><p>Use histórico para reuniões, auditoria e decisão.</p></article>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="shell">
+                    <div class="section-head">
+                        <h2>Planos para cada estágio da operação.</h2>
+                        <p>Comece simples, valide o ganho operacional e expanda para mais unidades.</p>
+                    </div>
+                    <div class="plans">
+                        <article class="card plan-card">
+                            <div class="plan-name"><h3>Starter</h3><span>até 3 postos</span></div>
+                            <ul>
+                                <li>Dashboard essencial</li>
+                                <li>Modo Campo</li>
+                                <li>Concorrência por região</li>
+                            </ul>
+                            <a class="btn btn-primary" href="/register">Começar teste grátis</a>
+                        </article>
+                        <article class="card plan-card">
+                            <div class="plan-name"><h3>Growth</h3><span>até 10 postos</span></div>
+                            <ul>
+                                <li>Alertas regionais</li>
+                                <li>Histórico operacional</li>
+                                <li>Gestão por unidade</li>
+                            </ul>
+                            <a class="btn btn-primary" href="/register">Começar teste grátis</a>
+                        </article>
+                        <article class="card plan-card">
+                            <div class="plan-name"><h3>Scale</h3><span>até 30 postos</span></div>
+                            <ul>
+                                <li>Rotina multiunidade</li>
+                                <li>Relatórios executivos</li>
+                                <li>Governança operacional</li>
+                            </ul>
+                            <a class="btn btn-primary" href="/register">Começar teste grátis</a>
+                        </article>
+                        <article class="card plan-card enterprise">
+                            <div class="plan-name"><h3>Enterprise</h3><span>acima de 30 postos</span></div>
+                            <ul>
+                                <li>Projeto sob medida</li>
+                                <li>Implantação acompanhada</li>
+                                <li>Fale com vendas</li>
+                            </ul>
+                            <a class="btn btn-primary" href="/register">Começar teste grátis</a>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="shell">
+                    <div class="proof">
+                        <h2>Criado a partir da operação real de uma rede de postos.</h2>
+                        <p>O Posto360 nasceu para resolver problemas reais de margem, concorrência e gestão operacional no dia a dia.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="shell">
+                    <div class="section-head">
+                        <h2>Perguntas frequentes</h2>
+                    </div>
+                    <div class="faq">
+                        <article class="faq-item"><h3>Preciso pagar antes de testar?</h3><p>Não. Você pode testar grátis por 3 dias.</p></article>
+                        <article class="faq-item"><h3>O Posto360 define meu preço automaticamente?</h3><p>Não. Ele fornece dados, alertas e inteligência para apoiar melhores decisões.</p></article>
+                        <article class="faq-item"><h3>Funciona para posto único?</h3><p>Sim, mas é ideal para redes com múltiplas unidades.</p></article>
+                        <article class="faq-item"><h3>Tem integração com sistemas como TOTVS ou Tecnox?</h3><p>Integrações podem ser avaliadas em fases futuras.</p></article>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="shell">
+                    <div class="final-cta">
+                        <span class="eyebrow">Teste sem compromisso</span>
+                        <h2>Veja sua operação com mais clareza em poucos dias.</h2>
+                        <a class="btn btn-primary" href="/register">Teste grátis por 3 dias</a>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="shell">Posto360. Inteligência operacional para postos de combustível.</div>
+        </footer>
+    </div>
+</body>
+</html>

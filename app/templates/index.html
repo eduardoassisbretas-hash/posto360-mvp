@@ -221,12 +221,6 @@
             transform: translateX(1px);
         }
 
-        .menu-ai-link {
-            justify-content: space-between;
-            border: 1px solid rgba(56, 189, 248, 0.16);
-            background: rgba(56, 189, 248, 0.08);
-        }
-
         .menu-field-link {
             justify-content: space-between;
             border: 1px solid rgba(52, 211, 153, 0.18);
@@ -234,7 +228,7 @@
             color: #d1fae5;
         }
 
-        .menu-ai-badge {
+        .menu-status-badge {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -1402,16 +1396,16 @@
                 <span class="menu-brand">Posto360</span>
                 <span class="menu-company-name">{{ display_company_name }}</span>
             </div>
-            <a class="menu-upgrade" href="/planos" title="{{ premium.get('headline', 'Desbloqueie IA avançada') }}">
+            <a class="menu-upgrade" href="/planos" title="{{ premium.get('headline', 'Conheça os planos Pro') }}">
                 <span class="menu-upgrade-label">Upgrade para Pro</span>
                 <span class="menu-upgrade-icon" aria-hidden="true">★</span>
             </a>
             <div class="menu-nav">
                 <a href="/dashboard">Dashboard</a>
-                <a href="/meu-posto">Meu Posto</a>
-                <a href="/modo-campo" class="menu-field-link">Modo Campo <span class="menu-ai-badge">OP</span></a>
-                <a href="/posto360-ai" class="menu-ai-link">Posto360 AI <span class="menu-ai-badge">AI</span></a>
-                <a href="/guia-rapido">Guia Rápido</a>
+                <a href="/modo-campo" class="menu-field-link">Modo Campo <span class="menu-status-badge">OP</span></a>
+                <a href="/concorrencia">Concorrência</a>
+                <a href="/postos">Meus Postos</a>
+                <a href="/planos">Planos</a>
                 <a href="/configuracoes">Configurações</a>
                 <a href="/logout">Sair</a>
             </div>
@@ -1829,7 +1823,7 @@
                 {
                     selector: '[data-tour="menu-panel"]',
                     title: 'Menu da rede',
-                    copy: 'Acesse Dashboard, Meu Posto, Modo Campo, IA e configurações da sua rede.'
+                    copy: 'Acesse Dashboard, Modo Campo, Concorrência, Meus Postos, Planos e configurações da sua rede.'
                 }
             ];
 
