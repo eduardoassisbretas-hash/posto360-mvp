@@ -5,26 +5,29 @@
     <link rel="apple-touch-icon" href="/static/favicon.png?v=1">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Posto360 é uma plataforma de inteligência operacional para postos de combustível, com concorrência, modo campo, alertas e dashboard por unidade.">
-    <meta name="theme-color" content="#f7fbf8">
-    <title>Posto360 | Gestão inteligente para postos de combustível</title>
+    <meta name="description" content="Posto360 é uma plataforma SaaS de inteligência operacional para redes de postos: monitoramento competitivo, modo campo, alertas, histórico e apoio à decisão.">
+    <meta name="theme-color" content="#f6f8f7">
+    <title>Posto360 | Inteligência operacional para redes de postos</title>
     <style>
-        @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700&display=swap");
+        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap");
 
         :root {
-            --bg: #f7fbf8;
+            --bg: #f6f8f7;
             --surface: #ffffff;
-            --surface-soft: #eef7f2;
-            --ink: #092018;
-            --muted: #5d7169;
-            --line: #d9e8df;
-            --green: #0f7a54;
-            --green-dark: #07543d;
-            --blue: #0b3b5a;
-            --blue-soft: #e6f2f7;
-            --shadow: 0 16px 38px rgba(9, 32, 24, 0.09);
-            --shadow-soft: 0 8px 22px rgba(9, 32, 24, 0.055);
-            --radius: 18px;
+            --surface-soft: #eef4f1;
+            --ink: #071a16;
+            --muted: #5f6f69;
+            --muted-strong: #354740;
+            --line: #dce6e1;
+            --green: #0b7a53;
+            --green-dark: #064633;
+            --green-soft: #e8f5ef;
+            --blue: #0b3048;
+            --blue-soft: #e8f1f6;
+            --shadow: 0 14px 34px rgba(7, 26, 22, 0.08);
+            --shadow-soft: 0 8px 20px rgba(7, 26, 22, 0.055);
+            --radius-card: 8px;
+            --radius-control: 8px;
         }
 
         * {
@@ -39,10 +42,10 @@
 
         body {
             min-height: 100vh;
-            font-family: "Manrope", "Segoe UI", sans-serif;
+            font-family: "Inter", "Segoe UI", sans-serif;
             background:
-                radial-gradient(circle at 88% 2%, rgba(15, 122, 84, 0.10), transparent 26%),
-                linear-gradient(180deg, #f7fbf8 0%, #eef7f2 58%, #f8fbfa 100%);
+                radial-gradient(circle at top right, rgba(11, 122, 83, 0.10), transparent 260px),
+                linear-gradient(180deg, #f8faf9 0%, #eef4f1 46%, #f8faf9 100%);
             color: var(--ink);
         }
 
@@ -53,8 +56,8 @@
 
         a:focus-visible,
         button:focus-visible {
-            outline: 3px solid rgba(15, 122, 84, 0.28);
-            outline-offset: 4px;
+            outline: 3px solid rgba(11, 122, 83, 0.24);
+            outline-offset: 3px;
         }
 
         .page {
@@ -62,21 +65,25 @@
         }
 
         .shell {
-            width: min(1080px, calc(100% - 36px));
+            width: min(100% - 32px, 1120px);
             margin: 0 auto;
+        }
+
+        .narrow {
+            max-width: 760px;
         }
 
         .topbar {
             position: sticky;
             top: 0;
-            z-index: 10;
-            border-bottom: 1px solid rgba(217, 232, 223, 0.78);
-            background: rgba(247, 251, 248, 0.86);
-            backdrop-filter: blur(18px);
+            z-index: 20;
+            border-bottom: 1px solid rgba(220, 230, 225, 0.78);
+            background: rgba(248, 250, 249, 0.9);
+            backdrop-filter: blur(16px);
         }
 
         .topbar-inner {
-            min-height: 68px;
+            min-height: 64px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -86,39 +93,44 @@
         .brand {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            font-family: "Space Grotesk", "Manrope", sans-serif;
-            font-size: 1.06rem;
-            font-weight: 700;
+            gap: 9px;
             color: var(--blue);
+            font-family: "Space Grotesk", "Inter", sans-serif;
+            font-size: 1.02rem;
+            font-weight: 700;
         }
 
         .brand-mark {
-            width: 32px;
-            height: 32px;
-            border-radius: 11px;
+            width: 30px;
+            height: 30px;
+            display: inline-grid;
+            place-items: center;
+            border-radius: 8px;
+            color: #ffffff;
             background: linear-gradient(135deg, var(--green), var(--blue));
-            box-shadow: 0 8px 18px rgba(15, 122, 84, 0.18);
+            box-shadow: 0 8px 18px rgba(11, 48, 72, 0.16);
+            font-size: 0.78rem;
+            font-weight: 800;
         }
 
-        .top-actions {
+        .nav-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 46px;
-            padding: 0 17px;
-            border-radius: 13px;
+            min-height: 44px;
+            padding: 0 16px;
             border: 1px solid transparent;
-            font-size: 0.94rem;
-            font-weight: 900;
-            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+            border-radius: var(--radius-control);
+            font-size: 0.92rem;
+            font-weight: 700;
             white-space: nowrap;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, border-color 0.16s ease;
         }
 
         .btn:hover {
@@ -128,179 +140,253 @@
         .btn-primary {
             color: #ffffff;
             background: linear-gradient(135deg, var(--green), var(--blue));
-            box-shadow: 0 12px 24px rgba(11, 59, 90, 0.18);
+            box-shadow: 0 12px 24px rgba(11, 48, 72, 0.17);
         }
 
         .btn-secondary {
             color: var(--blue);
-            background: rgba(255, 255, 255, 0.48);
-            border-color: rgba(11, 59, 90, 0.12);
+            background: rgba(255, 255, 255, 0.70);
+            border-color: rgba(11, 48, 72, 0.13);
         }
 
-        .hero {
-            padding: 46px 0 30px;
+        .btn-ghost {
+            color: var(--blue);
+            background: transparent;
+            border-color: transparent;
         }
 
-        .hero-grid {
-            display: grid;
-            gap: 24px;
-            align-items: center;
+        section {
+            padding: 46px 0;
         }
 
-        .eyebrow {
+        .section-band {
+            background: rgba(255, 255, 255, 0.50);
+            border-block: 1px solid rgba(220, 230, 225, 0.72);
+        }
+
+        .section-blue {
+            background: rgba(232, 241, 246, 0.58);
+        }
+
+        .section-kicker {
             display: inline-flex;
             width: fit-content;
+            min-height: 28px;
             align-items: center;
-            min-height: 32px;
-            padding: 0 11px;
+            padding: 0 10px;
             border-radius: 999px;
             color: var(--green-dark);
-            background: rgba(15, 122, 84, 0.10);
-            border: 1px solid rgba(15, 122, 84, 0.16);
-            font-size: 0.7rem;
-            font-weight: 900;
-            letter-spacing: 0.08em;
+            background: rgba(11, 122, 83, 0.09);
+            border: 1px solid rgba(11, 122, 83, 0.14);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0;
             text-transform: uppercase;
         }
 
         h1,
         h2,
         h3 {
-            font-family: "Space Grotesk", "Manrope", sans-serif;
-            letter-spacing: 0;
+            font-family: "Space Grotesk", "Inter", sans-serif;
             color: var(--ink);
+            letter-spacing: 0;
         }
 
         h1 {
-            max-width: 760px;
-            margin-top: 16px;
-            font-size: clamp(2.18rem, 10vw, 4.75rem);
-            line-height: 1.02;
+            margin-top: 14px;
+            max-width: 620px;
+            font-size: 2.42rem;
+            line-height: 1.04;
+            font-weight: 700;
         }
 
-        .hero-copy {
-            max-width: 600px;
-            margin-top: 14px;
+        h2 {
+            font-size: 1.9rem;
+            line-height: 1.12;
+            font-weight: 700;
+        }
+
+        h3 {
+            font-size: 1.04rem;
+            line-height: 1.25;
+            font-weight: 700;
+        }
+
+        p {
             color: var(--muted);
-            font-size: 1rem;
             line-height: 1.62;
         }
 
-        .hero-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 22px;
-        }
-
-        .hero-panel {
-            position: relative;
-            display: grid;
-            gap: 12px;
-            padding: 14px;
-            border-radius: 24px;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(238, 247, 242, 0.86));
-            border: 1px solid rgba(217, 232, 223, 0.9);
-            box-shadow: var(--shadow);
-        }
-
-        .metric-strip {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-
-        .metric {
-            min-height: 78px;
-            display: grid;
-            align-content: center;
-            gap: 4px;
-            padding: 12px;
-            border-radius: 16px;
-            background: #ffffff;
-            border: 1px solid var(--line);
-        }
-
-        .metric strong {
-            color: var(--blue);
-            font-size: 1.2rem;
-        }
-
-        .metric span {
-            color: var(--muted);
-            font-size: 0.76rem;
-            font-weight: 800;
-        }
-
-        .dashboard-preview {
-            display: grid;
-            gap: 10px;
-            padding: 14px;
-            border-radius: 20px;
-            background: #092018;
-            color: #ffffff;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-        }
-
-        .preview-top {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            color: #bde8d5;
-            font-size: 0.78rem;
-            font-weight: 900;
-        }
-
-        .preview-card {
-            display: grid;
-            gap: 8px;
-            padding: 13px;
-            border-radius: 15px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .preview-card strong {
-            font-size: 1.24rem;
-        }
-
-        .preview-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            color: #d7efe4;
-            font-size: 0.84rem;
-        }
-
-        section {
-            padding: 36px 0;
-        }
-
-        .section-band {
-            background: rgba(255, 255, 255, 0.34);
-            border-block: 1px solid rgba(217, 232, 223, 0.46);
-        }
-
-        .section-muted {
-            background: rgba(230, 242, 247, 0.48);
+        .lead {
+            margin-top: 14px;
+            max-width: 610px;
+            color: var(--muted-strong);
+            font-size: 1rem;
         }
 
         .section-head {
             display: grid;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .section-head h2 {
-            max-width: 680px;
-            font-size: clamp(1.58rem, 6vw, 2.7rem);
-            line-height: 1.12;
+            gap: 10px;
+            margin-bottom: 20px;
         }
 
         .section-head p {
-            max-width: 620px;
+            max-width: 660px;
+        }
+
+        .hero {
+            padding: 42px 0 34px;
+        }
+
+        .hero-grid {
+            display: grid;
+            gap: 26px;
+            align-items: center;
+        }
+
+        .headline-line {
+            display: block;
+        }
+
+        .hero-actions {
+            display: grid;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        .trust-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 22px;
+        }
+
+        .trust-item {
+            min-height: 70px;
+            display: grid;
+            align-content: center;
+            gap: 2px;
+            padding: 11px;
+            border-radius: var(--radius-card);
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .trust-item strong {
+            color: var(--blue);
+            font-size: 1rem;
+        }
+
+        .trust-item span {
             color: var(--muted);
-            line-height: 1.62;
+            font-size: 0.74rem;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
+        .product-visual {
+            padding: 12px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.90), rgba(238, 244, 241, 0.92));
+            border: 1px solid rgba(220, 230, 225, 0.92);
+            box-shadow: var(--shadow);
+        }
+
+        .mockup {
+            overflow: hidden;
+            border-radius: 8px;
+            background: #071a16;
+            color: #ffffff;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+
+        .mockup-top {
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 0 13px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: #cfe8dd;
+            font-size: 0.76rem;
+            font-weight: 800;
+        }
+
+        .mockup-body {
+            display: grid;
+            gap: 10px;
+            padding: 13px;
+        }
+
+        .mockup-hero {
+            display: grid;
+            gap: 8px;
+            padding: 13px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(11, 122, 83, 0.34), rgba(11, 48, 72, 0.42));
+            border: 1px solid rgba(255, 255, 255, 0.10);
+        }
+
+        .mockup-hero span,
+        .mockup-row span,
+        .pipeline span {
+            color: #b9d6cc;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .mockup-hero strong {
+            font-size: 1.42rem;
+            line-height: 1.1;
+        }
+
+        .mockup-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .mockup-tile {
+            min-height: 88px;
+            display: grid;
+            align-content: center;
+            gap: 4px;
+            padding: 11px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.075);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .mockup-tile strong {
+            font-size: 1.1rem;
+        }
+
+        .mockup-tile span {
+            color: #cfe8dd;
+            font-size: 0.74rem;
+            line-height: 1.3;
+        }
+
+        .mockup-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 11px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            flex: 0 0 auto;
+            border-radius: 999px;
+            background: #22c55e;
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.55);
         }
 
         .grid {
@@ -311,66 +397,142 @@
         .card {
             min-height: 100%;
             padding: 17px;
-            border-radius: var(--radius);
+            border-radius: var(--radius-card);
             background: var(--surface);
             border: 1px solid var(--line);
             box-shadow: var(--shadow-soft);
         }
 
-        .card h3 {
-            font-size: 1.04rem;
-            margin-bottom: 6px;
-        }
-
-        .card p,
-        .card li,
-        .faq-item p {
-            color: var(--muted);
-            line-height: 1.56;
+        .card p {
+            margin-top: 7px;
             font-size: 0.94rem;
         }
 
-        .problem-card {
-            border-left: 4px solid rgba(15, 122, 84, 0.32);
+        .pain-card {
+            border-left: 3px solid rgba(11, 122, 83, 0.42);
         }
 
-        .solution-card {
+        .solution-layout,
+        .roi-layout {
             display: grid;
-            gap: 8px;
+            gap: 14px;
         }
 
-        .icon {
-            width: 36px;
-            height: 36px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 13px;
+        .feature-detail {
+            display: grid;
+            gap: 12px;
+        }
+
+        .feature-row {
+            display: grid;
+            gap: 12px;
+            padding: 16px;
+            border-radius: var(--radius-card);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .feature-number {
+            width: 34px;
+            height: 34px;
+            display: inline-grid;
+            place-items: center;
+            border-radius: 8px;
             color: #ffffff;
             background: linear-gradient(135deg, var(--green), var(--blue));
-            font-size: 0.82rem;
-            font-weight: 900;
+            font-size: 0.78rem;
+            font-weight: 800;
         }
 
-        .roi {
-            padding: 22px;
-            border-radius: 24px;
+        .feature-copy {
+            display: grid;
+            gap: 6px;
+        }
+
+        .feature-copy p {
+            font-size: 0.94rem;
+        }
+
+        .roadmap {
+            display: grid;
+            gap: 12px;
+        }
+
+        .roadmap-card {
+            padding: 18px;
+            border-radius: var(--radius-card);
             color: #ffffff;
             background: linear-gradient(135deg, var(--green-dark), var(--blue));
-            box-shadow: 0 24px 56px rgba(11, 59, 90, 0.22);
+            box-shadow: var(--shadow);
         }
 
-        .roi h2,
-        .roi p {
+        .roadmap-card h2,
+        .roadmap-card p {
             color: #ffffff;
         }
 
-        .roi p {
+        .roadmap-card p {
             margin-top: 10px;
-            max-width: 760px;
-            font-size: clamp(1.12rem, 4.5vw, 1.85rem);
-            line-height: 1.36;
-            font-weight: 800;
+            opacity: 0.86;
+        }
+
+        .roadmap-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .roadmap-item {
+            padding: 14px;
+            border-radius: var(--radius-card);
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(220, 230, 225, 0.92);
+        }
+
+        .roadmap-item strong {
+            display: block;
+            color: var(--blue);
+            margin-bottom: 4px;
+        }
+
+        .roadmap-item span {
+            color: var(--muted);
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        .roi-card {
+            padding: 18px;
+            border-radius: var(--radius-card);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .roi-card strong {
+            display: block;
+            color: var(--blue);
+            font-size: 1.55rem;
+            line-height: 1.1;
+            margin-bottom: 6px;
+        }
+
+        .roi-highlight {
+            padding: 20px;
+            border-radius: var(--radius-card);
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--green), var(--blue));
+            box-shadow: var(--shadow);
+        }
+
+        .roi-highlight h3,
+        .roi-highlight p {
+            color: #ffffff;
+        }
+
+        .roi-highlight p {
+            margin-top: 8px;
+            opacity: 0.9;
         }
 
         .plans {
@@ -378,85 +540,95 @@
             gap: 12px;
         }
 
-        .plan-card {
+        .plan {
             display: grid;
             gap: 14px;
             align-content: start;
+            padding: 18px;
+            border-radius: var(--radius-card);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-soft);
         }
 
-        .plan-card ul {
-            display: grid;
-            gap: 8px;
-            padding-left: 17px;
-            min-height: 82px;
+        .plan.recommended {
+            border-color: rgba(11, 122, 83, 0.38);
+            background: linear-gradient(180deg, #ffffff 0%, #f1faf5 100%);
+            box-shadow: 0 16px 34px rgba(11, 122, 83, 0.12);
         }
 
-        .plan-name {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .plan-name span {
-            display: inline-flex;
-            flex: 0 0 auto;
-            align-items: center;
-            min-height: 28px;
-            padding: 0 9px;
-            border-radius: 999px;
-            color: var(--green);
-            background: rgba(15, 122, 84, 0.09);
-            border: 1px solid rgba(15, 122, 84, 0.14);
-            font-size: 0.74rem;
-            font-family: "Manrope", sans-serif;
-            font-weight: 900;
-        }
-
-        .plan-card .btn {
-            margin-top: auto;
-            min-height: 44px;
-            box-shadow: 0 10px 20px rgba(11, 59, 90, 0.14);
-        }
-
-        .plan-card.recommended {
-            position: relative;
-            border-color: rgba(15, 122, 84, 0.34);
-            background: linear-gradient(180deg, #ffffff 0%, #f4fbf7 100%);
-            box-shadow: 0 16px 34px rgba(15, 122, 84, 0.12);
-        }
-
-        .recommended-label {
-            display: inline-flex;
+        .plan-label {
             width: fit-content;
+            min-height: 27px;
+            display: inline-flex;
             align-items: center;
-            min-height: 28px;
             padding: 0 10px;
             border-radius: 999px;
+            color: var(--green-dark);
+            background: var(--green-soft);
+            border: 1px solid rgba(11, 122, 83, 0.15);
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        .recommended .plan-label {
             color: #ffffff;
             background: var(--green);
-            font-size: 0.7rem;
-            font-weight: 900;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
+        }
+
+        .plan-head {
+            display: grid;
+            gap: 7px;
+        }
+
+        .plan-head span {
+            color: var(--muted);
+            font-size: 0.94rem;
+        }
+
+        .plan ul {
+            display: grid;
+            gap: 8px;
+            padding-left: 18px;
+            color: var(--muted);
+            font-size: 0.94rem;
+            line-height: 1.48;
+        }
+
+        .plan .btn {
+            margin-top: auto;
+            width: 100%;
         }
 
         .proof {
             display: grid;
+            gap: 14px;
+            padding: 20px;
+            border-radius: var(--radius-card);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow);
+        }
+
+        .proof-grid {
+            display: grid;
             gap: 10px;
-            padding: 22px;
-            border-radius: 24px;
-            background: var(--blue-soft);
-            border: 1px solid #cfe5ee;
         }
 
-        .proof h2 {
-            font-size: clamp(1.48rem, 6vw, 2.45rem);
+        .proof-item {
+            padding: 13px;
+            border-radius: var(--radius-card);
+            background: var(--surface-soft);
+            border: 1px solid var(--line);
         }
 
-        .proof p {
-            color: #315367;
-            line-height: 1.62;
+        .proof-item strong {
+            color: var(--blue);
+        }
+
+        .proof-item p {
+            margin-top: 5px;
+            font-size: 0.92rem;
         }
 
         .faq {
@@ -466,138 +638,147 @@
 
         .faq-item {
             padding: 16px;
-            border-radius: 16px;
-            background: #ffffff;
+            border-radius: var(--radius-card);
+            background: var(--surface);
             border: 1px solid var(--line);
         }
 
-        .faq-item h3 {
-            margin-bottom: 6px;
-            font-size: 0.98rem;
+        .faq-item p {
+            margin-top: 6px;
+            font-size: 0.94rem;
         }
 
         .final-cta {
             display: grid;
-            justify-items: start;
             gap: 14px;
             padding: 22px;
-            border-radius: 24px;
-            background: #ffffff;
-            border: 1px solid var(--line);
+            border-radius: var(--radius-card);
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--green-dark), var(--blue));
             box-shadow: var(--shadow);
         }
 
+        .final-cta h2,
+        .final-cta p {
+            color: #ffffff;
+        }
+
+        .final-actions {
+            display: grid;
+            gap: 10px;
+        }
+
         footer {
-            padding: 26px 0 34px;
+            padding: 28px 0 34px;
             color: var(--muted);
-            font-size: 0.92rem;
+            font-size: 0.9rem;
         }
 
         @media (max-width: 560px) {
-            .shell {
-                width: min(100% - 32px, 430px);
+            .nav-actions .btn-primary {
+                display: none;
             }
 
-            .topbar-inner {
-                min-height: 62px;
+            .nav-actions .btn {
+                min-height: 38px;
+                padding: 0 13px;
+                font-size: 0.88rem;
+            }
+
+            .brand {
+                font-size: 1rem;
             }
 
             .brand-mark {
                 width: 28px;
                 height: 28px;
-                border-radius: 10px;
-            }
-
-            .brand {
-                gap: 8px;
-                font-size: 1rem;
-            }
-
-            .top-actions .btn-primary {
-                display: none;
-            }
-
-            .btn {
-                width: 100%;
-            }
-
-            .top-actions .btn {
-                width: auto;
-                min-height: 38px;
-                padding: 0 13px;
-                border-radius: 12px;
-                font-size: 0.88rem;
-            }
-
-            .hero {
-                padding: 34px 0 24px;
             }
 
             h1 {
-                max-width: 11ch;
+                max-width: 12ch;
             }
 
-            .hero-actions .btn-secondary {
-                background: transparent;
-            }
-
-            .metric-strip {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-            }
-
-            .metric {
-                min-height: 72px;
-                padding: 10px 8px;
-            }
-
-            .metric strong {
-                font-size: 1.05rem;
-            }
-
-            .metric span {
-                font-size: 0.68rem;
-                line-height: 1.2;
-            }
-
-            section {
-                padding: 30px 0;
-            }
-
-            .plan-name {
-                align-items: center;
+            .hero-actions .btn-ghost {
+                min-height: 38px;
+                justify-content: center;
+                border-color: transparent;
             }
         }
 
-        @media (min-width: 760px) {
-            .hero-grid {
-                grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.75fr);
+        @media (min-width: 640px) {
+            .hero-actions,
+            .final-actions {
+                grid-template-columns: max-content max-content;
+                align-items: center;
             }
 
             .grid-2 {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
-            .grid-3,
-            .plans {
+            .grid-3 {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
             }
 
-            .plans .enterprise {
-                grid-column: span 3;
+            .proof-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
         }
 
-        @media (min-width: 1020px) {
-            .grid-4 {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
+        @media (min-width: 860px) {
+            .topbar-inner {
+                min-height: 72px;
+            }
+
+            section {
+                padding: 64px 0;
+            }
+
+            .hero {
+                padding: 70px 0 58px;
+            }
+
+            .hero-grid {
+                grid-template-columns: minmax(0, 0.96fr) minmax(360px, 0.82fr);
+                gap: 46px;
+            }
+
+            h1 {
+                font-size: 4.05rem;
+            }
+
+            h2 {
+                font-size: 2.55rem;
+            }
+
+            .lead {
+                font-size: 1.08rem;
+            }
+
+            .solution-layout,
+            .roi-layout,
+            .roadmap {
+                grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+                align-items: start;
+            }
+
+            .feature-row {
+                grid-template-columns: 42px minmax(0, 1fr);
+                align-items: start;
             }
 
             .plans {
                 grid-template-columns: repeat(4, minmax(0, 1fr));
             }
 
-            .plans .enterprise {
-                grid-column: auto;
+            .faq {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 1120px) {
+            .grid-4 {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
             }
         }
     </style>
@@ -607,10 +788,10 @@
         <header class="topbar">
             <div class="shell topbar-inner">
                 <a class="brand" href="/" aria-label="Posto360">
-                    <span class="brand-mark" aria-hidden="true"></span>
+                    <span class="brand-mark" aria-hidden="true">P</span>
                     <span>Posto360</span>
                 </a>
-                <nav class="top-actions" aria-label="Acesso">
+                <nav class="nav-actions" aria-label="Acesso">
                     <a class="btn btn-secondary" href="/login">Entrar</a>
                     <a class="btn btn-primary" href="/register">Teste grátis por 3 dias</a>
                 </nav>
@@ -621,33 +802,46 @@
             <section class="hero">
                 <div class="shell hero-grid">
                     <div>
-                        <span class="eyebrow">Inteligência operacional para postos</span>
-                        <h1>Gestão inteligente para postos de combustível</h1>
-                        <p class="hero-copy">Monitore concorrência, proteja margem e tenha apoio à decisão para acompanhar a operação em tempo real.</p>
+                        <span class="section-kicker">SaaS para redes de postos</span>
+                        <h1>
+                            <span class="headline-line">Gestão inteligente</span>
+                            <span class="headline-line">para redes de</span>
+                            <span class="headline-line">postos de combustível</span>
+                        </h1>
+                        <p class="lead">Centralize monitoramento competitivo, margem, modo campo e apoio à decisão para operar cada unidade com mais controle e velocidade.</p>
                         <div class="hero-actions">
                             <a class="btn btn-primary" href="/register">Teste grátis por 3 dias</a>
-                            <a class="btn btn-secondary" href="/login">Entrar</a>
+                            <a class="btn btn-ghost" href="/login">Ver demonstração / Entrar</a>
+                        </div>
+                        <div class="trust-row" aria-label="Destaques do Posto360">
+                            <div class="trust-item"><strong>Campo</strong><span>coleta padronizada</span></div>
+                            <div class="trust-item"><strong>Margem</strong><span>alertas de risco</span></div>
+                            <div class="trust-item"><strong>Rede</strong><span>visão por unidade</span></div>
                         </div>
                     </div>
 
-                    <aside class="hero-panel" aria-label="Resumo operacional">
-                        <div class="metric-strip">
-                            <div class="metric"><strong>10</strong><span>postos na rede</span></div>
-                            <div class="metric"><strong>R$5k</strong><span>margem potencial</span></div>
-                            <div class="metric"><strong>24h</strong><span>visão de campo</span></div>
-                        </div>
-                        <div class="dashboard-preview">
-                            <div class="preview-top">
-                                <span>Posto360 Dashboard</span>
-                                <span>Ao vivo</span>
+                    <aside class="product-visual" aria-label="Mockup do dashboard Posto360">
+                        <div class="mockup">
+                            <div class="mockup-top">
+                                <span>Posto360 Operação</span>
+                                <span>Monitoramento ativo</span>
                             </div>
-                            <div class="preview-card">
-                                <span>Concorrência na região</span>
-                                <strong>3 alertas ativos</strong>
-                                <div class="preview-row"><span>Gasolina</span><span>R$ 0,08 abaixo</span></div>
-                                <div class="preview-row"><span>Etanol</span><span>oportunidade</span></div>
+                            <div class="mockup-body">
+                                <div class="mockup-hero">
+                                    <span>Margem e concorrência</span>
+                                    <strong>3 unidades exigem atenção</strong>
+                                </div>
+                                <div class="mockup-grid">
+                                    <div class="mockup-tile"><strong>R$5.000</strong><span>potencial mensal em 10 postos</span></div>
+                                    <div class="mockup-tile"><strong>24h</strong><span>rotina de campo acompanhada</span></div>
+                                    <div class="mockup-tile"><strong>OCR</strong><span>leitura de placas de preço</span></div>
+                                    <div class="mockup-tile"><strong>Rede</strong><span>controle por posto e região</span></div>
+                                </div>
+                                <div class="mockup-row">
+                                    <span>Concorrente reduziu gasolina na região norte</span>
+                                    <span class="status-dot" aria-hidden="true"></span>
+                                </div>
                             </div>
-                            <div class="preview-row"><span>Modo Campo</span><span>leitura enviada</span></div>
                         </div>
                     </aside>
                 </div>
@@ -655,71 +849,108 @@
 
             <section class="section-band">
                 <div class="shell">
-                    <div class="section-head">
-                        <h2>O preço muda na rua antes de aparecer na planilha.</h2>
-                        <p>O Posto360 ajuda sua rede a sair do improviso com monitoramento competitivo por unidade e região.</p>
+                    <div class="section-head narrow">
+                        <span class="section-kicker">Problemas do setor</span>
+                        <h2>Quando a informação chega tarde, a margem paga a conta.</h2>
+                        <p>Redes de postos operam com muita pressão, concorrência agressiva e decisões que precisam de dados confiáveis todos os dias.</p>
                     </div>
                     <div class="grid grid-4">
-                        <article class="card problem-card"><h3>Perda de margem</h3><p>Decisões tardias reduzem resultado quando falta informação confiável.</p></article>
-                        <article class="card problem-card"><h3>Concorrência rápida</h3><p>Postos próximos mudam preço sem acompanhamento estruturado.</p></article>
-                        <article class="card problem-card"><h3>Gestão manual</h3><p>WhatsApp e planilhas espalham dados e dificultam comparação.</p></article>
-                        <article class="card problem-card"><h3>Baixa visão regional</h3><p>Fica difícil entender desempenho por posto, bairro e corredor.</p></article>
+                        <article class="card pain-card"><h3>Margem perdida</h3><p>Pequenas diferenças de preço se acumulam em várias unidades.</p></article>
+                        <article class="card pain-card"><h3>Falta de informação</h3><p>Dados chegam incompletos, fora de padrão ou tarde demais.</p></article>
+                        <article class="card pain-card"><h3>Concorrência agressiva</h3><p>Postos próximos mudam preço sem monitoramento competitivo.</p></article>
+                        <article class="card pain-card"><h3>Gestão manual</h3><p>WhatsApp e planilhas dificultam histórico, comparação e auditoria.</p></article>
+                        <article class="card pain-card"><h3>Estoque ineficiente</h3><p>Falta visão para conectar giro, abastecimento e contexto regional.</p></article>
+                        <article class="card pain-card"><h3>Decisões lentas</h3><p>Sem painel central, a operação depende de conferência manual.</p></article>
+                        <article class="card pain-card"><h3>Baixa visão por unidade</h3><p>Fica difícil saber qual posto precisa de ação imediata.</p></article>
+                        <article class="card pain-card"><h3>Expansão sem padrão</h3><p>Crescer a rede exige processo, governança e leitura clara.</p></article>
                     </div>
                 </div>
             </section>
 
             <section>
-                <div class="shell">
+                <div class="shell solution-layout">
                     <div class="section-head">
-                        <h2>Inteligência operacional para decidir melhor.</h2>
-                        <p>Campo, concorrência, histórico e alertas no mesmo lugar para apoio à decisão com dados reais.</p>
+                        <span class="section-kicker">Solução Posto360</span>
+                        <h2>Uma central operacional para transformar campo em decisão.</h2>
+                        <p>O Posto360 organiza dados de concorrência, preço, região e unidade para entregar inteligência operacional sem prometer automação de preço.</p>
                     </div>
-                    <div class="grid grid-3">
-                        <article class="card solution-card"><span class="icon">01</span><h3>Modo Campo</h3><p>Equipe registra preços e concorrentes direto da rua.</p></article>
-                        <article class="card solution-card"><span class="icon">02</span><h3>OCR de preços</h3><p>Leitura de placas por imagem para acelerar a coleta.</p></article>
-                        <article class="card solution-card"><span class="icon">03</span><h3>Monitoramento competitivo</h3><p>Veja diferenças por praça, posto e combustível.</p></article>
-                        <article class="card solution-card"><span class="icon">04</span><h3>Dashboard por posto</h3><p>Acompanhe unidades com visão executiva e operacional.</p></article>
-                        <article class="card solution-card"><span class="icon">05</span><h3>Alertas e oportunidades</h3><p>Identifique movimentos que pedem ação rápida.</p></article>
-                        <article class="card solution-card"><span class="icon">06</span><h3>Histórico operacional</h3><p>Consulte leituras recentes e evolução da operação.</p></article>
+                    <div class="grid grid-2">
+                        <article class="card"><h3>Dashboard operacional</h3><p>Visão executiva para acompanhar rede, regiões e postos.</p></article>
+                        <article class="card"><h3>Modo Campo</h3><p>Coleta orientada para equipes registrarem informações na rua.</p></article>
+                        <article class="card"><h3>OCR de placas</h3><p>Leitura de preços por imagem para acelerar registros.</p></article>
+                        <article class="card"><h3>Comparação regional</h3><p>Monitoramento competitivo por praça, unidade e combustível.</p></article>
+                        <article class="card"><h3>Alertas e histórico</h3><p>Sinais de atenção com rastreabilidade operacional.</p></article>
+                        <article class="card"><h3>Planos escaláveis</h3><p>Estrutura para crescer de poucas unidades a operação enterprise.</p></article>
                     </div>
                 </div>
             </section>
 
-            <section class="section-band section-muted">
+            <section class="section-band section-blue">
                 <div class="shell">
-                    <div class="roi">
-                        <span class="eyebrow">Economia potencial</span>
-                        <h2>Pequenas recuperações viram resultado real.</h2>
-                        <p>Se cada posto recuperar apenas R$500/mês em margem, uma rede com 10 postos pode recuperar R$5.000/mês.</p>
+                    <div class="section-head narrow">
+                        <span class="section-kicker">Funcionalidades detalhadas</span>
+                        <h2>Construído para a rotina real de uma rede de postos.</h2>
+                        <p>Cada módulo resolve uma parte da operação: coleta, comparação, histórico, alertas, relatórios e governança por unidade.</p>
+                    </div>
+                    <div class="feature-detail">
+                        <article class="feature-row"><span class="feature-number">01</span><div class="feature-copy"><h3>Concorrência</h3><p>Acompanhe preços e movimentos por região para entender onde sua rede está exposta.</p></div></article>
+                        <article class="feature-row"><span class="feature-number">02</span><div class="feature-copy"><h3>Modo Campo</h3><p>Padronize a coleta externa e reduza dependência de mensagens soltas.</p></div></article>
+                        <article class="feature-row"><span class="feature-number">03</span><div class="feature-copy"><h3>OCR de placas</h3><p>Registre preços por foto e ganhe velocidade na atualização da base.</p></div></article>
+                        <article class="feature-row"><span class="feature-number">04</span><div class="feature-copy"><h3>Estoque</h3><p>Use contexto operacional para apoiar decisões de abastecimento em fases futuras.</p></div></article>
+                        <article class="feature-row"><span class="feature-number">05</span><div class="feature-copy"><h3>Histórico</h3><p>Consulte leituras recentes e entenda como a operação evoluiu no tempo.</p></div></article>
+                        <article class="feature-row"><span class="feature-number">06</span><div class="feature-copy"><h3>Relatórios</h3><p>Leve dados claros para reuniões comerciais, auditoria e acompanhamento de rede.</p></div></article>
+                        <article class="feature-row"><span class="feature-number">07</span><div class="feature-copy"><h3>Multiunidade</h3><p>Controle postos, regiões e leituras sem perder padrão de gestão.</p></div></article>
+                        <article class="feature-row"><span class="feature-number">08</span><div class="feature-copy"><h3>Alertas estratégicos</h3><p>Receba sinais de risco, oportunidade e necessidade de atenção.</p></div></article>
+                        <article class="feature-row"><span class="feature-number">09</span><div class="feature-copy"><h3>Gestão operacional</h3><p>Transforme rotina dispersa em processo visível, auditável e escalável.</p></div></article>
                     </div>
                 </div>
             </section>
 
             <section>
-                <div class="shell">
-                    <div class="section-head">
-                        <h2>Funcionalidades para a rotina de uma rede de postos.</h2>
+                <div class="shell roadmap">
+                    <div class="roadmap-card">
+                        <span class="section-kicker">Visão de futuro</span>
+                        <h2>Preparado para evoluir com redes maiores.</h2>
+                        <p>O caminho do Posto360 é ampliar inteligência operacional e apoio estratégico, sempre mantendo o gestor no controle da decisão.</p>
                     </div>
-                    <div class="grid grid-3">
-                        <article class="card"><h3>Concorrência</h3><p>Monitore preços e movimentações em cada região.</p></article>
-                        <article class="card"><h3>Modo Campo</h3><p>Coleta rápida para equipes externas e gestores.</p></article>
-                        <article class="card"><h3>Meus Postos</h3><p>Controle unidades, regiões e dados próprios.</p></article>
-                        <article class="card"><h3>Alertas</h3><p>Receba sinais para apoio à decisão operacional.</p></article>
-                        <article class="card"><h3>Planos</h3><p>Evolua conforme sua rede cresce.</p></article>
-                        <article class="card"><h3>Relatórios</h3><p>Use histórico para reuniões, auditoria e decisão.</p></article>
+                    <div class="roadmap-list">
+                        <div class="roadmap-item"><strong>Integrações futuras</strong><span>TOTVS, Tecnox e ERPs podem ser avaliados em fases futuras.</span></div>
+                        <div class="roadmap-item"><strong>Algoritmos operacionais</strong><span>Análises para apoiar rotina de margem, giro e contexto competitivo.</span></div>
+                        <div class="roadmap-item"><strong>Sugestão de abastecimento</strong><span>Camada futura para apoiar planejamento, sem automatizar preço.</span></div>
+                        <div class="roadmap-item"><strong>Sensibilidade competitiva</strong><span>Leitura de regiões onde a concorrência exige atenção maior.</span></div>
+                        <div class="roadmap-item"><strong>Posto360 AI Pro</strong><span>Inteligência operacional conversacional em roadmap.</span></div>
+                        <div class="roadmap-item"><strong>Enterprise</strong><span>Expansão para governança de grandes redes e operação nacional.</span></div>
                     </div>
                 </div>
             </section>
 
             <section class="section-band">
-                <div class="shell">
+                <div class="shell roi-layout">
                     <div class="section-head">
-                        <h2>Planos para cada estágio da operação.</h2>
-                        <p>Comece simples, valide o ganho operacional e expanda para mais unidades.</p>
+                        <span class="section-kicker">ROI e escala</span>
+                        <h2>O ganho aparece quando a rede decide com dados.</h2>
+                        <p>O valor não depende de promessas automáticas. Ele vem de reduzir atraso, enxergar concorrência e agir com mais precisão.</p>
+                    </div>
+                    <div class="grid grid-2">
+                        <article class="roi-card"><strong>R$500/mês</strong><p>Se cada posto recuperar apenas esse valor em margem, o impacto já compensa a rotina.</p></article>
+                        <article class="roi-card"><strong>R$5.000/mês</strong><p>Em uma rede com 10 postos, a recuperação potencial chega a R$5.000 mensais.</p></article>
+                        <article class="roi-card"><strong>R$15.000/mês</strong><p>Com 30 postos, pequenas melhorias por unidade escalam rapidamente.</p></article>
+                        <article class="roi-highlight"><h3>Mais controle antes de crescer.</h3><p>Quanto maior a rede, mais importante é padronizar monitoramento competitivo, histórico e apoio à decisão.</p></article>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="shell">
+                    <div class="section-head narrow">
+                        <span class="section-kicker">Planos</span>
+                        <h2>Comece no tamanho certo e expanda com governança.</h2>
+                        <p>Planos pensados para acompanhar desde uma operação enxuta até redes em escala enterprise.</p>
                     </div>
                     <div class="plans">
-                        <article class="card plan-card">
-                            <div class="plan-name"><h3>Starter</h3><span>até 3 postos</span></div>
+                        <article class="plan">
+                            <span class="plan-label">Até 3 postos</span>
+                            <div class="plan-head"><h3>Starter</h3><span>Para validar a rotina e organizar os primeiros dados.</span></div>
                             <ul>
                                 <li>Dashboard essencial</li>
                                 <li>Modo Campo</li>
@@ -727,9 +958,9 @@
                             </ul>
                             <a class="btn btn-primary" href="/register">Começar teste grátis</a>
                         </article>
-                        <article class="card plan-card recommended">
-                            <span class="recommended-label">Recomendado</span>
-                            <div class="plan-name"><h3>Growth</h3><span>até 10 postos</span></div>
+                        <article class="plan recommended">
+                            <span class="plan-label">Recomendado</span>
+                            <div class="plan-head"><h3>Growth</h3><span>Até 10 postos para redes que querem previsibilidade.</span></div>
                             <ul>
                                 <li>Alertas regionais</li>
                                 <li>Histórico operacional</li>
@@ -737,20 +968,22 @@
                             </ul>
                             <a class="btn btn-primary" href="/register">Começar teste grátis</a>
                         </article>
-                        <article class="card plan-card">
-                            <div class="plan-name"><h3>Scale</h3><span>até 30 postos</span></div>
+                        <article class="plan">
+                            <span class="plan-label">Até 30 postos</span>
+                            <div class="plan-head"><h3>Scale</h3><span>Para operação multiunidade com governança.</span></div>
                             <ul>
-                                <li>Rotina multiunidade</li>
-                                <li>Relatórios para apoio à decisão</li>
-                                <li>Governança operacional</li>
+                                <li>Relatórios gerenciais</li>
+                                <li>Rotina regional</li>
+                                <li>Monitoramento avançado</li>
                             </ul>
                             <a class="btn btn-primary" href="/register">Começar teste grátis</a>
                         </article>
-                        <article class="card plan-card enterprise">
-                            <div class="plan-name"><h3>Enterprise</h3><span>acima de 30 postos</span></div>
+                        <article class="plan">
+                            <span class="plan-label">Acima de 30</span>
+                            <div class="plan-head"><h3>Enterprise</h3><span>Para grandes redes e expansão nacional.</span></div>
                             <ul>
                                 <li>Projeto sob medida</li>
-                                <li>Implantação acompanhada</li>
+                                <li>Governança enterprise</li>
                                 <li>Fale com vendas</li>
                             </ul>
                             <a class="btn btn-primary" href="/register">Começar teste grátis</a>
@@ -759,25 +992,38 @@
                 </div>
             </section>
 
-            <section>
+            <section class="section-band section-blue">
                 <div class="shell">
                     <div class="proof">
-                        <h2>Criado a partir da operação real de uma rede de postos.</h2>
-                        <p>O Posto360 nasceu para resolver problemas reais de margem, monitoramento competitivo e gestão operacional no dia a dia.</p>
+                        <div class="section-head">
+                            <span class="section-kicker">Prova prática</span>
+                            <h2>Baseado em operação real de rede de postos.</h2>
+                            <p>O Posto360 nasceu de problemas reais: margem, concorrência, equipes em campo, histórico e controle por unidade.</p>
+                        </div>
+                        <div class="proof-grid">
+                            <div class="proof-item"><strong>Experiência prática</strong><p>Produto pensado para a rotina de quem decide no dia a dia.</p></div>
+                            <div class="proof-item"><strong>Operação validada</strong><p>Fluxos criados a partir de necessidades reais de gestão.</p></div>
+                            <div class="proof-item"><strong>Escala comercial</strong><p>Estrutura preparada para crescer com redes maiores.</p></div>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <section class="section-band section-muted">
+            <section>
                 <div class="shell">
-                    <div class="section-head">
+                    <div class="section-head narrow">
+                        <span class="section-kicker">FAQ</span>
                         <h2>Perguntas frequentes</h2>
                     </div>
                     <div class="faq">
-                        <article class="faq-item"><h3>Preciso pagar antes de testar?</h3><p>Não. Você pode testar grátis por 3 dias.</p></article>
-                        <article class="faq-item"><h3>O Posto360 define meu preço automaticamente?</h3><p>Não. Ele fornece dados, alertas e inteligência operacional para apoio à decisão.</p></article>
-                        <article class="faq-item"><h3>Funciona para posto único?</h3><p>Sim, mas é ideal para redes com múltiplas unidades.</p></article>
-                        <article class="faq-item"><h3>Tem integração com sistemas como TOTVS ou Tecnox?</h3><p>Integrações podem ser avaliadas em fases futuras.</p></article>
+                        <article class="faq-item"><h3>Preciso pagar antes de testar?</h3><p>Não. Você pode testar grátis por 3 dias pelo cadastro.</p></article>
+                        <article class="faq-item"><h3>O Posto360 define meu preço automaticamente?</h3><p>Não. O Posto360 oferece inteligência operacional, alertas e apoio à decisão. A decisão continua com o gestor.</p></article>
+                        <article class="faq-item"><h3>Funciona para posto único?</h3><p>Sim. Ainda assim, o maior ganho aparece em redes com múltiplas unidades e regiões.</p></article>
+                        <article class="faq-item"><h3>O que o Modo Campo resolve?</h3><p>Ele padroniza a coleta externa e reduz dependência de WhatsApp, fotos soltas e planilhas.</p></article>
+                        <article class="faq-item"><h3>O OCR substitui conferência humana?</h3><p>Não. Ele acelera a leitura de placas e ajuda a montar uma base, mas a operação pode revisar dados quando necessário.</p></article>
+                        <article class="faq-item"><h3>Tem integração com TOTVS ou Tecnox?</h3><p>Integrações com TOTVS, Tecnox e ERPs podem ser avaliadas em fases futuras.</p></article>
+                        <article class="faq-item"><h3>Serve para expansão de rede?</h3><p>Sim. A plataforma ajuda a criar padrão de monitoramento, histórico e governança operacional.</p></article>
+                        <article class="faq-item"><h3>O Posto360 AI Pro já está disponível?</h3><p>Ele está no roadmap como camada futura de inteligência operacional e apoio estratégico.</p></article>
                     </div>
                 </div>
             </section>
@@ -785,16 +1031,20 @@
             <section>
                 <div class="shell">
                     <div class="final-cta">
-                        <span class="eyebrow">Teste sem compromisso</span>
-                        <h2>Veja sua operação com mais clareza em poucos dias.</h2>
-                        <a class="btn btn-primary" href="/register">Teste grátis por 3 dias</a>
+                        <span class="section-kicker">Próximo passo</span>
+                        <h2>Transforme dados de campo em decisões melhores para sua rede.</h2>
+                        <p>Comece com um teste gratuito e veja como monitoramento competitivo, histórico e alertas podem deixar sua operação mais clara.</p>
+                        <div class="final-actions">
+                            <a class="btn btn-primary" href="/register">Teste grátis por 3 dias</a>
+                            <a class="btn btn-secondary" href="/login">Entrar</a>
+                        </div>
                     </div>
                 </div>
             </section>
         </main>
 
         <footer>
-            <div class="shell">Posto360. Inteligência operacional para postos de combustível.</div>
+            <div class="shell">Posto360. Inteligência operacional e apoio estratégico para redes de postos.</div>
         </footer>
     </div>
 </body>
