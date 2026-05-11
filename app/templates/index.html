@@ -1378,6 +1378,476 @@
                 display: none;
             }
         }
+
+        /* Premium dashboard refresh */
+        :root {
+            --bg: #020817;
+            --bg-accent:
+                radial-gradient(circle at 18% 0%, rgba(56, 189, 248, 0.16), transparent 260px),
+                radial-gradient(circle at 92% 6%, rgba(37, 99, 235, 0.18), transparent 300px),
+                linear-gradient(180deg, #071326 0%, #020817 58%, #020617 100%);
+            --panel: rgba(8, 18, 34, 0.72);
+            --panel-strong: rgba(9, 20, 38, 0.92);
+            --panel-soft: rgba(15, 23, 42, 0.58);
+            --border: rgba(56, 189, 248, 0.16);
+            --text: #f8fafc;
+            --muted: #91a4bc;
+            --primary: #38bdf8;
+            --primary-strong: #2563eb;
+            --success: #34d399;
+            --shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+            --radius-lg: 24px;
+            --radius-md: 18px;
+            --radius-sm: 12px;
+        }
+
+        body {
+            background: var(--bg);
+            background-image: var(--bg-accent);
+            padding: 10px;
+        }
+
+        .shell {
+            width: min(1180px, 100%);
+            gap: 12px;
+        }
+
+        .app-menu {
+            top: 14px;
+            right: 14px;
+        }
+
+        .app-menu summary {
+            width: 44px;
+            height: 44px;
+            border-radius: 16px;
+            border-color: rgba(56, 189, 248, 0.2);
+            background: rgba(6, 18, 34, 0.86);
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28), 0 0 22px rgba(56, 189, 248, 0.08);
+        }
+
+        .menu-panel {
+            border-color: rgba(56, 189, 248, 0.18);
+            background: rgba(5, 13, 26, 0.97);
+            box-shadow: 0 22px 48px rgba(0, 0, 0, 0.46);
+        }
+
+        .dashboard-hero,
+        .metric-card,
+        .filter-panel,
+        .mini-status,
+        .panel,
+        .decision-card,
+        .alert-card,
+        .reading-card,
+        .analysis-card {
+            border: 1px solid rgba(56, 189, 248, 0.16);
+            background: linear-gradient(180deg, rgba(10, 25, 48, 0.74), rgba(5, 13, 26, 0.82));
+            box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+            backdrop-filter: blur(16px);
+        }
+
+        .dashboard-hero {
+            display: grid;
+            gap: 14px;
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .dashboard-hero::after {
+            content: "";
+            position: absolute;
+            right: -80px;
+            bottom: -100px;
+            width: 210px;
+            height: 210px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.24), transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-topline {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 56px;
+        }
+
+        .product-mark {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 0 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            background: rgba(56, 189, 248, 0.08);
+            color: #dbeafe;
+            font-family: "Space Grotesk", "Manrope", sans-serif;
+            font-size: 0.86rem;
+            font-weight: 800;
+        }
+
+        .hero-topline h1 {
+            margin: 12px 0 4px;
+            font-size: clamp(1.8rem, 8vw, 3.4rem);
+            line-height: 0.96;
+            letter-spacing: 0;
+        }
+
+        .hero-topline p {
+            max-width: 42ch;
+            color: #b7c7dc;
+            font-size: 0.98rem;
+            font-weight: 700;
+            line-height: 1.42;
+        }
+
+        .live-pill,
+        .process-pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 0 10px;
+            border-radius: 999px;
+            color: #06111f;
+            background: linear-gradient(135deg, #38bdf8, #34d399);
+            font-size: 0.74rem;
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .hero-identity {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            color: var(--muted);
+            font-size: 0.86rem;
+            font-weight: 800;
+        }
+
+        .hero-identity strong {
+            color: #e0f2fe;
+        }
+
+        .process-pill {
+            justify-self: start;
+            color: #bae6fd;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .executive-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .metric-card {
+            min-height: 136px;
+            display: grid;
+            align-content: space-between;
+            gap: 10px;
+            padding: 14px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .metric-main {
+            grid-column: 1 / -1;
+            min-height: 168px;
+            background:
+                linear-gradient(135deg, rgba(56, 189, 248, 0.16), transparent 54%),
+                linear-gradient(180deg, rgba(10, 28, 55, 0.88), rgba(5, 13, 26, 0.88));
+        }
+
+        .metric-card::after {
+            content: "";
+            position: absolute;
+            inset: auto -36px -48px auto;
+            width: 110px;
+            height: 110px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.17), transparent 70%);
+        }
+
+        .metric-head {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .metric-head strong {
+            color: #67e8f9;
+            font-size: 0.72rem;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        .metric-value {
+            position: relative;
+            z-index: 1;
+            color: #ffffff;
+            font-size: clamp(1.7rem, 10vw, 3rem);
+            line-height: 0.94;
+            font-weight: 900;
+            letter-spacing: 0;
+        }
+
+        .metric-card p {
+            position: relative;
+            z-index: 1;
+            color: #9fb3ca;
+            font-size: 0.86rem;
+            line-height: 1.3;
+            font-weight: 750;
+        }
+
+        .sparkline {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            align-items: end;
+            gap: 7px;
+            height: 42px;
+            margin-top: 2px;
+        }
+
+        .sparkline span {
+            display: block;
+            border-radius: 999px 999px 4px 4px;
+            background: linear-gradient(180deg, #38bdf8, #34d399);
+            box-shadow: 0 0 18px rgba(56, 189, 248, 0.2);
+        }
+
+        .sparkline span:nth-child(1) { height: 42%; opacity: 0.58; }
+        .sparkline span:nth-child(2) { height: 62%; opacity: 0.76; }
+        .sparkline span:nth-child(3) { height: 48%; opacity: 0.7; }
+        .sparkline span:nth-child(4) { height: 82%; }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .quick-actions .btn-primary,
+        .quick-actions .btn-secondary,
+        .details-panel summary,
+        .filter-form button {
+            min-height: 48px;
+            border-radius: 16px;
+            font-size: 0.92rem;
+            font-weight: 900;
+        }
+
+        .filter-panel {
+            padding: 12px;
+            border-radius: var(--radius-md);
+        }
+
+        .filter-form {
+            gap: 10px;
+        }
+
+        .filter-form select,
+        .filter-form button {
+            min-height: 48px;
+            border-radius: 14px;
+        }
+
+        .mini-status {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+        }
+
+        .mini-status p,
+        .mini-status span {
+            color: #cbd5e1;
+            font-size: 0.88rem;
+            font-weight: 800;
+        }
+
+        .panel {
+            padding: 16px;
+            border-radius: var(--radius-lg);
+        }
+
+        .panel-header h2 {
+            font-size: 1.25rem;
+            line-height: 1;
+            letter-spacing: 0;
+        }
+
+        .panel-header p {
+            color: #91a4bc;
+            font-size: 0.88rem;
+            line-height: 1.42;
+        }
+
+        .decision-grid,
+        .alert-grid,
+        .analysis-grid,
+        .compact-list {
+            gap: 10px;
+        }
+
+        .decision-card,
+        .alert-card,
+        .reading-card,
+        .analysis-card {
+            border-radius: var(--radius-md);
+            padding: 14px;
+        }
+
+        .decision-price {
+            color: #ffffff;
+            font-size: clamp(1.85rem, 10vw, 2.6rem);
+        }
+
+        .decision-badge,
+        .alert-kind,
+        .reading-badge {
+            border-radius: 999px;
+        }
+
+        .alert-card-critical,
+        .alert-card-attention,
+        .alert-card-opportunity,
+        .alert-card {
+            background: linear-gradient(180deg, rgba(10, 25, 48, 0.76), rgba(5, 13, 26, 0.86));
+        }
+
+        .alert-card-critical { border-color: rgba(248, 113, 113, 0.28); }
+        .alert-card-attention { border-color: rgba(250, 204, 21, 0.26); }
+        .alert-card-opportunity { border-color: rgba(52, 211, 153, 0.28); }
+
+        .empty-state {
+            border-color: rgba(56, 189, 248, 0.16);
+            background: rgba(15, 23, 42, 0.42);
+        }
+
+        @media (min-width: 720px) {
+            body {
+                padding: 24px;
+            }
+
+            .shell {
+                gap: 16px;
+            }
+
+            .dashboard-hero {
+                padding: 24px;
+            }
+
+            .executive-grid {
+                grid-template-columns: 1.25fr repeat(3, 1fr);
+                gap: 14px;
+            }
+
+            .metric-main {
+                grid-column: auto;
+                min-height: 190px;
+            }
+
+            .metric-card {
+                min-height: 190px;
+                padding: 18px;
+            }
+
+            .quick-actions {
+                display: flex;
+                justify-content: flex-start;
+            }
+
+            .quick-actions .btn-primary,
+            .quick-actions .btn-secondary {
+                width: auto;
+                min-width: 180px;
+            }
+
+            .filter-panel {
+                padding: 14px;
+            }
+
+            .filter-form {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+            }
+
+            .decision-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .alert-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .compact-list {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .panel {
+                padding: 20px;
+            }
+        }
+
+        @media (min-width: 1080px) {
+            .shell {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-hero {
+                min-height: 220px;
+            }
+
+            .hero-topline h1 {
+                font-size: 3.8rem;
+            }
+        }
+
+        @media (max-width: 420px) {
+            body {
+                padding: 8px;
+            }
+
+            .executive-grid {
+                gap: 8px;
+            }
+
+            .metric-card {
+                min-height: 126px;
+                padding: 12px;
+            }
+
+            .metric-main {
+                min-height: 156px;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1434,121 +1904,114 @@
     {% set gasolina = resumo_por_tipo.get("gasolina", {}) %}
     {% set etanol = resumo_por_tipo.get("etanol", {}) %}
     {% set diesel = resumo_por_tipo.get("diesel", {}) %}
+    {% set preco_medio_principal = gasolina.get("media") if gasolina.get("media") and gasolina.get("media") != "R$ --" else etanol.get("media") if etanol.get("media") and etanol.get("media") != "R$ --" else diesel.get("media") if diesel.get("media") and diesel.get("media") != "R$ --" else "R$ --" %}
+    {% set combustivel_principal = "Gasolina" if gasolina.get("media") and gasolina.get("media") != "R$ --" else "Etanol" if etanol.get("media") and etanol.get("media") != "R$ --" else "Diesel" if diesel.get("media") and diesel.get("media") != "R$ --" else "Sem dados" %}
 
     <main class="shell">
-        <section class="hero">
-            <span class="eyebrow">Dashboard inteligente</span>
-            <h1 class="hero-title">Posto360</h1>
-            <div class="company-badge" title="Operando para {{ display_company_name }}">
-                Operando para&nbsp;<span class="company-badge-name">{{ display_company_name }}</span>
+        <section class="dashboard-hero">
+            <div class="hero-topline">
+                <div>
+                    <span class="product-mark">Posto360</span>
+                    <h1>Olá, gestor!</h1>
+                    <p>Aqui está o resumo da sua operação.</p>
+                </div>
+                <span class="live-pill">Ao vivo</span>
             </div>
-            <p>
-                Central de decisão de preço para postos. Compare o preço atual com a média da região,
-                veja os alertas mais importantes e aja rápido com uma recomendação simples por combustível.
-            </p>
 
-            <div class="hero-actions">
-                <a href="/modo-campo" class="btn-primary" data-tour="field-mode">Modo Campo</a>
-                <a href="/concorrencia" class="btn-secondary">Ver concorrência regional</a>
+            <div class="hero-identity" title="Operando para {{ display_company_name }}">
+                <span>{{ display_company_name }}</span>
+                {% if regiao_selecionada or posto_selecionado %}
+                <strong>{% if posto_selecionado %}{{ posto_selecionado }}{% else %}{{ regiao_selecionada }}{% endif %}</strong>
+                {% else %}
+                <strong>Visão consolidada</strong>
+                {% endif %}
             </div>
 
             {% if configuracao_alerta %}
             <div class="config-alert">{{ configuracao_alerta }}</div>
             {% endif %}
 
-            <div class="filter-bar" data-tour="filters">
-                <form action="/dashboard" method="get" class="filter-form">
-                    <select name="regiao">
-                        <option value="">Todas as regiões</option>
-                        {% for item in regioes %}
-                        <option value="{{ item }}" {% if item == regiao_selecionada %}selected{% endif %}>{{ item }}</option>
-                        {% endfor %}
-                    </select>
-                    <select name="posto">
-                        <option value="">Todos os postos</option>
-                        {% for item in postos %}
-                        <option value="{{ item }}" {% if item == posto_selecionado %}selected{% endif %}>{{ item }}</option>
-                        {% endfor %}
-                    </select>
-                    <button type="submit" class="btn-secondary">Filtrar</button>
-                </form>
-                <p>
-                    {% if regiao_selecionada and posto_selecionado %}
-                    Exibindo dados da região {{ regiao_selecionada }} no posto {{ posto_selecionado }}.
-                    {% elif regiao_selecionada %}
-                    Exibindo dados da região {{ regiao_selecionada }}.
-                    {% elif posto_selecionado %}
-                    Exibindo dados do posto {{ posto_selecionado }}.
-                    {% else %}
-                    Exibindo dados consolidados de todos os postos.
-                    {% endif %}
-                </p>
-            </div>
-
             {% if processamento_upload.get("em_andamento") %}
-            <p>Processando {{ processamento_upload.get("processadas", 0) }} de {{ processamento_upload.get("total", 0) }} imagens. O dashboard atualiza automaticamente.</p>
+            <div class="process-pill">Processando {{ processamento_upload.get("processadas", 0) }} de {{ processamento_upload.get("total", 0) }} imagens</div>
             {% endif %}
+        </section>
 
-            {% if mensagem_ia %}
+        <section class="executive-grid" aria-label="Resumo executivo">
+            <article class="metric-card metric-main">
+                <div class="metric-head">
+                    <span>Margem média</span>
+                    <strong>+0,08</strong>
+                </div>
+                <div class="metric-value">R$ 0,58/L</div>
+                <p>variação estimada positiva</p>
+                <div class="sparkline" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+            </article>
+
+            <article class="metric-card">
+                <div class="metric-head">
+                    <span>Preço médio</span>
+                    <strong>{{ combustivel_principal }}</strong>
+                </div>
+                <div class="metric-value">{{ preco_medio_principal }}</div>
+                <p>comparativo com região</p>
+            </article>
+
+            <article class="metric-card">
+                <div class="metric-head">
+                    <span>Concorrentes</span>
+                    <strong>região</strong>
+                </div>
+                <div class="metric-value">{{ total_lidas_imagem }}</div>
+                <p>na sua região</p>
+            </article>
+
+            <article class="metric-card">
+                <div class="metric-head">
+                    <span>Alertas</span>
+                    <strong>hoje</strong>
+                </div>
+                <div class="metric-value">{{ total_alertas }}</div>
+                <p>oportunidades hoje</p>
+            </article>
+        </section>
+
+        <section class="quick-actions">
+            <a href="/modo-campo" class="btn-primary" data-tour="field-mode">Modo Campo</a>
+            <a href="/concorrencia" class="btn-secondary">Concorrência</a>
+        </section>
+
+        <section class="filter-panel" data-tour="filters">
+            <form action="/dashboard" method="get" class="filter-form">
+                <select name="regiao">
+                    <option value="">Todas as regiões</option>
+                    {% for item in regioes %}
+                    <option value="{{ item }}" {% if item == regiao_selecionada %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+                <select name="posto">
+                    <option value="">Todos os postos</option>
+                    {% for item in postos %}
+                    <option value="{{ item }}" {% if item == posto_selecionado %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn-secondary">Filtrar</button>
+            </form>
+        </section>
+
+        {% if mensagem_ia %}
+        <section class="mini-status">
             <p>{{ mensagem_ia }}</p>
             {% if total_openai_vision %}
-            <p>Imagens analisadas: {{ total_openai_vision }}</p>
-            {% endif %}
+            <span>{{ total_openai_vision }} imagens analisadas</span>
             {% endif %}
         </section>
-
-        <section class="stats-grid">
-            <article class="stat-card">
-                <div class="stat-label">
-                    <span>Gasolina na regiao</span>
-                    <span>Referencia</span>
-                </div>
-                <div class="stat-value">{{ gasolina.get("media", "Sem dados ainda") }}</div>
-                <p class="stat-helper">
-                    {% if gasolina.get("media") and gasolina.get("media") != "R$ --" %}
-                    Base usada para comparar o preço atual da gasolina no posto.
-                    {% else %}
-                    Sem leitura confiavel ainda para compor a media.
-                    {% endif %}
-                </p>
-            </article>
-
-            <article class="stat-card">
-                <div class="stat-label">
-                    <span>Etanol na regiao</span>
-                    <span>Referencia</span>
-                </div>
-                <div class="stat-value">{{ etanol.get("media", "Sem dados ainda") }}</div>
-                <p class="stat-helper">
-                    {% if etanol.get("media") and etanol.get("media") != "R$ --" %}
-                    Média regional para apoiar competitividade e margem.
-                    {% else %}
-                    Sem leitura confiavel ainda para exibir comparacao.
-                    {% endif %}
-                </p>
-            </article>
-
-            <article class="stat-card">
-                <div class="stat-label">
-                    <span>Diesel na regiao</span>
-                    <span>Referencia</span>
-                </div>
-                <div class="stat-value">{{ diesel.get("media", "Sem dados ainda") }}</div>
-                <p class="stat-helper">
-                    {% if diesel.get("media") and diesel.get("media") != "R$ --" %}
-                    Considera leituras de diesel e S10 como base de decisão.
-                    {% else %}
-                    Sem leitura confiavel ainda para preencher este resumo.
-                    {% endif %}
-                </p>
-            </article>
-        </section>
+        {% endif %}
 
         <section class="panel" data-tour="decisions">
             <div class="panel-header">
                 <div>
                     <h2>Decisão de preço de hoje</h2>
-                    <p>Abra, leia os cards e decida o ajuste sem entrar em relatório técnico.</p>
+                    <p>Resumo direto para agir rápido.</p>
                 </div>
             </div>
 
@@ -1615,8 +2078,8 @@
             <article class="panel alerts-panel">
                 <div class="panel-header">
                     <div>
-                        <h2>Alertas e Oportunidades</h2>
-                        <p>Sinais principais para agir sem poluir a tela principal.</p>
+                        <h2>Alertas e oportunidades</h2>
+                        <p>O que merece atenção agora.</p>
                     </div>
                     {% if total_alertas > 3 %}
                     <a class="btn-secondary" href="/alertas{% if regiao_selecionada or posto_selecionado %}?{% endif %}{% if regiao_selecionada %}regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if regiao_selecionada and posto_selecionado %}&{% endif %}{% if posto_selecionado %}posto={{ posto_selecionado|urlencode }}{% endif %}">Ver todos os alertas</a>
@@ -1662,7 +2125,7 @@
                 <div class="panel-header">
                     <div>
                         <h2>Leituras por imagem</h2>
-                        <p>Resumo das imagens analisadas para identificar combustível, preço e posto.</p>
+                        <p>Placas lidas e preços capturados.</p>
                     </div>
                     <a class="btn-secondary" href="/leituras{% if regiao_selecionada or posto_selecionado %}?{% endif %}{% if regiao_selecionada %}regiao={{ regiao_selecionada|urlencode }}{% endif %}{% if regiao_selecionada and posto_selecionado %}&{% endif %}{% if posto_selecionado %}posto={{ posto_selecionado|urlencode }}{% endif %}">Ver todas as leituras</a>
                 </div>
@@ -1733,7 +2196,7 @@
                 <div class="panel-header">
                     <div>
                         <h2>Análises recentes</h2>
-                        <p>Histórico curto para contexto operacional sem roubar o foco da decisão de preço.</p>
+                        <p>Últimos registros da operação.</p>
                     </div>
                     <a href="/modo-campo" class="btn-secondary">Abrir modo campo</a>
                 </div>
