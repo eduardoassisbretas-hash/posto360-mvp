@@ -9,14 +9,20 @@
     <style>
         :root {
             --bg: #050914;
-            --panel: rgba(10, 18, 32, 0.86);
-            --panel-strong: rgba(12, 22, 40, 0.96);
+            --panel: rgba(9, 17, 31, 0.88);
+            --panel-strong: rgba(12, 24, 43, 0.96);
+            --panel-soft: rgba(15, 23, 42, 0.64);
             --line: rgba(148, 163, 184, 0.18);
+            --line-strong: rgba(56, 189, 248, 0.42);
             --text: #f8fafc;
-            --muted: #a6b5c9;
+            --muted: #9fb0c7;
+            --muted-strong: #c9d6e6;
             --cyan: #38bdf8;
+            --cyan-soft: rgba(56, 189, 248, 0.12);
             --green: #34d399;
-            --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+            --green-soft: rgba(52, 211, 153, 0.12);
+            --blue: #2563eb;
+            --shadow: 0 18px 46px rgba(0, 0, 0, 0.32);
             --radius: 8px;
         }
 
@@ -27,11 +33,11 @@
         body {
             margin: 0;
             min-height: 100vh;
-            font-family: "Manrope", "Segoe UI", sans-serif;
+            font-family: Inter, Manrope, "Segoe UI", system-ui, -apple-system, sans-serif;
             background:
-                radial-gradient(circle at 16% 6%, rgba(56, 189, 248, 0.16), transparent 25%),
-                radial-gradient(circle at 88% 0%, rgba(37, 99, 235, 0.18), transparent 28%),
-                linear-gradient(180deg, #08111f 0%, var(--bg) 52%, #030712 100%);
+                radial-gradient(circle at 18% 0%, rgba(56, 189, 248, 0.16), transparent 260px),
+                radial-gradient(circle at 92% 4%, rgba(37, 99, 235, 0.18), transparent 300px),
+                linear-gradient(180deg, #08111f 0%, var(--bg) 54%, #030712 100%);
             color: var(--text);
         }
 
@@ -40,36 +46,42 @@
             text-decoration: none;
         }
 
+        a:focus-visible {
+            outline: 3px solid rgba(56, 189, 248, 0.34);
+            outline-offset: 3px;
+        }
+
         .page-shell {
-            width: min(1240px, calc(100% - 32px));
+            width: min(100% - 32px, 1160px);
             margin: 0 auto;
-            padding: 24px 0 64px;
+            padding: 18px 0 44px;
         }
 
         .topbar {
+            min-height: 56px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 22px;
+            gap: 14px;
+            margin-bottom: 18px;
         }
 
         .brand {
-            display: grid;
-            gap: 4px;
             min-width: 0;
+            display: grid;
+            gap: 2px;
         }
 
         .brand strong {
-            font-size: 1.08rem;
-            letter-spacing: 0;
+            font-size: 1.02rem;
+            font-weight: 900;
         }
 
         .company {
-            max-width: 48vw;
+            max-width: 54vw;
             overflow: hidden;
             color: var(--muted);
-            font-size: 0.88rem;
+            font-size: 0.78rem;
             font-weight: 800;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -80,57 +92,50 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 999px;
-            font-weight: 950;
-            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+            border-radius: var(--radius);
+            font-weight: 900;
+            transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
         }
 
         .back-link {
-            min-height: 40px;
-            padding: 0 14px;
+            min-height: 38px;
+            padding: 0 13px;
             border: 1px solid var(--line);
-            background: rgba(15, 23, 42, 0.76);
+            background: rgba(15, 23, 42, 0.68);
             color: #dbeafe;
-            font-size: 0.86rem;
+            font-size: 0.84rem;
         }
 
-        .back-link:focus-visible,
-        .cta:focus-visible,
-        .brand:focus-visible,
-        .mobile-compare summary:focus-visible {
-            outline: 3px solid rgba(56, 189, 248, 0.34);
-            outline-offset: 3px;
+        .back-link:hover,
+        .cta:hover {
+            transform: translateY(-1px);
         }
 
         .trial-bar {
             display: grid;
-            gap: 9px;
-            margin-bottom: 34px;
-            padding: 14px 16px;
-            border: 1px solid rgba(56, 189, 248, 0.24);
+            gap: 8px;
+            margin-bottom: 26px;
+            padding: 12px;
+            border: 1px solid rgba(56, 189, 248, 0.22);
             border-radius: var(--radius);
-            background: rgba(10, 19, 35, 0.68);
-            box-shadow: 0 18px 48px rgba(2, 6, 23, 0.28), 0 0 30px rgba(56, 189, 248, 0.08);
-            backdrop-filter: blur(18px);
+            background: rgba(10, 19, 35, 0.56);
+            box-shadow: 0 14px 36px rgba(2, 6, 23, 0.22);
         }
 
         .trial-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 14px;
+            display: grid;
+            gap: 4px;
             color: #dbeafe;
-            font-size: 0.9rem;
-            font-weight: 950;
+            font-size: 0.82rem;
+            font-weight: 850;
         }
 
         .trial-row span:last-child {
             color: var(--cyan);
-            white-space: nowrap;
         }
 
         .progress {
-            height: 6px;
+            height: 5px;
             overflow: hidden;
             border-radius: 999px;
             background: rgba(148, 163, 184, 0.16);
@@ -145,143 +150,131 @@
 
         .hero {
             display: grid;
-            gap: 18px;
-            margin-bottom: 32px;
+            gap: 14px;
+            margin-bottom: 22px;
         }
 
-        .eyebrow {
+        .eyebrow,
+        .badge,
+        .plan-limit,
+        .signal {
             width: fit-content;
             max-width: 100%;
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px 11px;
-            border: 1px solid rgba(56, 189, 248, 0.26);
             border-radius: 999px;
+            font-weight: 900;
+        }
+
+        .eyebrow {
+            gap: 8px;
+            min-height: 30px;
+            padding: 0 10px;
+            border: 1px solid rgba(56, 189, 248, 0.22);
             background: rgba(8, 18, 32, 0.72);
             color: #dbeafe;
-            font-size: 0.78rem;
-            font-weight: 950;
+            font-size: 0.72rem;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.06em;
         }
 
         .eyebrow::before {
             content: "";
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 999px;
             background: linear-gradient(135deg, var(--cyan), var(--green));
-            box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+            box-shadow: 0 0 14px rgba(56, 189, 248, 0.58);
+        }
+
+        h1,
+        h2,
+        h3,
+        p {
+            margin: 0;
         }
 
         h1 {
-            max-width: 980px;
-            margin: 0;
-            font-size: clamp(2.4rem, 7vw, 5.4rem);
-            line-height: 0.94;
+            max-width: 760px;
+            font-size: clamp(2rem, 9vw, 4.35rem);
+            line-height: 0.98;
             letter-spacing: 0;
         }
 
         .hero-copy {
-            max-width: 780px;
-            margin: 0;
-            color: #c4cfdd;
-            font-size: 1.06rem;
-            line-height: 1.75;
+            max-width: 690px;
+            color: var(--muted-strong);
+            font-size: 0.98rem;
+            line-height: 1.5;
+            font-weight: 650;
         }
 
-        .hero-metrics {
+        .hero-points {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
 
-        .hero-metrics span {
+        .hero-points span {
             display: inline-flex;
             align-items: center;
-            min-height: 36px;
-            padding: 0 12px;
-            border: 1px solid rgba(56, 189, 248, 0.2);
+            min-height: 30px;
+            padding: 0 10px;
+            border: 1px solid rgba(56, 189, 248, 0.18);
             border-radius: 999px;
-            background: rgba(15, 23, 42, 0.52);
+            background: rgba(15, 23, 42, 0.48);
             color: #dbeafe;
-            font-size: 0.84rem;
+            font-size: 0.78rem;
             font-weight: 850;
         }
 
         .plans {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 14px;
-            margin: 34px 0;
+            gap: 12px;
+            margin: 24px 0 34px;
         }
 
         .plan-card {
             position: relative;
-            display: grid;
-            align-content: start;
-            gap: 16px;
             min-height: 100%;
-            padding: 22px;
+            display: grid;
+            grid-template-rows: auto auto 1fr auto;
+            gap: 14px;
+            padding: 18px;
             border: 1px solid var(--line);
             border-radius: var(--radius);
-            background: linear-gradient(180deg, rgba(12, 22, 40, 0.9), rgba(8, 15, 27, 0.88));
-            box-shadow: 0 18px 56px rgba(0, 0, 0, 0.26);
-            backdrop-filter: blur(18px);
-            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-        }
-
-        .plan-card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(56, 189, 248, 0.42);
-            box-shadow: var(--shadow), 0 0 34px rgba(56, 189, 248, 0.12);
+            background: linear-gradient(180deg, rgba(12, 22, 40, 0.92), rgba(8, 15, 27, 0.9));
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.24);
         }
 
         .plan-card.featured {
-            border-color: rgba(56, 189, 248, 0.5);
-            background: linear-gradient(180deg, rgba(16, 36, 64, 0.98), rgba(8, 17, 31, 0.94));
-            box-shadow: var(--shadow), 0 0 46px rgba(56, 189, 248, 0.16);
+            border-color: var(--line-strong);
+            background:
+                linear-gradient(135deg, rgba(56, 189, 248, 0.12), transparent 44%),
+                linear-gradient(180deg, rgba(16, 36, 64, 0.98), rgba(8, 17, 31, 0.96));
+            box-shadow: var(--shadow), 0 0 36px rgba(56, 189, 248, 0.15);
         }
 
-        .plan-card.featured::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), transparent 58%);
-            pointer-events: none;
-        }
-
-        .plan-card > * {
-            position: relative;
-        }
-
-        .plan-card.scale {
-            border-color: rgba(52, 211, 153, 0.3);
-        }
-
-        .plan-card.enterprise {
-            background: linear-gradient(180deg, rgba(18, 24, 38, 0.96), rgba(8, 12, 22, 0.94));
+        .plan-card:hover {
+            border-color: rgba(56, 189, 248, 0.4);
+            box-shadow: var(--shadow), 0 0 28px rgba(56, 189, 248, 0.1);
         }
 
         .badge {
-            width: fit-content;
-            padding: 6px 9px;
-            border: 1px solid rgba(56, 189, 248, 0.28);
-            border-radius: 999px;
-            background: rgba(56, 189, 248, 0.09);
-            color: #bfdbfe;
-            font-size: 0.7rem;
-            font-weight: 950;
+            min-height: 26px;
+            padding: 0 9px;
+            color: #dbeafe;
+            background: rgba(148, 163, 184, 0.1);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            font-size: 0.68rem;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
         }
 
         .featured .badge {
-            border-color: rgba(250, 204, 21, 0.36);
-            background: rgba(250, 204, 21, 0.1);
-            color: #fef3c7;
+            color: #06111f;
+            background: linear-gradient(135deg, var(--cyan), var(--green));
+            border-color: transparent;
         }
 
         .plan-head {
@@ -289,140 +282,113 @@
             gap: 10px;
         }
 
+        .plan-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
         .plan-name {
-            margin: 0;
-            font-size: 1.35rem;
+            font-size: 1.18rem;
+            line-height: 1;
             letter-spacing: 0;
+        }
+
+        .plan-limit {
+            min-height: 26px;
+            padding: 0 9px;
+            color: #bae6fd;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.18);
+            font-size: 0.74rem;
         }
 
         .price {
             display: flex;
             align-items: baseline;
-            flex-wrap: wrap;
-            gap: 7px;
-            font-weight: 950;
-            min-width: 0;
+            gap: 6px;
         }
 
         .price strong {
-            font-size: clamp(2.2rem, 4vw, 3rem);
-            line-height: 1;
+            font-size: clamp(2rem, 10vw, 2.55rem);
+            line-height: 0.95;
+            letter-spacing: 0;
         }
 
         .price span {
             color: var(--muted);
-            font-size: 0.88rem;
-        }
-
-        .coverage {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding: 12px;
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: var(--radius);
-            background: rgba(15, 23, 42, 0.54);
-            min-width: 0;
+            font-weight: 850;
         }
 
         .unit-price {
-            display: inline-flex;
-            align-items: center;
-            width: fit-content;
-            max-width: 100%;
-            min-height: 30px;
-            padding: 0 10px;
-            border: 1px solid rgba(52, 211, 153, 0.22);
-            border-radius: 999px;
-            background: rgba(52, 211, 153, 0.08);
-            color: #bbf7d0;
-            font-size: 0.78rem;
-            font-weight: 950;
-            line-height: 1.2;
-            white-space: normal;
+            color: var(--cyan);
+            font-size: 0.84rem;
+            font-weight: 900;
         }
 
-        .coverage strong {
-            color: #eff6ff;
-            min-width: 0;
-            line-height: 1.2;
-        }
-
-        .coverage span,
-        .plan-copy,
-        .feature-list,
-        .section-copy,
-        .faq p {
-            color: var(--muted);
-            line-height: 1.58;
+        .plan-copy {
+            color: var(--muted-strong);
+            font-size: 0.9rem;
+            line-height: 1.45;
         }
 
         .feature-list {
             display: grid;
-            gap: 9px;
+            gap: 8px;
             margin: 0;
             padding: 0;
             list-style: none;
-            font-size: 0.9rem;
+            color: #d9e6f4;
+            font-size: 0.88rem;
+            line-height: 1.35;
         }
 
         .feature-list li {
-            display: flex;
-            gap: 9px;
-            align-items: flex-start;
+            display: grid;
+            grid-template-columns: 16px minmax(0, 1fr);
+            gap: 8px;
+            align-items: start;
         }
 
         .feature-list li::before {
             content: "";
-            width: 7px;
-            height: 7px;
-            margin-top: 8px;
-            flex: 0 0 auto;
+            width: 15px;
+            height: 15px;
+            margin-top: 1px;
             border-radius: 999px;
-            background: var(--cyan);
-            box-shadow: 0 0 12px rgba(56, 189, 248, 0.34);
-        }
-
-        .feature-list .muted-feature {
-            color: #cbd5e1;
-            font-weight: 900;
+            background:
+                linear-gradient(135deg, var(--cyan), var(--green));
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.18);
         }
 
         .cta {
-            min-height: 48px;
+            min-height: 44px;
             width: 100%;
-            margin-top: auto;
-            border: 1px solid rgba(56, 189, 248, 0.34);
-            background: rgba(56, 189, 248, 0.12);
+            padding: 0 14px;
             color: #e0f2fe;
-        }
-
-        .cta:hover,
-        .back-link:hover {
-            transform: translateY(-1px);
-            border-color: rgba(125, 211, 252, 0.48);
-            box-shadow: 0 16px 34px rgba(2, 6, 23, 0.22);
+            border: 1px solid rgba(56, 189, 248, 0.24);
+            background: rgba(15, 23, 42, 0.74);
+            box-shadow: 0 12px 26px rgba(2, 6, 23, 0.24);
+            font-size: 0.9rem;
         }
 
         .cta.primary {
-            border: 0;
+            color: #06111f;
+            border-color: transparent;
             background: linear-gradient(135deg, var(--cyan), var(--green));
-            color: #04111f;
-            box-shadow: 0 18px 38px rgba(56, 189, 248, 0.2);
+            box-shadow: 0 16px 32px rgba(56, 189, 248, 0.22);
         }
 
-        .section-panel {
+        .conversion {
             display: grid;
-            gap: 18px;
-            margin-top: 26px;
-            padding: 24px;
-            border: 1px solid var(--line);
+            gap: 16px;
+            margin-top: 10px;
+            padding: 18px;
+            border: 1px solid rgba(56, 189, 248, 0.18);
             border-radius: var(--radius);
-            background: var(--panel-strong);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
-            backdrop-filter: blur(18px);
+            background: linear-gradient(180deg, rgba(12, 22, 40, 0.74), rgba(8, 15, 27, 0.68));
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
         }
 
         .section-heading {
@@ -431,343 +397,123 @@
         }
 
         .section-heading h2 {
-            margin: 0;
-            font-size: clamp(1.5rem, 3vw, 2.2rem);
-            letter-spacing: 0;
-        }
-
-        .section-copy {
-            max-width: 760px;
-            margin: 0;
-        }
-
-        .compare-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        .compare-card {
-            display: grid;
-            gap: 12px;
-            padding: 16px;
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            background: rgba(15, 23, 42, 0.54);
-        }
-
-        .compare-card.featured-compare {
-            border-color: rgba(56, 189, 248, 0.36);
-            background: rgba(14, 34, 60, 0.68);
-        }
-
-        .compare-card h3 {
-            margin: 0;
-            color: #eff6ff;
-            font-size: 1rem;
-        }
-
-        .compare-list {
-            display: grid;
-            gap: 9px;
-            margin: 0;
-            padding: 0;
-            list-style: none;
-        }
-
-        .compare-list li {
-            display: flex;
-            gap: 8px;
-            color: var(--muted);
-            font-size: 0.86rem;
-            font-weight: 800;
-            line-height: 1.45;
-        }
-
-        .compare-list li::before {
-            content: "✓";
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 18px;
-            height: 18px;
-            flex: 0 0 auto;
-            border-radius: 999px;
-            background: rgba(52, 211, 153, 0.12);
-            color: #bbf7d0;
-            font-size: 0.74rem;
-            font-weight: 950;
-        }
-
-        .mobile-compare {
-            display: none;
-        }
-
-        .mobile-compare details {
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            background: rgba(15, 23, 42, 0.54);
-            overflow: hidden;
-        }
-
-        .mobile-compare details + details {
-            margin-top: 10px;
-        }
-
-        .mobile-compare summary {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            min-height: 56px;
-            padding: 0 14px;
-            color: #eff6ff;
-            cursor: pointer;
-            font-weight: 950;
-            list-style: none;
-        }
-
-        .mobile-compare summary::-webkit-details-marker {
-            display: none;
-        }
-
-        .mobile-compare summary::after {
-            content: "+";
-            color: var(--cyan);
-            font-size: 1.2rem;
-        }
-
-        .mobile-compare details[open] summary::after {
-            content: "-";
-        }
-
-        .mobile-compare .compare-list {
-            padding: 0 14px 14px;
-        }
-
-        .roi-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 14px;
-        }
-
-        .roi-panel {
-            position: relative;
-            overflow: hidden;
-            border-color: rgba(56, 189, 248, 0.28);
-            background: linear-gradient(180deg, rgba(13, 33, 58, 0.96), rgba(8, 15, 27, 0.94));
-            box-shadow: var(--shadow), 0 0 42px rgba(56, 189, 248, 0.12);
-        }
-
-        .roi-panel::after {
-            content: "";
-            position: absolute;
-            inset: auto -70px -100px auto;
-            width: 220px;
-            height: 220px;
-            border-radius: 999px;
-            background: radial-gradient(circle, rgba(52, 211, 153, 0.18), transparent 70%);
-            pointer-events: none;
-        }
-
-        .roi-panel > * {
-            position: relative;
-        }
-
-        .roi-card {
-            padding: 20px;
-            border: 1px solid rgba(56, 189, 248, 0.18);
-            border-radius: var(--radius);
-            background: rgba(15, 23, 42, 0.66);
-        }
-
-        .roi-card span {
-            color: var(--muted);
-            font-weight: 850;
-        }
-
-        .roi-card strong {
-            display: block;
-            margin-top: 8px;
-            color: #eff6ff;
-            font-size: clamp(2rem, 4vw, 2.9rem);
+            font-size: clamp(1.6rem, 7vw, 2.6rem);
             line-height: 1;
         }
 
-        .roi-message {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 0;
-            color: #dbeafe;
-            font-size: 1rem;
-            font-weight: 950;
+        .section-heading p {
+            max-width: 660px;
+            color: var(--muted);
+            font-size: 0.94rem;
+            line-height: 1.5;
         }
 
-        .faq {
+        .value-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 14px;
+            gap: 10px;
         }
 
-        .faq-item {
-            padding: 18px;
+        .value-card {
+            min-height: 88px;
+            display: grid;
+            align-content: center;
+            gap: 6px;
+            padding: 14px;
             border: 1px solid var(--line);
             border-radius: var(--radius);
-            background: rgba(15, 23, 42, 0.52);
+            background: rgba(15, 23, 42, 0.58);
         }
 
-        .faq h3 {
-            margin: 0 0 8px;
+        .signal {
+            min-height: 24px;
+            padding: 0 8px;
+            color: #06111f;
+            background: linear-gradient(135deg, var(--cyan), var(--green));
+            font-size: 0.68rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .value-card strong {
             font-size: 1rem;
+            line-height: 1.15;
         }
 
-        .faq p {
-            margin: 0;
+        .value-card span:last-child {
+            color: var(--muted);
+            font-size: 0.84rem;
+            font-weight: 750;
         }
 
-        @media (max-width: 1120px) {
-            .plans {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .compare-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
+        .fine-print {
+            margin-top: 20px;
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.45;
+            text-align: center;
         }
 
-        @media (max-width: 720px) {
+        @media (min-width: 700px) {
             .page-shell {
-                width: min(100% - 24px, 1240px);
-                padding: 14px 0 42px;
-            }
-
-            .topbar {
-                align-items: flex-start;
-                margin-bottom: 16px;
-            }
-
-            .company {
-                max-width: 58vw;
-            }
-
-            .back-link {
-                min-height: 44px;
-                padding: 0 12px;
-            }
-
-            .trial-bar {
-                margin-bottom: 24px;
-                padding: 13px;
-            }
-
-            .hero {
-                gap: 10px;
-                margin-bottom: 18px;
-            }
-
-            h1 {
-                font-size: clamp(2.35rem, 10.5vw, 2.75rem);
-                line-height: 0.98;
-            }
-
-            .hero-copy {
-                font-size: 0.94rem;
-                line-height: 1.52;
-            }
-
-            .hero-metrics {
-                gap: 8px;
-            }
-
-            .hero-metrics span {
-                min-height: 32px;
-                padding: 0 10px;
-                font-size: 0.78rem;
-            }
-
-            .plans,
-            .roi-grid,
-            .faq {
-                grid-template-columns: 1fr;
-            }
-
-            .plans {
-                gap: 12px;
-                margin: 24px 0;
-            }
-
-            .plan-card {
-                gap: 14px;
-                padding: 16px;
-            }
-
-            .price strong {
-                font-size: clamp(2rem, 10vw, 2.6rem);
-            }
-
-            .coverage {
-                align-items: flex-start;
-                padding: 10px;
-            }
-
-            .unit-price {
-                min-height: 32px;
-                padding: 6px 10px;
-            }
-
-            .cta {
-                min-height: 52px;
-            }
-
-            .desktop-compare {
-                display: none;
-            }
-
-            .mobile-compare {
-                display: block;
+                padding-top: 24px;
+                padding-bottom: 62px;
             }
 
             .trial-row {
-                align-items: flex-start;
-                flex-direction: column;
+                grid-template-columns: 1fr auto;
+                align-items: center;
             }
 
-            .plan-card.featured {
-                order: -1;
+            .hero {
+                margin-bottom: 28px;
             }
 
-            .section-panel {
-                gap: 14px;
-                margin-top: 18px;
-                padding: 18px;
+            .plans {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
-            .roi-card {
-                padding: 16px;
+            .value-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 
-        @media (max-width: 480px) {
+        @media (min-width: 1080px) {
+            .plans {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                align-items: stretch;
+            }
+
+            .plan-card.featured {
+                transform: translateY(-8px);
+            }
+
+            .plan-card.featured:hover {
+                transform: translateY(-10px);
+            }
+
+            .conversion {
+                grid-template-columns: 0.9fr 1.1fr;
+                align-items: center;
+                padding: 22px;
+            }
+
+            .value-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 420px) {
             .page-shell {
-                width: min(100% - 20px, 1240px);
+                width: min(100% - 24px, 100%);
             }
 
-            h1 {
-                font-size: clamp(2.25rem, 10vw, 2.55rem);
+            .plan-card,
+            .conversion {
+                padding: 15px;
             }
 
-            .eyebrow {
-                padding: 7px 10px;
-                font-size: 0.7rem;
-            }
-
-            .plan-head {
-                gap: 8px;
-            }
-
-            .coverage {
-                display: grid;
-                justify-items: start;
+            .hero-points span {
+                font-size: 0.74rem;
             }
         }
     </style>
@@ -786,8 +532,8 @@
 
         <section class="trial-bar" aria-label="Status do teste gratuito">
             <div class="trial-row">
-                <span>Seu teste gratuito está ativo: {{ days_remaining }} {{ "dia restante" if days_remaining == 1 else "dias restantes" }}</span>
-                <span>{{ premium.get('trial_days', 7) }} dias incluídos na criação da conta</span>
+                <span>Teste gratuito ativo: {{ days_remaining }} {{ "dia restante" if days_remaining == 1 else "dias restantes" }}</span>
+                <span>7 dias para validar na operação</span>
             </div>
             <div class="progress" aria-hidden="true">
                 <span style="width: {{ premium.get('trial_progress', 0) }}%;"></span>
@@ -795,233 +541,143 @@
         </section>
 
         <section class="hero" aria-labelledby="plans-title">
-            <div class="eyebrow">Planos corporativos Posto360</div>
-            <h1 id="plans-title">Recupere margem operacional com inteligência estratégica.</h1>
+            <div class="eyebrow">Planos Posto360</div>
+            <h1 id="plans-title">Escolha o plano certo para proteger margem.</h1>
             <p class="hero-copy">
-                Concorrência regional, operação de campo e governança para redes de postos que querem escalar com controle.
+                Pricing simples para validar com donos de 1 a 10 postos: monitoramento competitivo, OCR, modo campo e alertas sem peso operacional.
             </p>
-            <div class="hero-metrics" aria-label="Benefícios principais">
-                <span>Operação de campo estruturada</span>
-                <span>Expansão com governança</span>
-                <span>Gestão nacional premium</span>
+            <div class="hero-points" aria-label="Benefícios principais">
+                <span>Comece com 1 posto</span>
+                <span>Growth em destaque</span>
+                <span>Enterprise sem fricção</span>
             </div>
         </section>
 
-        <section class="plans" aria-label="Planos corporativos">
+        <section class="plans" aria-label="Planos Posto360">
             <article class="plan-card">
-                <span class="badge">Ideal para redes em crescimento</span>
+                <span class="badge">Para independentes</span>
                 <div class="plan-head">
-                    <h2 class="plan-name">Growth</h2>
-                    <div class="price"><strong>R$997</strong><span>/mês</span></div>
-                    <div class="coverage">
-                        <strong>Até 10 postos</strong>
-                        <span class="unit-price">≈ R$99 por posto</span>
+                    <div class="plan-title-row">
+                        <h2 class="plan-name">Starter</h2>
+                        <span class="plan-limit">1 posto</span>
                     </div>
-                    <p class="plan-copy">Para redes em crescimento que precisam enxergar margem, concorrência e campo sem planilhas.</p>
+                    <div class="price"><strong>R$197</strong><span>/mês</span></div>
+                    <span class="unit-price">≈ R$197/posto</span>
+                    <p class="plan-copy">Ideal para postos independentes que querem parar de perder margem e monitorar concorrência com inteligência.</p>
                 </div>
                 <ul class="feature-list">
-                    <li>OCR inteligente de placas de preço</li>
-                    <li>Dashboard executivo completo</li>
-                    <li>Modo Campo para equipes externas</li>
-                    <li>Histórico completo de leituras</li>
-                    <li>Alertas de concorrência por região</li>
-                    <li>Comparativo regional automático</li>
-                    <li>Monitoramento de preços e margem</li>
+                    <li>OCR de placas</li>
+                    <li>Dashboard estratégico</li>
+                    <li>Alertas regionais</li>
+                    <li>Modo campo</li>
+                    <li>Comparativo regional</li>
+                    <li>Histórico básico</li>
+                    <li>Trial de 7 dias</li>
                 </ul>
-                <a class="cta" href="/configuracoes?upgrade=growth">Fazer upgrade</a>
+                <a class="cta" href="/configuracoes?upgrade=starter">Começar teste grátis</a>
             </article>
 
             <article class="plan-card featured">
-                <span class="badge">MAIS ESCOLHIDO</span>
+                <span class="badge">Mais escolhido</span>
                 <div class="plan-head">
-                    <h2 class="plan-name">Pro</h2>
-                    <div class="price"><strong>R$1.997</strong><span>/mês</span></div>
-                    <div class="coverage">
-                        <strong>Até 25 postos</strong>
-                        <span class="unit-price">≈ R$79 por posto</span>
+                    <div class="plan-title-row">
+                        <h2 class="plan-name">Growth</h2>
+                        <span class="plan-limit">Até 3 postos</span>
                     </div>
-                    <p class="plan-copy">Plano principal para redes que querem previsibilidade, recomendações estratégicas e execução com escala.</p>
+                    <div class="price"><strong>R$447</strong><span>/mês</span></div>
+                    <span class="unit-price">≈ R$149/posto</span>
+                    <p class="plan-copy">Perfeito para pequenas redes e grupos regionais que precisam de gestão centralizada e inteligência competitiva.</p>
                 </div>
                 <ul class="feature-list">
-                    <li class="muted-feature">Inclui tudo do Growth</li>
-                    <li>Posto360 AI Pro — em breve</li>
-                    <li>Recomendações avançadas de margem</li>
-                    <li>Insights premium por posto</li>
-                    <li>Gestão por equipe e usuários</li>
-                    <li>Relatórios executivos</li>
-                    <li>Auditoria avançada de leituras</li>
-                    <li>Suporte prioritário premium</li>
+                    <li>Tudo do Starter</li>
+                    <li>Multiunidades</li>
+                    <li>Relatórios avançados</li>
+                    <li>Insights premium</li>
+                    <li>Histórico expandido</li>
+                    <li>Gestão regional</li>
+                    <li>Prioridade em suporte</li>
                 </ul>
-                <a class="cta primary" href="/configuracoes?upgrade=pro">Escalar operação</a>
+                <a class="cta primary" href="/configuracoes?upgrade=growth">Escalar operação</a>
             </article>
 
-            <article class="plan-card scale">
+            <article class="plan-card">
                 <span class="badge">Máxima performance</span>
                 <div class="plan-head">
-                    <h2 class="plan-name">Scale</h2>
-                    <div class="price"><strong>R$3.497</strong><span>/mês</span></div>
-                    <div class="coverage">
-                        <strong>Até 50 postos</strong>
-                        <span class="unit-price">≈ R$69 por posto</span>
+                    <div class="plan-title-row">
+                        <h2 class="plan-name">Scale</h2>
+                        <span class="plan-limit">Até 10 postos</span>
                     </div>
-                    <p class="plan-copy">Para operações corporativas que exigem padronização, governança e camada executiva de decisão.</p>
+                    <div class="price"><strong>R$997</strong><span>/mês</span></div>
+                    <span class="unit-price">≈ R$99/posto</span>
+                    <p class="plan-copy">Para redes em expansão que precisam de governança operacional e máxima eficiência.</p>
                 </div>
                 <ul class="feature-list">
-                    <li class="muted-feature">Inclui tudo do Pro</li>
-                    <li>Gestão avançada multi-rede</li>
-                    <li>Consultoria premium</li>
-                    <li>Atendimento prioritário máximo</li>
-                    <li>Customizações estratégicas</li>
-                    <li>Relatórios corporativos expandidos</li>
-                    <li>Prioridade em novas funcionalidades</li>
+                    <li>Tudo do Growth</li>
+                    <li>Multiusuário</li>
+                    <li>Gestão por equipes</li>
+                    <li>Auditoria de leituras</li>
+                    <li>Relatórios executivos</li>
+                    <li>Insights avançados</li>
+                    <li>Prioridade máxima</li>
                 </ul>
-                <a class="cta" href="mailto:comercial@posto360app.com.br?subject=Posto360%20Scale">Maximizar rede</a>
+                <a class="cta" href="/configuracoes?upgrade=scale">Maximizar rede</a>
             </article>
 
-            <article class="plan-card enterprise">
+            <article class="plan-card">
                 <span class="badge">Enterprise</span>
                 <div class="plan-head">
-                    <h2 class="plan-name">Enterprise</h2>
-                    <div class="price"><strong>Sob consulta</strong></div>
-                    <div class="coverage">
-                        <strong>50+ postos</strong>
-                        <span class="unit-price">Projeto sob medida</span>
+                    <div class="plan-title-row">
+                        <h2 class="plan-name">Enterprise</h2>
+                        <span class="plan-limit">10+ postos</span>
                     </div>
-                    <p class="plan-copy">Para grandes grupos, distribuidoras e operações nacionais com necessidades específicas.</p>
+                    <div class="price"><strong>Sob consulta</strong></div>
+                    <span class="unit-price">Projeto sob medida</span>
+                    <p class="plan-copy">Para grandes operações, distribuidoras e grupos estratégicos.</p>
                 </div>
                 <ul class="feature-list">
                     <li>Implantação dedicada</li>
-                    <li>Integrações futuras TOTVS, Tecnox e ERP</li>
-                    <li>Customizações completas</li>
-                    <li>Atendimento estratégico dedicado</li>
+                    <li>Integrações futuras</li>
                     <li>SLA premium</li>
-                    <li>Gestão nacional e regional</li>
+                    <li>Suporte dedicado</li>
+                    <li>Customizações estratégicas</li>
                 </ul>
                 <a class="cta" href="mailto:comercial@posto360app.com.br?subject=Posto360%20Enterprise">Falar com especialista</a>
             </article>
         </section>
 
-        <section class="section-panel" aria-label="Comparativo de planos">
+        <section class="conversion" aria-label="Transforme margem em crescimento">
             <div class="section-heading">
-                <h2>Compare sem virar planilha</h2>
-                <p class="section-copy">Uma leitura rápida das diferenças principais entre operação, inteligência e governança.</p>
+                <div class="eyebrow">Impacto operacional</div>
+                <h2>Transforme margem em crescimento</h2>
+                <p>O Posto360 foi pensado para o mercado real: operação enxuta, concorrência local e decisão rápida por unidade.</p>
             </div>
-            <div class="compare-grid desktop-compare" aria-label="Comparativo em cards">
-                <article class="compare-card">
-                    <h3>Growth</h3>
-                    <ul class="compare-list">
-                        <li>OCR, Modo Campo e dashboard executivo</li>
-                        <li>Até 10 postos com alertas regionais</li>
-                        <li>Histórico completo para rotina operacional</li>
-                    </ul>
+            <div class="value-grid">
+                <article class="value-card">
+                    <span class="signal">01</span>
+                    <strong>Menos erro operacional</strong>
+                    <span>Coleta e histórico em um fluxo mais confiável.</span>
                 </article>
-                <article class="compare-card featured-compare">
-                    <h3>Pro</h3>
-                    <ul class="compare-list">
-                        <li>Posto360 AI Pro em breve e recomendações de margem</li>
-                        <li>Até 25 postos com gestão por equipe</li>
-                        <li>Relatórios executivos e auditoria avançada</li>
-                    </ul>
+                <article class="value-card">
+                    <span class="signal">02</span>
+                    <strong>Mais inteligência de preços</strong>
+                    <span>Monitoramento competitivo para apoiar decisão.</span>
                 </article>
-                <article class="compare-card">
-                    <h3>Scale</h3>
-                    <ul class="compare-list">
-                        <li>Governança para até 50 postos</li>
-                        <li>Consultoria premium e suporte máximo</li>
-                        <li>Relatórios corporativos e prioridade em recursos</li>
-                    </ul>
+                <article class="value-card">
+                    <span class="signal">03</span>
+                    <strong>Mais controle regional</strong>
+                    <span>Compare postos, regiões e movimentos locais.</span>
                 </article>
-                <article class="compare-card">
-                    <h3>Enterprise</h3>
-                    <ul class="compare-list">
-                        <li>Gestão nacional e regional personalizada</li>
-                        <li>Integrações futuras com ERP</li>
-                        <li>SLA premium e atendimento estratégico dedicado</li>
-                    </ul>
+                <article class="value-card">
+                    <span class="signal">04</span>
+                    <strong>Mais lucro por posto</strong>
+                    <span>Pequenas recuperações escalam na rede.</span>
                 </article>
-            </div>
-            <div class="mobile-compare" aria-label="Comparativo mobile">
-                <details open>
-                    <summary>Growth</summary>
-                    <ul class="compare-list">
-                        <li>OCR, Modo Campo e dashboard executivo</li>
-                        <li>Até 10 postos com alertas regionais</li>
-                        <li>Histórico completo para rotina operacional</li>
-                    </ul>
-                </details>
-                <details>
-                    <summary>Pro</summary>
-                    <ul class="compare-list">
-                        <li>Posto360 AI Pro em breve e recomendações de margem</li>
-                        <li>Até 25 postos com gestão por equipe</li>
-                        <li>Relatórios executivos e auditoria avançada</li>
-                    </ul>
-                </details>
-                <details>
-                    <summary>Scale</summary>
-                    <ul class="compare-list">
-                        <li>Governança para até 50 postos</li>
-                        <li>Consultoria premium e suporte máximo</li>
-                        <li>Relatórios corporativos e prioridade em recursos</li>
-                    </ul>
-                </details>
-                <details>
-                    <summary>Enterprise</summary>
-                    <ul class="compare-list">
-                        <li>Gestão nacional e regional personalizada</li>
-                        <li>Integrações futuras com ERP</li>
-                        <li>SLA premium e atendimento estratégico dedicado</li>
-                    </ul>
-                </details>
             </div>
         </section>
 
-        <section class="section-panel roi-panel" aria-label="ROI estimado">
-            <div class="section-heading">
-                <h2>Quanto sua operação pode recuperar por mês?</h2>
-                <p class="section-copy">Calculadora estratégica simples: se o Posto360 gerar apenas R$500 de ganho operacional por posto.</p>
-            </div>
-            <div class="roi-grid">
-                <div class="roi-card">
-                    <span>10 postos</span>
-                    <strong>+R$5.000/mês</strong>
-                </div>
-                <div class="roi-card">
-                    <span>25 postos</span>
-                    <strong>+R$12.500/mês</strong>
-                </div>
-                <div class="roi-card">
-                    <span>50 postos</span>
-                    <strong>+R$25.000/mês</strong>
-                </div>
-            </div>
-            <p class="roi-message">
-                <span>Mais margem.</span>
-                <span>Mais velocidade.</span>
-                <span>Mais inteligência.</span>
-            </p>
-        </section>
-
-        <section class="section-panel" aria-label="Benefícios empresariais">
-            <div class="section-heading">
-                <h2>Construído para operação real de rede</h2>
-                <p class="section-copy">O Posto360 combina execução de campo, auditoria visual e inteligência comercial para transformar preço em vantagem operacional.</p>
-            </div>
-            <div class="faq">
-                <div class="faq-item">
-                    <h3>O trial gratuito continua?</h3>
-                    <p>Sim. O teste de 7 dias é ativado automaticamente na criação da conta e não aparece como plano principal.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Os dados ficam preservados?</h3>
-                    <p>Sim. Empresas, usuários, postos, histórico e configurações permanecem vinculados à sua rede.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Posso escalar depois?</h3>
-                    <p>Sim. A estrutura foi pensada para crescer de uma rede regional até uma operação corporativa nacional.</p>
-                </div>
-            </div>
-        </section>
+        <p class="fine-print">
+            Todos os CTAs estão preparados para evolução futura de checkout recorrente. Hoje, upgrades direcionam para configuração comercial da conta ou contato enterprise.
+        </p>
     </main>
 </body>
 </html>
